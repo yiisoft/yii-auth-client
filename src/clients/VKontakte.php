@@ -21,10 +21,10 @@ use yii\helpers\Json;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'vkontakte' => [
- *                 'class' => 'yii\authclient\clients\VKontakte',
+ *                 'class' => yii\authclient\clients\VKontakte::class,
  *                 'clientId' => 'vkontakte_client_id',
  *                 'clientSecret' => 'vkontakte_client_secret',
  *             ],
@@ -110,11 +110,11 @@ class VKontakte extends OAuth2
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $data = $request->getData();
+        $data = $request->getParams();
         $data['v'] = $this->apiVersion;
         $data['uids'] = $accessToken->getParam('user_id');
         $data['access_token'] = $accessToken->getToken();
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**

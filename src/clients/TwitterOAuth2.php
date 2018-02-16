@@ -70,6 +70,6 @@ class TwitterOAuth2 extends OAuth2
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $request->getHeaders()->set('Authorization', 'Bearer '. $accessToken->getToken());
+        $request->setHeader('Authorization', 'Bearer '. $accessToken->getToken());
     }
 }

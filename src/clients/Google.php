@@ -22,10 +22,10 @@ use yii\authclient\OAuth2;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'google' => [
- *                 'class' => 'yii\authclient\clients\Google',
+ *                 'class' => yii\authclient\clients\Google::class,
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',
  *             ],

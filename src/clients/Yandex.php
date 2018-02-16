@@ -19,10 +19,10 @@ use yii\authclient\OAuth2;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'yandex' => [
- *                 'class' => 'yii\authclient\clients\Yandex',
+ *                 'class' => yii\authclient\clients\Yandex::class,
  *                 'clientId' => 'yandex_client_id',
  *                 'clientSecret' => 'yandex_client_secret',
  *             ],
@@ -67,12 +67,12 @@ class Yandex extends OAuth2
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $data = $request->getData();
+        $data = $request->getParams();
         if (!isset($data['format'])) {
             $data['format'] = 'json';
         }
         $data['oauth_token'] = $accessToken->getToken();
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**

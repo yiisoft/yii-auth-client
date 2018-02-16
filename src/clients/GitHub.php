@@ -19,10 +19,10 @@ use yii\authclient\OAuth2;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'github' => [
- *                 'class' => 'yii\authclient\clients\GitHub',
+ *                 'class' => yii\authclient\clients\GitHub::class,
  *                 'clientId' => 'github_client_id',
  *                 'clientSecret' => 'github_client_secret',
  *             ],

@@ -20,10 +20,10 @@ use yii\authclient\OAuthToken;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'facebook' => [
- *                 'class' => 'yii\authclient\clients\Facebook',
+ *                 'class' => yii\authclient\clients\Facebook::class,
  *                 'clientId' => 'facebook_client_id',
  *                 'clientSecret' => 'facebook_client_secret',
  *             ],
@@ -102,12 +102,12 @@ class Facebook extends OAuth2
     {
         parent::applyAccessTokenToRequest($request, $accessToken);
 
-        $data = $request->getData();
+        $data = $request->getParams();
         if (($machineId = $accessToken->getParam('machine_id')) !== null) {
             $data['machine_id'] = $machineId;
         }
         $data['appsecret_proof'] = hash_hmac('sha256', $accessToken->getToken(), $this->clientSecret);
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**
@@ -168,7 +168,7 @@ class Facebook extends OAuth2
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData($params);
+            ->setParams($params);
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -205,7 +205,7 @@ class Facebook extends OAuth2
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->clientAuthCodeUrl)
-            ->setData($params);
+            ->setParams($params);
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -236,7 +236,7 @@ class Facebook extends OAuth2
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData($params);
+            ->setParams($params);
 
         $response = $this->sendRequest($request);
 

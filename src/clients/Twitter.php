@@ -19,10 +19,10 @@ use yii\authclient\OAuth1;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'twitter' => [
- *                 'class' => 'yii\authclient\clients\Twitter',
+ *                 'class' => yii\authclient\clients\Twitter::class,
  *                 'attributeParams' => [
  *                     'include_email' => 'true'
  *                 ],

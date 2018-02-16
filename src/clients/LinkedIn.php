@@ -21,10 +21,10 @@ use Yii;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'linkedin' => [
- *                 'class' => 'yii\authclient\clients\LinkedIn',
+ *                 'class' => yii\authclient\clients\LinkedIn::class,
  *                 'clientId' => 'linkedin_client_id',
  *                 'clientSecret' => 'linkedin_client_secret',
  *             ],
@@ -107,9 +107,9 @@ class LinkedIn extends OAuth2
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $data = $request->getData();
+        $data = $request->getParams();
         $data['oauth2_access_token'] = $accessToken->getToken();
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**

@@ -19,10 +19,10 @@ use yii\authclient\OAuth2;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'live' => [
- *                 'class' => 'yii\authclient\clients\Live',
+ *                 'class' => yii\authclient\clients\Live::class,
  *                 'clientId' => 'live_client_id',
  *                 'clientSecret' => 'live_client_secret',
  *             ],
