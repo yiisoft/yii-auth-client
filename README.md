@@ -6,7 +6,7 @@
     <br>
 </p>
 
-This extension adds [OpenID](http://openid.net/), [OAuth](http://oauth.net/), [OAuth2](http://oauth.net/2/) and [OpenId Connect](http://openid.net/connect/)
+This extension adds [OAuth](http://oauth.net/), [OAuth2](http://oauth.net/2/) and [OpenId Connect](http://openid.net/connect/)
 consumers for the [Yii framework 2.0](http://www.yiiframework.com).
 
 For license information check the [LICENSE](https://github.com/yiisoft/yii2-authclient/blob/master/LICENSE.md)-file.

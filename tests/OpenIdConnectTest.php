@@ -4,6 +4,7 @@ namespace yiiunit\authclient;
 
 use yii\authclient\OpenIdConnect;
 use yii\caching\ArrayCache;
+use yii\caching\Cache;
 
 class OpenIdConnectTest extends TestCase
 {
@@ -39,7 +40,7 @@ class OpenIdConnectTest extends TestCase
      */
     public function testDiscoverConfigCache()
     {
-        $cache = new ArrayCache();
+        $cache = new Cache(['handler' => new ArrayCache()]);
 
         $authClient = new OpenIdConnect([
             'issuerUrl' => 'https://accounts.google.com',
@@ -60,7 +61,7 @@ class OpenIdConnectTest extends TestCase
             'id' => 'foo',
             'cache' => $cache,
         ]);
-        $this->expectException('yii\httpclient\Exception');
+        $this->expectException(\yii\httpclient\Exception::class);
         $authClient->getConfigParams();
     }
 

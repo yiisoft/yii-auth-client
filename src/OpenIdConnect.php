@@ -174,7 +174,7 @@ class OpenIdConnect extends OAuth2
         if ($this->_configParams === null) {
             $cache = $this->getCache();
             $cacheKey = $this->configParamsCacheKeyPrefix . $this->getId();
-            if ($cache === null || ($configParams = $cache->get($cacheKey)) === false) {
+            if ($cache === null || ($configParams = $cache->get($cacheKey)) === null) {
                 $configParams = $this->discoverConfig();
             }
 
