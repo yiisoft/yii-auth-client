@@ -8,7 +8,7 @@
 namespace yii\authclient;
 
 use Yii;
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\httpclient\Request;
 use yii\web\HttpException;
 
@@ -115,14 +115,14 @@ abstract class OAuth1 extends BaseOAuth
      * @param OAuthToken $requestToken OAuth request token.
      * @param array $params additional request params.
      * @return string authorize URL
-     * @throws InvalidParamException on failure.
+     * @throws InvalidArgumentException on failure.
      */
     public function buildAuthUrl(OAuthToken $requestToken = null, array $params = [])
     {
         if (!is_object($requestToken)) {
             $requestToken = $this->getState('requestToken');
             if (!is_object($requestToken)) {
-                throw new InvalidParamException('Request token is required to build authorize URL!');
+                throw new InvalidArgumentException('Request token is required to build authorize URL!');
             }
         }
         $params['oauth_token'] = $requestToken->getToken();
@@ -137,7 +137,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param string $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
      * @return OAuthToken OAuth access token.
-     * @throws InvalidParamException on failure.
+     * @throws InvalidArgumentException on failure.
      * @throws HttpException in case oauth token miss-matches request token.
      */
     public function fetchAccessToken($oauthToken = null, OAuthToken $requestToken = null, $oauthVerifier = null, array $params = [])
@@ -151,7 +151,7 @@ abstract class OAuth1 extends BaseOAuth
         if (!is_object($requestToken)) {
             $requestToken = $this->getState('requestToken');
             if (!is_object($requestToken)) {
-                throw new InvalidParamException('Request token is required to fetch access token!');
+                throw new InvalidArgumentException('Request token is required to fetch access token!');
             }
         }
 
@@ -349,7 +349,7 @@ abstract class OAuth1 extends BaseOAuth
     protected function composeSignatureBaseString($method, $url, array $params)
     {
         if (strpos($url, '?') !== false) {
-            list($url, $queryString) = explode('?', $url, 2);
+            [$url, $queryString] = explode('?', $url, 2);
             parse_str($queryString, $urlParams);
             $params = array_merge($urlParams, $params);
         }

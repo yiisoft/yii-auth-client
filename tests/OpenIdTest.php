@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\OpenId;
 

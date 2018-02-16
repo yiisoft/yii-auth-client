@@ -213,8 +213,8 @@ class AuthChoice extends Widget
         }
         /* @var $widgetClass Widget */
         $widgetClass = $widgetConfig['class'];
-        if (!(is_subclass_of($widgetClass, AuthChoiceItem::className()))) {
-            throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::className() . '"');
+        if (!(is_subclass_of($widgetClass, AuthChoiceItem::class))) {
+            throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
         }
         unset($widgetConfig['class']);
         $widgetConfig['client'] = $client;

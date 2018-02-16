@@ -70,7 +70,7 @@ class GooglePlusButton extends AuthChoiceItem
     public function init()
     {
         if (!($this->client instanceof GoogleHybrid)) {
-            throw new InvalidConfigException('"' . $this->className() . '::client" must be instance of "' . GoogleHybrid::className() . '"');
+            throw new InvalidConfigException('"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '"');
         }
     }
 

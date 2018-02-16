@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\OAuth2;
 
@@ -25,7 +25,7 @@ class OAuth2Test extends TestCase
      */
     protected function createClient()
     {
-        $oauthClient = $this->getMockBuilder(OAuth2::className())
+        $oauthClient = $this->getMockBuilder(OAuth2::class)
             ->setMethods(['initUserAttributes'])
             ->getMock();
         return $oauthClient;

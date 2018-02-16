@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient\data;
+namespace yiiunit\authclient\data;
 
 use yii\authclient\BaseClient;
 

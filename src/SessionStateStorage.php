@@ -47,7 +47,7 @@ class SessionStateStorage extends Component implements StateStorageInterface
                 $this->session = Yii::$app->get('session');
             }
         } else {
-            $this->session = Instance::ensure($this->session, Session::className());
+            $this->session = Instance::ensure($this->session, Session::class);
         }
     }
 

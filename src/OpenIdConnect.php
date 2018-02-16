@@ -12,7 +12,7 @@ use Jose\Loader;
 use Yii;
 use yii\authclient\signature\HmacSha;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\caching\Cache;
 use yii\di\Instance;
 use yii\helpers\Json;
@@ -145,7 +145,7 @@ class OpenIdConnect extends OAuth2
     public function getCache()
     {
         if ($this->_cache !== null && !is_object($this->_cache)) {
-            $this->_cache = Instance::ensure($this->_cache, Cache::className());
+            $this->_cache = Instance::ensure($this->_cache, Cache::class);
         }
         return $this->_cache;
     }

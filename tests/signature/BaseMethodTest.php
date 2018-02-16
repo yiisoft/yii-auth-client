@@ -1,8 +1,8 @@
 <?php
 
-namespace yiiunit\extensions\authclient\signature;
+namespace yiiunit\authclient\signature;
 
-use yiiunit\extensions\authclient\TestCase;
+use yiiunit\authclient\TestCase;
 
 class BaseMethodTest extends TestCase
 {

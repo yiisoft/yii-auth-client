@@ -1,9 +1,9 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\Collection;
-use yiiunit\extensions\authclient\data\TestClient;
+use yiiunit\authclient\data\TestClient;
 
 class CollectionTest extends TestCase
 {
@@ -46,7 +46,7 @@ class CollectionTest extends TestCase
         $collection = new Collection();
 
         $clientId = 'testClientId';
-        $clientClassName = TestClient::className();
+        $clientClassName = TestClient::class;
         $clients = [
             $clientId => [
                 'class' => $clientClassName
@@ -87,7 +87,7 @@ class CollectionTest extends TestCase
         $collection->httpClient = new \yii\httpclient\Client();
 
         $clientId = 'testClientId';
-        $clientClassName = TestClient::className();
+        $clientClassName = TestClient::class;
         $clients = [
             $clientId => [
                 'class' => $clientClassName

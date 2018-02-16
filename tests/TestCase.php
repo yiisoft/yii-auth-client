@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\di\Container;
 use yii\helpers\ArrayHelper;
@@ -44,7 +44,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      * @param array $config The application configuration, if needed
      * @param string $appClass name of the application class to create
      */
-    protected function mockApplication($config = [], $appClass = '\yii\console\Application')
+    protected function mockApplication($config = [], $appClass = \yii\console\Application::class)
     {
         new $appClass(ArrayHelper::merge([
             'id' => 'testapp',
@@ -52,13 +52,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'vendorPath' => dirname(__DIR__) . '/vendor',
             'components' => [
                 'session' => [
-                    'class' => 'yiiunit\extensions\authclient\data\Session',
+                    'class' => \yiiunit\authclient\data\Session::class,
                 ],
             ]
         ], $config));
     }
 
-    protected function mockWebApplication($config = [], $appClass = '\yii\web\Application')
+    protected function mockWebApplication($config = [], $appClass = \yii\web\Application::class)
     {
         new $appClass(ArrayHelper::merge([
             'id' => 'testapp',
@@ -66,7 +66,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'vendorPath' => dirname(__DIR__) . '/vendor',
             'components' => [
                 'session' => [
-                    'class' => 'yiiunit\extensions\authclient\data\Session',
+                    'class' => \yiiunit\authclient\data\Session::class,
                 ],
                 'request' => [
                     'cookieValidationKey' => 'wefJDF8sfdsfSDefwqdxj9oq',

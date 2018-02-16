@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\BaseClient;
 use yii\authclient\SessionStateStorage;
@@ -18,7 +18,7 @@ class BaseClientTest extends TestCase
      */
     protected function createClient()
     {
-        $oauthClient = $this->getMockBuilder(BaseClient::className())
+        $oauthClient = $this->getMockBuilder(BaseClient::class)
             ->setMethods(['initUserAttributes'])
             ->getMock();
         return $oauthClient;

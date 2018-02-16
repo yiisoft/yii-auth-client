@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\OAuth1;
 use yii\authclient\signature\BaseMethod;
@@ -27,7 +27,7 @@ class OAuth1Test extends TestCase
      */
     protected function createClient()
     {
-        $oauthClient = $this->getMockBuilder(OAuth1::className())
+        $oauthClient = $this->getMockBuilder(OAuth1::class)
             ->setMethods(['initUserAttributes'])
             ->getMock();
         return $oauthClient;
@@ -46,7 +46,7 @@ class OAuth1Test extends TestCase
         ]);
 
         /* @var $oauthSignatureMethod BaseMethod|\PHPUnit_Framework_MockObject_MockObject */
-        $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::className())
+        $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
             ->setMethods(['getName', 'generateSignature'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())

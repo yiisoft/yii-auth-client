@@ -1,11 +1,11 @@
 <?php
 
-namespace yiiunit\extensions\authclient\clients;
+namespace yiiunit\authclient\clients;
 
 use yii\authclient\clients\Google;
 use yii\authclient\OAuthToken;
 use yii\authclient\signature\RsaSha;
-use yiiunit\extensions\authclient\TestCase;
+use yiiunit\authclient\TestCase;
 
 /**
  * @group google
@@ -34,7 +34,7 @@ class GoogleTest extends TestCase
 
         $oauthClient = new Google();
         $token = $oauthClient->authenticateUserJwt($params['serviceAccount'], [
-            'class' => RsaSha::className(),
+            'class' => RsaSha::class,
             'algorithm' => OPENSSL_ALGO_SHA256,
             'privateCertificate' => $params['serviceAccountPrivateKey']
         ]);

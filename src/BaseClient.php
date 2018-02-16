@@ -329,7 +329,7 @@ abstract class BaseClient extends Component implements ClientInterface
      */
     protected function createHttpClient($reference)
     {
-        return Instance::ensure($reference, Client::className());
+        return Instance::ensure($reference, Client::class);
     }
 
     /**

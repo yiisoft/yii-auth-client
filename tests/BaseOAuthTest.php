@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\signature\PlainText;
 use yii\authclient\OAuthToken;
@@ -22,7 +22,7 @@ class BaseOAuthTest extends TestCase
      */
     protected function createClient()
     {
-        $oauthClient = $this->getMockBuilder(BaseOAuth::className())
+        $oauthClient = $this->getMockBuilder(BaseOAuth::class)
             ->setMethods(['composeRequestCurlOptions', 'refreshAccessToken', 'applyAccessTokenToRequest', 'initUserAttributes'])
             ->getMock();
         return $oauthClient;

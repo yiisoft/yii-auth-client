@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\extensions\authclient;
+namespace yiiunit\authclient;
 
 use yii\authclient\AuthAction;
 
@@ -19,7 +19,7 @@ class AuthActionTest extends TestCase
                 ],
             ]
         ];
-        $this->mockApplication($config, '\yii\web\Application');
+        $this->mockApplication($config, \yii\web\Application::class);
     }
 
     // Tests :
