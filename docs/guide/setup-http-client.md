@@ -13,7 +13,7 @@ use yii\authclient\Google;
 
 $authClient = new Google([
     'httpClient' => [
-        'transport' => 'yii\httpclient\CurlTransport',
+        'transport' => \yii\httpclient\CurlTransport::class,
     ],
 ]);
 ```
@@ -26,19 +26,19 @@ Application configuration example:
 return [
     'components' => [
         'authClientCollection' => [
-            'class' => 'yii\authclient\Collection',
+            'class' => yii\authclient\Collection::class,
             // all Auth clients will use this configuration for HTTP client:
             'httpClient' => [
-                'transport' => 'yii\httpclient\CurlTransport',
+                'transport' => yii\httpclient\CurlTransport::class,
             ],
             'clients' => [
                 'google' => [
-                    'class' => 'yii\authclient\clients\Google',
+                    'class' => yii\authclient\clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    'class' => 'yii\authclient\clients\Facebook',
+                    'class' => yii\authclient\clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],

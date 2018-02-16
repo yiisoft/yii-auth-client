@@ -10,7 +10,7 @@ API specification. Then you can call [[\yii\authclient\BaseOAuth::api()]] method
 ```php
 use yii\authclient\OAuth2;
 
-$client = new OAuth2;
+$client = new OAuth2();
 
 // ...
 
@@ -33,7 +33,7 @@ $user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
 $response = $client->createApiRequest()
     ->setMethod('GET')
     ->setUrl('users')
-    ->setData([
+    ->setParams([
         'id' => $user->id,
     ])
     ->send();
@@ -45,7 +45,7 @@ if ($response->statusCode != 404) {
 $response = $client->createApiRequest()
     ->setMethod('PUT')
     ->setUrl('users')
-    ->setData($user->attributes)
+    ->setParams($user->attributes)
     ->addHeaders([
         'MyHeader' => 'my-value'
     ])
@@ -54,7 +54,7 @@ $response = $client->createApiRequest()
 if (!$response->isOk) {
     // failure
 }
-echo $response->data['id'];
+echo $response->parsedBody['id'];
 ```
 
 Please refer to [yii2-httpclient](https://github.com/yiisoft/yii2-httpclient) documentation for details about HTTP

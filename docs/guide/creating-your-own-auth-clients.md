@@ -40,30 +40,6 @@ class MyAuthClient extends OAuth2
 
 Depending on actual base class, you will need to redeclare different fields and methods.
 
-## [[yii\authclient\OpenId]]
-
-All you need is to specify auth URL, by redeclaring [[yii\authclient\OpenId::authUrl|authUrl]] field.
-You may also setup default required and/or optional attributes.
-For example:
-
-```php
-use yii\authclient\OpenId;
-
-class MyAuthClient extends OpenId
-{
-    public $authUrl = 'https://www.my.com/openid/';
-
-    public $requiredAttributes = [
-        'contact/email',
-    ];
-
-    public $optionalAttributes = [
-        'namePerson/first',
-        'namePerson/last',
-    ];
-}
-```
-
 ## [[yii\authclient\OAuth2]]
 
 You will need to specify:
