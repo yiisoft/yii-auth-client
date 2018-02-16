@@ -26,10 +26,10 @@ use yii\web\HttpException;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => 'yii\authclient\Collection',
+ *         'class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'google' => [
- *                 'class' => 'yii\authclient\OpenIdConnect',
+ *                 'class' => yii\authclient\OpenIdConnect::class,
  *                 'issuerUrl' => 'https://accounts.google.com',
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',
@@ -273,7 +273,7 @@ class OpenIdConnect extends OAuth2
                 'Authorization' => 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)
             ]);
         } elseif (in_array('client_secret_post', $supportedAuthMethods)) {
-            $request->addData([
+            $request->addParams([
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ]);
@@ -297,7 +297,7 @@ class OpenIdConnect extends OAuth2
 
             $assertion = $signatureBaseString . '.' . $signature;
 
-            $request->addData([
+            $request->addParams([
                 'assertion' => $assertion,
             ]);
         } else {

@@ -16,7 +16,7 @@ class OpenIdTest extends TestCase
                 ],
             ]
         ];
-        $this->mockApplication($config, '\yii\web\Application');
+        $this->mockApplication($config, \yii\web\Application::class);
     }
 
     // Tests :

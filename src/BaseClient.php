@@ -84,7 +84,7 @@ abstract class BaseClient extends Component implements ClientInterface
      * @var Client|array|string internal HTTP client.
      * @since 2.1
      */
-    private $_httpClient = 'yii\httpclient\Client';
+    private $_httpClient = \yii\httpclient\Client::class;
     /**
      * @var array cURL request options. Option values from this field will overwrite corresponding
      * values from [[defaultRequestOptions()]].
@@ -94,7 +94,7 @@ abstract class BaseClient extends Component implements ClientInterface
     /**
      * @var StateStorageInterface|array|string state storage to be used.
      */
-    private $_stateStorage = 'yii\authclient\SessionStateStorage';
+    private $_stateStorage = SessionStateStorage::class;
 
 
     /**

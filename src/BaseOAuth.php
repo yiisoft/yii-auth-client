@@ -218,10 +218,10 @@ abstract class BaseOAuth extends BaseClient
         $response = $request->send();
 
         if (!$response->getIsOk()) {
-            throw new InvalidResponseException($response, 'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getContent());
+            throw new InvalidResponseException($response, 'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody());
         }
 
-        return $response->getData();
+        return $response->getParsedBody();
     }
 
     /**
@@ -320,9 +320,9 @@ abstract class BaseOAuth extends BaseClient
 
         if (!empty($data)) {
             if (is_array($data)) {
-                $request->setData($data);
+                $request->setParams($data);
             } else {
-                $request->setContent($data);
+                $request->getBody()->write($data);
             }
         }
 

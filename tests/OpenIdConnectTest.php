@@ -17,7 +17,7 @@ class OpenIdConnectTest extends TestCase
                 ],
             ]
         ];
-        $this->mockApplication($config, '\yii\web\Application');
+        $this->mockApplication($config, \yii\web\Application::class);
     }
 
     public function testDiscoverConfig()

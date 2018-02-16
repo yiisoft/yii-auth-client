@@ -243,7 +243,7 @@ class OpenId extends BaseClient
         $request = $this->createRequest()
             ->setMethod($method)
             ->setUrl($url)
-            ->setData($params);
+            ->setParams($params);
 
         if ($this->verifyPeer !== null) {
             $options = [
@@ -262,13 +262,13 @@ class OpenId extends BaseClient
 
         if ($method == 'HEAD') {
             $headers = [];
-            foreach ($response->getHeaders()->toArray() as $name => $values) {
+            foreach ($response->getHeaders() as $name => $values) {
                 $headers[strtolower($name)] = array_pop($values);
             }
             return $headers;
         }
 
-        return $response->getContent();
+        return $response->getBody()->__toString();
     }
 
     /**

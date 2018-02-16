@@ -117,7 +117,7 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData(array_merge($defaultParams, $params));
+            ->setParams(array_merge($defaultParams, $params));
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -134,9 +134,9 @@ abstract class OAuth2 extends BaseOAuth
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $data = $request->getData();
+        $data = $request->getParams();
         $data['access_token'] = $accessToken->getToken();
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**
@@ -147,7 +147,7 @@ abstract class OAuth2 extends BaseOAuth
      */
     protected function applyClientCredentialsToRequest($request)
     {
-        $request->addData([
+        $request->addParams([
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
         ]);
@@ -168,7 +168,7 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData($params);
+            ->setParams($params);
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -241,7 +241,7 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData(array_merge($defaultParams, $params));
+            ->setParams(array_merge($defaultParams, $params));
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -277,7 +277,7 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData(array_merge($defaultParams, $params));
+            ->setParams(array_merge($defaultParams, $params));
 
         $this->applyClientCredentialsToRequest($request);
 
@@ -349,7 +349,7 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setData(array_merge([
+            ->setParams(array_merge([
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                 'assertion' => $assertion,
             ], $params));

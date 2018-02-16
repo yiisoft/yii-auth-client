@@ -53,7 +53,7 @@ class BaseOAuthTest extends TestCase
         $this->assertEquals($oauthClient->apiBaseUrl, $actualHttpClient->baseUrl);
 
         $oauthClient->setHttpClient([
-            'transport' => 'yii\httpclient\CurlTransport'
+            'transport' => \yii\httpclient\CurlTransport::class
         ]);
         $this->assertEquals($oauthClient->apiBaseUrl, $oauthClient->getHttpClient()->baseUrl);
     }
@@ -105,7 +105,7 @@ class BaseOAuthTest extends TestCase
         $this->assertEquals($oauthToken['token'], $oauthClient->getAccessToken()->getToken(), 'Unable to setup token as config!');
 
         $oauthSignatureMethod = [
-            'class' => 'yii\authclient\signature\PlainText'
+            'class' => \yii\authclient\signature\PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
@@ -205,6 +205,6 @@ class BaseOAuthTest extends TestCase
         $request = $oauthClient->createApiRequest()
             ->setUrl($apiSubUrl);
 
-        $this->assertEquals($expectedApiFullUrl, $request->getFullUrl());
+        $this->assertEquals($expectedApiFullUrl, $request->getUri()->__toString());
     }
 }

@@ -18,7 +18,7 @@ class OAuth1Test extends TestCase
                 ],
             ]
         ];
-        $this->mockApplication($config, '\yii\web\Application');
+        $this->mockApplication($config, \yii\web\Application::class);
     }
 
     /**
@@ -41,7 +41,7 @@ class OAuth1Test extends TestCase
 
         $request = $oauthClient->createRequest();
         $request->setUrl('https://example.com?s=some');
-        $request->setData([
+        $request->setParams([
             'a' => 'another',
         ]);
 
@@ -60,7 +60,7 @@ class OAuth1Test extends TestCase
 
         $oauthClient->signRequest($request);
 
-        $signedParams = $request->getData();
+        $signedParams = $request->getParams();
 
         $this->assertNotEmpty($signedParams['oauth_signature'], 'Unable to sign request!');
 
@@ -92,30 +92,30 @@ class OAuth1Test extends TestCase
         $request = $oauthClient->createRequest();
         $request->setMethod('POST');
         $oauthClient->signRequest($request);
-        $this->assertNotEmpty($request->getHeaders()->get('Authorization'));
+        $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
         $request = $oauthClient->createRequest();
         $request->setMethod('GET');
         $oauthClient->signRequest($request);
-        $this->assertEmpty($request->getHeaders()->get('Authorization'));
+        $this->assertEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = ['GET'];
         $request = $oauthClient->createRequest();
         $request->setMethod('GET');
         $oauthClient->signRequest($request);
-        $this->assertNotEmpty($request->getHeaders()->get('Authorization'));
+        $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = null;
         $request = $oauthClient->createRequest();
         $request->setMethod('GET');
         $oauthClient->signRequest($request);
-        $this->assertNotEmpty($request->getHeaders()->get('Authorization'));
+        $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = [];
         $request = $oauthClient->createRequest();
         $request->setMethod('POST');
         $oauthClient->signRequest($request);
-        $this->assertEmpty($request->getHeaders()->get('Authorization'));
+        $this->assertEmpty($request->getHeaderLine('Authorization'));
     }
 
     /**

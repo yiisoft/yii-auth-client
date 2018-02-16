@@ -29,9 +29,9 @@ class InvalidResponseException extends Exception
      * @param \yii\httpclient\Response $response response body
      * @param string $message error message
      * @param int $code error code
-     * @param \Exception $previous The previous exception used for the exception chaining.
+     * @param \Throwable $previous The previous exception used for the exception chaining.
      */
-    public function __construct($response, $message = null, $code = 0, \Exception $previous = null)
+    public function __construct($response, $message = null, $code = 0, \Throwable $previous = null)
     {
         $this->response = $response;
         parent::__construct($message, $code, $previous);

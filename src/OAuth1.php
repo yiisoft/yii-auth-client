@@ -96,7 +96,7 @@ abstract class OAuth1 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod($this->requestTokenMethod)
             ->setUrl($this->requestTokenUrl)
-            ->setData(array_merge($defaultParams, $params));
+            ->setParams(array_merge($defaultParams, $params));
 
         $this->signRequest($request);
 
@@ -175,7 +175,7 @@ abstract class OAuth1 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod($this->accessTokenMethod)
             ->setUrl($this->accessTokenUrl)
-            ->setData(array_merge($defaultParams, $params));
+            ->setParams(array_merge($defaultParams, $params));
 
         $this->signRequest($request, $requestToken);
 
@@ -229,10 +229,10 @@ abstract class OAuth1 extends BaseOAuth
      */
     public function applyAccessTokenToRequest($request, $accessToken)
     {
-        $data = $request->getData();
+        $data = $request->getParams();
         $data['oauth_consumer_key'] = $this->consumerKey;
         $data['oauth_token'] = $accessToken->getToken();
-        $request->setData($data);
+        $request->setParams($data);
     }
 
     /**
@@ -300,9 +300,9 @@ abstract class OAuth1 extends BaseOAuth
      */
     public function signRequest($request, $token = null)
     {
-        $params = $request->getData();
+        $params = $request->getParams();
 
-        if (isset($params['oauth_signature_method']) || $request->hasHeaders() && $request->getHeaders()->has('authorization')) {
+        if (isset($params['oauth_signature_method']) || $request->hasHeader('authorization')) {
             // avoid double sign of request
             return;
         }
@@ -313,7 +313,7 @@ abstract class OAuth1 extends BaseOAuth
             $params = array_merge($this->generateCommonRequestParams(), $params);
         }
 
-        $url = $request->getFullUrl();
+        $url = $request->getUri()->__toString();
 
         $signatureMethod = $this->getSignatureMethod();
 
@@ -336,7 +336,7 @@ abstract class OAuth1 extends BaseOAuth
             }
         }
 
-        $request->setData($params);
+        $request->setParams($params);
     }
 
     /**
