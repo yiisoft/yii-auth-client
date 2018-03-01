@@ -1,10 +1,11 @@
 Yii Framework 2 authclient extension Change Log
 ===============================================
 
-2.1.6 under development
+2.2.0 under development
 -----------------------
 
-- no changes in this release.
+- Chg: Required Yii framework version has been raised to '2.1.0' (klimov-paul)
+- Chg: Required "yiisoft/yii2-httpclient" version has been raised to '2.1.0' (klimov-paul)
 
 
 2.1.5 February 08, 2018

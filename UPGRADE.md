@@ -8,8 +8,14 @@ if you want to upgrade from version A to version C and there is
 version B between A and C, you need to following the instructions
 for both A and B.
 
-Upgrade from yii2-authclient 2.1.0
+Upgrade from yii2-authclient 2.1.5
 ----------------------------------
+
+* Version constraint for "yiisoft/yii2" package has been raised to "~2.1.0". Make sure your code
+  matches this version of the Yii framework.
+
+* Version constraint for "yiisoft/yii2-httpclient" package has been raised to "~2.1.0". Make sure your code
+  matches this version of the HTTP client.
 
 * The signature of the `yii\authclient\BaseOAuth::saveAccessToken()` method has been changed.
   In case you are extending related class and override this method, you should check, if it matches parent declaration.
