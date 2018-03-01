@@ -19,10 +19,10 @@ use yii\authclient\OAuth2;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'yandex' => [
- *                 'class' => yii\authclient\clients\Yandex::class,
+ *                 '__class' => yii\authclient\clients\Yandex::class,
  *                 'clientId' => 'yandex_client_id',
  *                 'clientSecret' => 'yandex_client_secret',
  *             ],

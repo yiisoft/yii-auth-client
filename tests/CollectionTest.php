@@ -49,7 +49,7 @@ class CollectionTest extends TestCase
         $clientClassName = TestClient::class;
         $clients = [
             $clientId => [
-                'class' => $clientClassName
+                '__class' => $clientClassName
             ]
         ];
         $collection->setClients($clients);
@@ -69,7 +69,7 @@ class CollectionTest extends TestCase
         $clientName = 'testClientName';
         $clients = [
             $clientName => [
-                'class' => 'TestClient1'
+                '__class' => 'TestClient1'
             ],
         ];
         $collection->setClients($clients);
@@ -90,7 +90,7 @@ class CollectionTest extends TestCase
         $clientClassName = TestClient::class;
         $clients = [
             $clientId => [
-                'class' => $clientClassName
+                '__class' => $clientClassName
             ]
         ];
         $collection->setClients($clients);

@@ -32,10 +32,10 @@
         }
     ],
     "autoload": {
-        "psr-4": { "yii\\authclient\\": "src" }
+        "psr-4": {"yii\\authclient\\": "src"}
     },
     "autoload-dev": {
-        "psr-4": {"yiiunit\\authclient\\": "tests/"}
+        "psr-4": {"yiiunit\\authclient\\": "tests"}
     },
     "extra": {
         "branch-alias": {

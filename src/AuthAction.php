@@ -30,7 +30,7 @@ use Yii;
  *     {
  *         return [
  *             'auth' => [
- *                 'class' => 'yii\authclient\AuthAction',
+ *                 '__class' => \yii\authclient\AuthAction::class,
  *                 'successCallback' => [$this, 'successCallback'],
  *             ],
  *         ]

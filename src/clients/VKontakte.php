@@ -21,10 +21,10 @@ use yii\helpers\Json;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'vkontakte' => [
- *                 'class' => yii\authclient\clients\VKontakte::class,
+ *                 '__class' => yii\authclient\clients\VKontakte::class,
  *                 'clientId' => 'vkontakte_client_id',
  *                 'clientSecret' => 'vkontakte_client_secret',
  *             ],

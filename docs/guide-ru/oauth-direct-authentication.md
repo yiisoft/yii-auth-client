@@ -67,7 +67,7 @@ $oauthClient = new Google();
 $accessToken = $oauthClient->authenticateUserJwt(
     'your-service-account-id@developer.gserviceaccount.com',
     [
-        'class' => RsaSha::className(),
+        '__class' => RsaSha::class,
         'algorithm' => OPENSSL_ALGO_SHA256,
         'privateCertificate' => "-----BEGIN PRIVATE KEY-----   ...   -----END PRIVATE KEY-----\n"
     ]

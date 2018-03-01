@@ -25,15 +25,15 @@ composer require --prefer-dist yiisoft/yii2-authclient "~2.1.0"
 return [
     'components' => [
         'authClientCollection' => [
-            'class' => 'yii\authclient\Collection',
+            '__class' => yii\authclient\Collection::class,
             'clients' => [
                 'google' => [
-                    'class' => 'yii\authclient\clients\Google',
+                    '__class' => yii\authclient\clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    'class' => 'yii\authclient\clients\Facebook',
+                    '__class' => yii\authclient\clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'секретный_ключ_facebook_client',
                 ],

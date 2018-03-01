@@ -187,8 +187,8 @@ abstract class BaseOAuth extends BaseClient
      */
     protected function createSignatureMethod(array $signatureMethodConfig)
     {
-        if (!array_key_exists('class', $signatureMethodConfig)) {
-            $signatureMethodConfig['class'] = signature\HmacSha1::class;
+        if (!array_key_exists('__class', $signatureMethodConfig)) {
+            $signatureMethodConfig['__class'] = signature\HmacSha1::class;
         }
         return Yii::createObject($signatureMethodConfig);
     }
@@ -200,8 +200,8 @@ abstract class BaseOAuth extends BaseClient
      */
     protected function createToken(array $tokenConfig = [])
     {
-        if (!array_key_exists('class', $tokenConfig)) {
-            $tokenConfig['class'] = OAuthToken::class;
+        if (!array_key_exists('__class', $tokenConfig)) {
+            $tokenConfig['__class'] = OAuthToken::class;
         }
         return Yii::createObject($tokenConfig);
     }

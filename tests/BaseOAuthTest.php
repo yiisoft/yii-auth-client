@@ -105,11 +105,11 @@ class BaseOAuthTest extends TestCase
         $this->assertEquals($oauthToken['token'], $oauthClient->getAccessToken()->getToken(), 'Unable to setup token as config!');
 
         $oauthSignatureMethod = [
-            'class' => \yii\authclient\signature\PlainText::class
+            '__class' => \yii\authclient\signature\PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
-        $this->assertEquals($oauthSignatureMethod['class'], get_class($returnedSignatureMethod), 'Unable to setup signature method as config!');
+        $this->assertEquals($oauthSignatureMethod['__class'], get_class($returnedSignatureMethod), 'Unable to setup signature method as config!');
     }
 
     /**

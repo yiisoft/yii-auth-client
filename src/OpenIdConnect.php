@@ -26,10 +26,10 @@ use yii\web\HttpException;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'google' => [
- *                 'class' => yii\authclient\OpenIdConnect::class,
+ *                 '__class' => yii\authclient\OpenIdConnect::class,
  *                 'issuerUrl' => 'https://accounts.google.com',
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',

@@ -20,10 +20,10 @@ use yii\authclient\OAuthToken;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'facebook' => [
- *                 'class' => yii\authclient\clients\Facebook::class,
+ *                 '__class' => yii\authclient\clients\Facebook::class,
  *                 'clientId' => 'facebook_client_id',
  *                 'clientSecret' => 'facebook_client_secret',
  *             ],

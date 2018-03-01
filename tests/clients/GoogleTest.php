@@ -34,7 +34,7 @@ class GoogleTest extends TestCase
 
         $oauthClient = new Google();
         $token = $oauthClient->authenticateUserJwt($params['serviceAccount'], [
-            'class' => RsaSha::class,
+            '__class' => RsaSha::class,
             'algorithm' => OPENSSL_ALGO_SHA256,
             'privateCertificate' => $params['serviceAccountPrivateKey']
         ]);

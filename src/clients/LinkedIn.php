@@ -21,10 +21,10 @@ use Yii;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'linkedin' => [
- *                 'class' => yii\authclient\clients\LinkedIn::class,
+ *                 '__class' => yii\authclient\clients\LinkedIn::class,
  *                 'clientId' => 'linkedin_client_id',
  *                 'clientSecret' => 'linkedin_client_secret',
  *             ],

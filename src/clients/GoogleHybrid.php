@@ -16,10 +16,10 @@ namespace yii\authclient\clients;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         'class' => yii\authclient\Collection::class,
+ *         '__class' => yii\authclient\Collection::class,
  *         'clients' => [
  *             'google' => [
- *                 'class' => yii\authclient\clients\GoogleHybrid::class,
+ *                 '__class' => yii\authclient\clients\GoogleHybrid::class,
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',
  *             ],
@@ -41,7 +41,7 @@ namespace yii\authclient\clients;
  *     // ...
  *     'viewOptions' => [
  *         'widget' => [
- *             'class' => yii\authclient\widgets\GooglePlusButton::class,
+ *             '__class' => yii\authclient\widgets\GooglePlusButton::class,
  *             'buttonHtmlOptions' => [
  *                 'data-approvalprompt' => 'force'
  *             ],
@@ -80,7 +80,7 @@ class GoogleHybrid extends Google
     {
         return [
             'widget' => [
-                'class' => \yii\authclient\widgets\GooglePlusButton::class
+                '__class' => \yii\authclient\widgets\GooglePlusButton::class
             ],
         ];
     }
