@@ -20,7 +20,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "yiisoft/yii-http-client": "1.0.x-dev"
+        "yiisoft/yii-http-client": "^1.0"
     },
     "suggest": {
         "spomky-labs/jose": "required for JWS,JWT or JWK related flows like OpenIDConnect"
