@@ -1,8 +1,14 @@
 <p align="center">
     <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://avatars0.githubusercontent.com/u/993323" height="100px">
+        <img src="https://avatars0.githubusercontent.com/u/993323" height="80px">
     </a>
-    <h1 align="center">Yii Framework external authentication via OAuth and OpenID Extension</h1>
+    <a href="https://oauth.net/2/" target="_blank">
+        <img src="https://oauth.net/images/oauth-2-sm.png" height="80px">
+    </a>
+    <a href="http://openid.net/connect/" target="_blank">
+        <img src="http://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px">
+    </a>
+    <h1 align="center">Yii Framework External Authentication Extension</h1>
     <br>
 </p>
 
