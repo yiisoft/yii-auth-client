@@ -20,7 +20,13 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "yiisoft/yii-http-client": "^1.0"
+        "yiisoft/yii-http-client": "^1.0@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.3",
+        "yiisoft/di": "dev-master",
+        "yiisoft/log": "dev-master",
+        "yiisoft/cache": "dev-master"
     },
     "suggest": {
         "spomky-labs/jose": "required for JWS,JWT or JWK related flows like OpenIDConnect"
