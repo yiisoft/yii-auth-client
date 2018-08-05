@@ -1,15 +1,15 @@
 {
-    "name": "yiisoft/yii2-authclient",
-    "description": "External authentication via OAuth and OpenID for the Yii framework",
-    "keywords": ["yii2", "OAuth", "OpenID Connect", "auth", "api"],
-    "type": "yii2-extension",
+    "name": "yiisoft/yii-auth-client",
+    "description": "Yii Framework external authentication via OAuth and OpenID Extension",
+    "keywords": ["yii", "OAuth", "OpenID Connect", "auth", "api"],
+    "type": "library",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2-authclient/issues",
+        "issues": "https://github.com/yiisoft/yii-auth-client/issues",
         "forum": "http://www.yiiframework.com/forum/",
         "wiki": "http://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii",
-        "source": "https://github.com/yiisoft/yii2-authclient"
+        "source": "https://github.com/yiisoft/yii-auth-client"
     },
     "authors": [
         {
@@ -20,7 +20,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "yiisoft/yii2-httpclient": "2.1.x-dev"
+        "yiisoft/yii-http-client": "1.0.x-dev"
     },
     "suggest": {
         "spomky-labs/jose": "required for JWS,JWT or JWK related flows like OpenIDConnect"
@@ -39,7 +39,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "2.0.x-dev"
+            "dev-master": "1.0.x-dev"
         }
     }
 }
