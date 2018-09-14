@@ -6,7 +6,6 @@
 次のステップは、ウェブのコントローラに [[yii\authclient\AuthAction]] を追加して、あなたの必要に応じた `successCallback` の実装を提供することです。
 典型的な場合、コントローラのコードは、最終的には次のようなものになります。
 
-
 ```php
 use app\components\AuthHandler;
 
@@ -16,7 +15,7 @@ class SiteController extends Controller
     {
         return [
             'auth' => [
-                'class' => 'yii\authclient\AuthAction',
+                '__class' => yii\authclient\AuthAction::class,
                 'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];
@@ -188,7 +187,6 @@ class AuthHandler
 > Note: Auth クライアントの違いによって、認証の成功を処理するときの方法も違ったものになります。
   たとえば、Twitter はユーザの email を返すことを許していませんので、何らかの方法でそれに対処しなければなりません。
 
-
 ### Auth クライアントの基本的な構造
 
 全ての Auth クライアントには違いがありますが、同じインタフェイス  [[yii\authclient\ClientInterface]] を共有し、共通の API によって管理されます。
@@ -215,7 +213,7 @@ class AuthHandler
   プロバイダによってスコープの形式が異なることに注意。
 
 
-> Tip: いくつかの異なるクライアントを使用する場合は、[[yii\authclient\BaseClient::normalizeUserAttributeMap]] を使って、クライアントが返す属性を統一することが出来ます。
+> Tip: いくつかの異なるクライアントを使用する場合は、[[yii\authclient\BaseClient::$normalizeUserAttributeMap]] を使って、クライアントが返す属性を統一することが出来ます。
 
 
 ## ログインビューにウィジェットを追加する
