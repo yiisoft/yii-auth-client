@@ -6,14 +6,16 @@
 エクステンションをインストールするためには、Composer を使います。次のコマンドを実行します。
 
 ```
-composer require --prefer-dist yiisoft/yii2-authclient "~2.1.0"
+composer require --prefer-dist yiisoft/yii2-authclient "~2.2.0"
 ```
 
-または、あなたの composer.json の `require` セクションに次の行を追加します。
+または、あなたの composer.json の `require` セクションに
 
 ```json
-"yiisoft/yii2-authclient": "~2.1.0"
+"yiisoft/yii2-authclient": "~2.2.0"
 ```
+
+を追加します。
 
 ## アプリケーションを構成する
 
@@ -23,15 +25,15 @@ composer require --prefer-dist yiisoft/yii2-authclient "~2.1.0"
 return [
     'components' => [
         'authClientCollection' => [
-            'class' => 'yii\authclient\Collection',
+            '__class' => yii\authclient\Collection::class,
             'clients' => [
                 'google' => [
-                    'class' => 'yii\authclient\clients\Google',
+                    '__class' => yii\authclient\clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    'class' => 'yii\authclient\clients\Facebook',
+                    '__class' => yii\authclient\clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],
@@ -56,9 +58,7 @@ return [
 - [[yii\authclient\clients\Yandex|Yandex]]
 
 それぞれのクライアントの構成は少しずつ異なります。
-OAuth では、使おうとしているサービスからクライアント ID と秘密キーを取得することが必要です。
-OpenID では、たいていの場合、何も設定しなくても動作します。
-
+OAuth では、使おうとしているサービスからクライアント ID と秘密キーを取得することが必要です。OpenID では、たいていの場合、何も設定しなくても動作します。
 
 ## 認証データを保存する
 
@@ -106,7 +106,8 @@ class m??????_??????_auth extends \yii\db\Migration
 
 上記の SQL における `user` は、アドバンストプロジェクトテンプレートでユーザ情報を保存するために使われている標準的なテーブルです。
 全てのユーザはそれぞれ複数の外部サービスを使って認証できますので、全ての `user` レコードはそれぞれ複数の `auth` レコードと関連を持ち得ます。
-`auth` テーブルにおいて `source` は使用される認証プロバイダの名前であり、`source_id` はログイン成功後に外部サービスから提供される一意のユーザ識別子です。
+`auth` テーブルにおいて `source` は使用される認証プロバイダの名前であり、
+`source_id` はログイン成功後に外部サービスから提供される一意のユーザ識別子です。
 
 上記で作成されたテーブルを使って `Auth` モデルを生成することが出来ます。これ以上の修正は必要ありません。
 
