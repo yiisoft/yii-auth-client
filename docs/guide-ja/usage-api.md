@@ -1,7 +1,8 @@
 追加の API 呼び出しで追加のデータを取得する
 ===========================================
 
-[[yii\authclient\OAuth1]] と [[yii\authclient\OAuth2]] は、ともに、`api()` メソッドをサポートしており、これによって外部認証プロバイダの REST API にアクセスすることが出来ます。
+[[yii\authclient\OAuth1]] と [[yii\authclient\OAuth2]] は、ともに、`api()` メソッドをサポートしており、
+これによって外部認証プロバイダの REST API にアクセスすることが出来ます。
 
 API の呼び出しを使用するためには、API の仕様に従って [[yii\authclient\BaseOAuth::apiBaseUrl]] をセットアップする必要があります。
 そうすれば [[yii\authclient\BaseOAuth::api()]] メソッドを呼ぶことが出来ます。
@@ -9,7 +10,7 @@ API の呼び出しを使用するためには、API の仕様に従って [[yii
 ```php
 use yii\authclient\OAuth2;
 
-$client = new OAuth2;
+$client = new OAuth2();
 
 // ...
 
@@ -32,7 +33,7 @@ $user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
 $response = $client->createApiRequest()
     ->setMethod('GET')
     ->setUrl('users')
-    ->setData([
+    ->setParams([
         'id' => $user->id,
     ])
     ->send();
@@ -53,14 +54,17 @@ $response = $client->createApiRequest()
 if (!$response->isOk) {
     // 失敗
 }
-echo $response->data['id'];
+echo $response->parsedBody['id'];
 ```
 
-HTTP リクエストの送信に関する詳細は、[yii2-httpclient](https://github.com/yiisoft/yii2-httpclient) のドキュメントを参照して下さい。
+HTTP リクエストの送信に関する詳細は、[yii2-httpclient](https://github.com/yiisoft/yii2-httpclient)
+のドキュメントを参照して下さい。
 
-[[\yii\authclient\BaseOAuth::createApiRequest()]] によって生成されたリクエストは、自動的にサインアップされ(OAuth 1.0 を使用する場合)、送信される前にアクセストークンを適用されます。
+[[\yii\authclient\BaseOAuth::createApiRequest()]] によって生成されたリクエストは、自動的にサインアップされ(OAuth 1.0 を使用する場合)、
+送信される前にアクセストークンを適用されます。
 これらのプロセスに対する完全な制御を獲得したい場合は、代りに [[\yii\authclient\BaseClient::createRequest()]] を使わなければなりません。
-[[\yii\authclient\BaseOAuth::applyAccessTokenToRequest()]] および [[yii\authclient\OAuth1::signRequest()]] のメソッドを使って、その API リクエストに必要なアクションを実行することが出来ます。
+[[\yii\authclient\BaseOAuth::applyAccessTokenToRequest()]] および [[yii\authclient\OAuth1::signRequest()]] のメソッドを使って、
+その API リクエストに必要なアクションを実行することが出来ます。
 例えば、
 
 ```php
