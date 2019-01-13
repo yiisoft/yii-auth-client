@@ -21,7 +21,7 @@ Documentation is at [docs/guide/README.md](https://github.com/yiisoft/yii-auth-c
 
 [![Latest Stable Version](https://poser.pugx.org/yiisoft/yii2-authclient/v/stable.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
 [![Total Downloads](https://poser.pugx.org/yiisoft/yii2-authclient/downloads.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
-[![Build Status](https://travis-ci.org/yiisoft/yii2-authclient.svg?branch=master)](https://travis-ci.org/yiisoft/yii-auth-client)
+[![Build Status](https://travis-ci.com/yiisoft/yii2-authclient.svg?branch=master)](https://travis-ci.com/yiisoft/yii-auth-client)
 
 Installation
 ------------
