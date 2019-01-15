@@ -15,7 +15,6 @@ use yii\helpers\Url;
 use yii\web\Response;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
-use Yii;
 
 /**
  * AuthAction performs authentication via different auth clients.
@@ -165,7 +164,7 @@ class AuthAction extends Action
      */
     protected function defaultSuccessUrl()
     {
-        return Yii::$app->getUser()->getReturnUrl();
+        return $this->app->getUser()->getReturnUrl();
     }
 
     /**
@@ -174,7 +173,7 @@ class AuthAction extends Action
      */
     protected function defaultCancelUrl()
     {
-        return Url::to(Yii::$app->getUser()->loginUrl);
+        return Url::to($this->app->getUser()->loginUrl);
     }
 
     /**
@@ -182,10 +181,10 @@ class AuthAction extends Action
      */
     public function run()
     {
-        $clientId = Yii::$app->getRequest()->getQueryParam($this->clientIdGetParamName);
+        $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
         if (!empty($clientId)) {
             /* @var $collection \yii\authclient\Collection */
-            $collection = Yii::$app->get($this->clientCollection);
+            $collection = $this->app->get($this->clientCollection);
             if (!$collection->hasClient($clientId)) {
                 throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
             }
@@ -266,7 +265,7 @@ class AuthAction extends Action
         if ($viewFile === null) {
             $viewFile = __DIR__ . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
-            $viewFile = Yii::getAlias($viewFile);
+            $viewFile = $this->app->getAlias($viewFile);
         }
 
         $viewData = [
@@ -274,8 +273,8 @@ class AuthAction extends Action
             'enforceRedirect' => $enforceRedirect,
         ];
 
-        $response = Yii::$app->getResponse();
-        $response->content = Yii::$app->getView()->renderFile($viewFile, $viewData);
+        $response = $this->app->getResponse();
+        $response->content = $this->app->getView()->renderFile($viewFile, $viewData);
 
         return $response;
     }
@@ -315,12 +314,12 @@ class AuthAction extends Action
      */
     protected function authOpenId($client)
     {
-        $request = Yii::$app->getRequest();
+        $request = $this->app->getRequest();
         $mode = $request->get('openid_mode', $request->post('openid_mode'));
 
         if (empty($mode)) {
             $url = $client->buildAuthUrl();
-            return Yii::$app->getResponse()->redirect($url);
+            return $this->app->getResponse()->redirect($url);
         }
 
         switch ($mode) {
@@ -343,7 +342,7 @@ class AuthAction extends Action
      */
     protected function authOAuth1($client)
     {
-        $request = Yii::$app->getRequest();
+        $request = $this->app->getRequest();
 
         // user denied error
         if ($request->get('denied') !== null) {
@@ -361,7 +360,7 @@ class AuthAction extends Action
         // Get authorization URL.
         $url = $client->buildAuthUrl($requestToken);
         // Redirect to authorization URL.
-        return Yii::$app->getResponse()->redirect($url);
+        return $this->app->getResponse()->redirect($url);
     }
 
     /**
@@ -372,7 +371,7 @@ class AuthAction extends Action
      */
     protected function authOAuth2($client)
     {
-        $request = Yii::$app->getRequest();
+        $request = $this->app->getRequest();
 
         if (($error = $request->get('error')) !== null) {
             if ($error === 'access_denied') {
@@ -397,6 +396,6 @@ class AuthAction extends Action
         }
 
         $url = $client->buildAuthUrl();
-        return Yii::$app->getResponse()->redirect($url);
+        return $this->app->getResponse()->redirect($url);
     }
 }

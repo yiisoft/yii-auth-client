@@ -4,7 +4,7 @@ namespace yiiunit\authclient;
 
 use yii\authclient\OAuthToken;
 
-class TokenTest extends TestCase
+class TokenTest extends \yii\tests\TestCase
 {
     public function testCreate()
     {
@@ -12,7 +12,9 @@ class TokenTest extends TestCase
             'tokenParamKey' => 'test_token_param_key',
             'tokenSecretParamKey' => 'test_token_secret_param_key',
         ];
-        $oauthToken = new OAuthToken($config);
+        $oauthToken = $this->factory->create(array_merge($config, [
+            '__class' => OAuthToken::class,
+        ]));
         $this->assertTrue(is_object($oauthToken), 'Unable to create access token!');
         foreach ($config as $name => $value) {
             $this->assertEquals($value, $oauthToken->$name, 'Unable to setup attributes by constructor!');

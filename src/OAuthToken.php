@@ -50,14 +50,9 @@ class OAuthToken extends BaseObject
     private $_params = [];
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
+    public function __construct()
     {
-        if ($this->createTimestamp === null) {
-            $this->createTimestamp = time();
-        }
+        $this->createTimestamp = time();
     }
 
     /**
