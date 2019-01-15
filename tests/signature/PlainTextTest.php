@@ -1,9 +1,9 @@
 <?php
 
-namespace yiiunit\authclient\signature;
+namespace yii\authclient\tests\signature;
 
 use yii\authclient\signature\PlainText;
-use yiiunit\authclient\TestCase;
+use yii\authclient\tests\TestCase;
 
 class PlainTextTest extends TestCase
 {

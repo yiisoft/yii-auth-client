@@ -1,9 +1,9 @@
 <?php
 
-namespace yiiunit\authclient;
+namespace yii\authclient\tests;
 
 use yii\authclient\SessionStateStorage;
-use yiiunit\authclient\data\Session;
+use yii\authclient\tests\data\Session;
 
 class SessionStateStorageTest extends TestCase
 {

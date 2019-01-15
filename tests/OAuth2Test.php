@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\authclient;
+namespace yii\authclient\tests;
 
 use yii\authclient\OAuth2;
 

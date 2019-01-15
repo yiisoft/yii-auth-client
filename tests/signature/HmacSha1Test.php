@@ -1,9 +1,9 @@
 <?php
 
-namespace yiiunit\authclient\signature;
+namespace yii\authclient\tests\signature;
 
 use yii\authclient\signature\HmacSha1;
-use yiiunit\authclient\TestCase;
+use yii\authclient\tests\TestCase;
 
 class HmacSha1Test extends TestCase
 {

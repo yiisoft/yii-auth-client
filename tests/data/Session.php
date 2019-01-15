@@ -1,6 +1,6 @@
 <?php
 
-namespace yiiunit\authclient\data;
+namespace yii\authclient\tests\data;
 
 /**
  * Web session class mock.

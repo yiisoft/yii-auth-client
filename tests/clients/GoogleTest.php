@@ -1,11 +1,11 @@
 <?php
 
-namespace yiiunit\authclient\clients;
+namespace yii\authclient\tests\clients;
 
 use yii\authclient\clients\Google;
 use yii\authclient\OAuthToken;
 use yii\authclient\signature\RsaSha;
-use yiiunit\authclient\TestCase;
+use yii\authclient\tests\TestCase;
 
 /**
  * @group google

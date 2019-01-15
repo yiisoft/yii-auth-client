@@ -1,9 +1,9 @@
 <?php
 
-namespace yiiunit\authclient;
+namespace yii\authclient\tests;
 
 use yii\authclient\Collection;
-use yiiunit\authclient\data\TestClient;
+use yii\authclient\tests\data\TestClient;
 
 class CollectionTest extends TestCase
 {
