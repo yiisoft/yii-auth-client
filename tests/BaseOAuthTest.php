@@ -7,7 +7,7 @@ use yii\authclient\OAuthToken;
 use yii\authclient\BaseOAuth;
 use yii\httpclient\Client;
 
-class BaseOAuthTest extends TestCase
+class BaseOAuthTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {
@@ -153,7 +153,7 @@ class BaseOAuthTest extends TestCase
     public function testComposeUrl($url, array $params, $expectedUrl)
     {
         $oauthClient = $this->createClient();
-        $composedUrl = $this->invoke($oauthClient, 'composeUrl', [$url, $params]);
+        $composedUrl = $this->invokeMethod($oauthClient, 'composeUrl', [$url, $params]);
         $this->assertEquals($expectedUrl, $composedUrl);
     }
 

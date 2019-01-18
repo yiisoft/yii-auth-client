@@ -5,7 +5,7 @@ namespace yii\authclient\tests;
 use yii\authclient\SessionStateStorage;
 use yii\authclient\tests\data\Session;
 
-class SessionStateStorageTest extends TestCase
+class SessionStateStorageTest extends \yii\tests\TestCase
 {
     public function testSetState()
     {

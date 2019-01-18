@@ -2,9 +2,7 @@
 
 namespace yii\authclient\tests\signature;
 
-use yii\authclient\tests\TestCase;
-
-class BaseMethodTest extends TestCase
+class BaseMethodTest extends \yii\tests\TestCase
 {
     /**
      * Creates test signature method instance.

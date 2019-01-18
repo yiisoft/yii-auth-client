@@ -6,7 +6,7 @@ use yii\authclient\OAuth1;
 use yii\authclient\signature\BaseMethod;
 use yii\authclient\OAuthToken;
 
-class OAuth1Test extends TestCase
+class OAuth1Test extends \yii\tests\TestCase
 {
     protected function setUp()
     {
@@ -162,7 +162,7 @@ class OAuth1Test extends TestCase
     public function testComposeAuthorizationHeader($realm, array $params, $expectedAuthorizationHeader)
     {
         $oauthClient = $this->createClient();
-        $authorizationHeader = $this->invoke($oauthClient, 'composeAuthorizationHeader', [$params, $realm]);
+        $authorizationHeader = $this->invokeMethod($oauthClient, 'composeAuthorizationHeader', [$params, $realm]);
         $this->assertEquals($expectedAuthorizationHeader, $authorizationHeader);
     }
 

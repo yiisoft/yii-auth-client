@@ -5,7 +5,7 @@ namespace yii\authclient\tests;
 use yii\authclient\Collection;
 use yii\authclient\tests\data\TestClient;
 
-class CollectionTest extends TestCase
+class CollectionTest extends \yii\tests\TestCase
 {
     // Tests :
 

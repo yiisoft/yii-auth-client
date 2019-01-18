@@ -5,7 +5,7 @@ namespace yii\authclient\tests;
 use yii\authclient\BaseClient;
 use yii\authclient\SessionStateStorage;
 
-class BaseClientTest extends TestCase
+class BaseClientTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {
@@ -210,7 +210,7 @@ class BaseClientTest extends TestCase
         ];
         $client->setRequestOptions($options);
         $request = $client->createRequest();
-        $expectedOptions = array_merge($options, $this->invoke($client, 'defaultRequestOptions'));
+        $expectedOptions = array_merge($options, $this->invokeMethod($client, 'defaultRequestOptions'));
         $this->assertEquals($expectedOptions, $request->getOptions());
     }
 

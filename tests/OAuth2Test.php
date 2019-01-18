@@ -4,7 +4,7 @@ namespace yii\authclient\tests;
 
 use yii\authclient\OAuth2;
 
-class OAuth2Test extends TestCase
+class OAuth2Test extends \yii\tests\TestCase
 {
     protected function setUp()
     {

@@ -6,7 +6,7 @@ use yii\authclient\OpenIdConnect;
 use yii\caching\ArrayCache;
 use yii\caching\Cache;
 
-class OpenIdConnectTest extends TestCase
+class OpenIdConnectTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {

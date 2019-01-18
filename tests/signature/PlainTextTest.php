@@ -3,9 +3,8 @@
 namespace yii\authclient\tests\signature;
 
 use yii\authclient\signature\PlainText;
-use yii\authclient\tests\TestCase;
 
-class PlainTextTest extends TestCase
+class PlainTextTest extends \yii\tests\TestCase
 {
     public function testGenerateSignature()
     {

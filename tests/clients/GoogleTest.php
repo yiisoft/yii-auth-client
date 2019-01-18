@@ -5,12 +5,11 @@ namespace yii\authclient\tests\clients;
 use yii\authclient\clients\Google;
 use yii\authclient\OAuthToken;
 use yii\authclient\signature\RsaSha;
-use yii\authclient\tests\TestCase;
 
 /**
  * @group google
  */
-class GoogleTest extends TestCase
+class GoogleTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {

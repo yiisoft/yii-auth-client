@@ -3,9 +3,8 @@
 namespace yii\authclient\tests\signature;
 
 use yii\authclient\signature\HmacSha;
-use yii\authclient\tests\TestCase;
 
-class HmacShaTest extends TestCase
+class HmacShaTest extends \yii\tests\TestCase
 {
     public function testGenerateSignature()
     {

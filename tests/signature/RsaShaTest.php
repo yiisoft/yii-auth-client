@@ -3,9 +3,8 @@
 namespace yii\authclient\tests\signature;
 
 use yii\authclient\signature\RsaSha;
-use yii\authclient\tests\TestCase;
 
-class RsaShaTest extends TestCase
+class RsaShaTest extends \yii\tests\TestCase
 {
     /**
      * Returns test public certificate string.
