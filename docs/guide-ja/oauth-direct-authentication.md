@@ -20,9 +20,9 @@ OAuth プロバイダのウェブサイトを訪問する必要のない、直�
 ```php
 $loginForm = new LoginForm();
 
-if ($loginForm->load(Yii::$app->request->post()) && $loginForm->validate()) {
+if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) {
     /* @var $client \yii\authclient\OAuth2 */
-    $client = Yii::$app->authClientCollection->getClient('someOAuth2');
+    $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
     try {
         // ユーザ名とパスワードによる直接認証
@@ -46,7 +46,7 @@ if ($loginForm->load(Yii::$app->request->post()) && $loginForm->validate()) {
 
 ```php
 /* @var $client \yii\authclient\OAuth2 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth2');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // クライアントだけの直接認証
 $accessToken = $client->authenticateClient();

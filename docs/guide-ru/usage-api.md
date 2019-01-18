@@ -25,7 +25,7 @@ $userInfo = $client->api('userinfo', 'GET');
 
 ```php
 /* @var $client \yii\authclient\OAuth2 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth2');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // находим пользователя для добавлениея во внешний сервис:
 $user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
@@ -69,7 +69,7 @@ echo $response->data['id'];
 
 ```php
 /* @var $client \yii\authclient\OAuth1 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth1');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth1');
 
 $request = $client->createRequest()
     ->setMethod('GET')

@@ -9,7 +9,7 @@ namespace yii\authclient;
 
 use yii\base\Component;
 use yii\base\InvalidArgumentException;
-use Yii;
+use yii\helpers\Yii;
 
 /**
  * Collection is a storage for all auth clients in the application.

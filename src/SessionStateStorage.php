@@ -7,7 +7,7 @@
 
 namespace yii\authclient;
 
-use Yii;
+use yii\helpers\Yii;
 use yii\base\Component;
 use yii\di\Instance;
 use yii\web\Session;
@@ -43,8 +43,8 @@ class SessionStateStorage extends Component implements StateStorageInterface
         parent::init();
 
         if ($this->session === null) {
-            if (Yii::$app->has('session')) {
-                $this->session = Yii::$app->get('session');
+            if (Yii::getApp()->has('session')) {
+                $this->session = Yii::getApp()->get('session');
             }
         } else {
             $this->session = Instance::ensure($this->session, Session::class);

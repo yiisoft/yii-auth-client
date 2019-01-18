@@ -7,7 +7,7 @@
 
 namespace yii\authclient;
 
-use Yii;
+use yii\helpers\Yii;
 use yii\helpers\Json;
 use yii\web\HttpException;
 
@@ -22,9 +22,9 @@ use yii\web\HttpException;
  * // assuming class MyAuthClient extends OAuth2
  * $oauthClient = new MyAuthClient();
  * $url = $oauthClient->buildAuthUrl(); // Build authorization URL
- * Yii::$app->getResponse()->redirect($url); // Redirect to authorization URL.
+ * Yii::getApp()->getResponse()->redirect($url); // Redirect to authorization URL.
  * // After user returns at our site:
- * $code = Yii::$app->getRequest()->get('code');
+ * $code = Yii::getApp()->getRequest()->get('code');
  * $accessToken = $oauthClient->fetchAccessToken($code); // Get access token
  * ```
  *
@@ -74,7 +74,7 @@ abstract class OAuth2 extends BaseOAuth
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->getReturnUrl(),
-            'xoauth_displayname' => Yii::$app->name,
+            'xoauth_displayname' => Yii::getApp()->name,
         ];
         if (!empty($this->scope)) {
             $defaultParams['scope'] = $this->scope;
@@ -100,7 +100,7 @@ abstract class OAuth2 extends BaseOAuth
     {
         if ($this->validateAuthState) {
             $authState = $this->getState('authState');
-            $incomingRequest = Yii::$app->getRequest();
+            $incomingRequest = Yii::getApp()->getRequest();
             $incomingState = $incomingRequest->get('state', $incomingRequest->post('state'));
             if (!isset($incomingState) || empty($authState) || strcmp($incomingState, $authState) !== 0) {
                 throw new HttpException(400, 'Invalid auth state parameter.');
@@ -186,12 +186,12 @@ abstract class OAuth2 extends BaseOAuth
      */
     protected function defaultReturnUrl()
     {
-        $params = Yii::$app->getRequest()->getQueryParams();
+        $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params['code']);
         unset($params['state']);
-        $params[0] = Yii::$app->controller->getRoute();
+        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::$app->getUrlManager()->createAbsoluteUrl($params);
+        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 
     /**
@@ -202,8 +202,8 @@ abstract class OAuth2 extends BaseOAuth
     protected function generateAuthState()
     {
         $baseString = get_class($this) . '-' . time();
-        if (Yii::$app->has('session')) {
-            $baseString .= '-' . Yii::$app->session->getId();
+        if (Yii::getApp()->has('session')) {
+            $baseString .= '-' . Yii::getApp()->session->getId();
         }
         return hash('sha256', uniqid($baseString, true));
     }

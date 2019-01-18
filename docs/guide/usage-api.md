@@ -25,7 +25,7 @@ For example:
 
 ```php
 /* @var $client \yii\authclient\OAuth2 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth2');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // find user to add to external service:
 $user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
@@ -69,7 +69,7 @@ For example:
 
 ```php
 /* @var $client \yii\authclient\OAuth1 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth1');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth1');
 
 $request = $client->createRequest()
     ->setMethod('GET')

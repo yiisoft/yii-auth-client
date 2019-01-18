@@ -7,10 +7,9 @@
 
 namespace yii\authclient;
 
-use Yii;
+use yii\helpers\Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
-use yii\di\Instance;
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 use yii\httpclient\Client;
@@ -329,7 +328,7 @@ abstract class BaseClient extends Component implements ClientInterface
      */
     protected function createHttpClient($reference)
     {
-        return Instance::ensure($reference, Client::class);
+        return Yii::ensureObject($reference, Client::class);
     }
 
     /**

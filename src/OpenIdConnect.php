@@ -9,7 +9,7 @@ namespace yii\authclient;
 
 use Jose\Factory\JWKFactory;
 use Jose\Loader;
-use Yii;
+use yii\helpers\Yii;
 use yii\authclient\signature\HmacSha;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidArgumentException;
@@ -310,7 +310,7 @@ class OpenIdConnect extends OAuth2
      */
     protected function defaultReturnUrl()
     {
-        $params = Yii::$app->getRequest()->getQueryParams();
+        $params = Yii::getApp()->getRequest()->getQueryParams();
         // OAuth2 specifics :
         unset($params['code']);
         unset($params['state']);
@@ -319,9 +319,9 @@ class OpenIdConnect extends OAuth2
         unset($params['authuser']);
         unset($params['session_state']);
         unset($params['prompt']);
-        $params[0] = Yii::$app->controller->getRoute();
+        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::$app->getUrlManager()->createAbsoluteUrl($params);
+        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 
     /**
@@ -386,6 +386,6 @@ class OpenIdConnect extends OAuth2
      */
     protected function generateAuthNonce()
     {
-        return Yii::$app->security->generateRandomString();
+        return Yii::getApp()->security->generateRandomString();
     }
 }

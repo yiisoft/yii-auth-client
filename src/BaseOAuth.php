@@ -9,7 +9,7 @@ namespace yii\authclient;
 
 use yii\base\Exception;
 use yii\base\InvalidArgumentException;
-use Yii;
+use yii\helpers\Yii;
 use yii\httpclient\Request;
 
 /**
@@ -165,7 +165,7 @@ abstract class BaseOAuth extends BaseClient
      */
     protected function defaultReturnUrl()
     {
-        return Yii::$app->getRequest()->getAbsoluteUrl();
+        return Yii::getApp()->getRequest()->getAbsoluteUrl();
     }
 
     /**
@@ -174,7 +174,7 @@ abstract class BaseOAuth extends BaseClient
     protected function defaultRequestOptions()
     {
         return [
-            'userAgent' => Yii::$app->name . ' OAuth ' . $this->version . ' Client',
+            'userAgent' => Yii::getApp()->name . ' OAuth ' . $this->version . ' Client',
             'timeout' => 30,
             'sslVerifyPeer' => false,
         ];

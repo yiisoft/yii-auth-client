@@ -20,9 +20,9 @@
 ```php
 $loginForm = new LoginForm();
 
-if ($loginForm->load(Yii::$app->request->post()) && $loginForm->validate()) {
+if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) {
     /* @var $client \yii\authclient\OAuth2 */
-    $client = Yii::$app->authClientCollection->getClient('someOAuth2');
+    $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
     try {
         // аутентификация напрямую через имя пользователя и пароль:
@@ -46,7 +46,7 @@ OAuth клиента (ваше приложение) без задействов
 
 ```php
 /* @var $client \yii\authclient\OAuth2 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth2');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // аутентификация исключительно клиета напрямую:
 $accessToken = $client->authenticateClient();

@@ -9,7 +9,7 @@ namespace yii\authclient\widgets;
 
 use yii\base\InvalidConfigException;
 use yii\base\Widget;
-use Yii;
+use yii\helpers\Yii;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\helpers\Html;
@@ -151,7 +151,7 @@ class AuthChoice extends Widget
     protected function defaultClients()
     {
         /* @var $collection \yii\authclient\Collection */
-        $collection = Yii::$app->get($this->clientCollection);
+        $collection = Yii::getApp()->get($this->clientCollection);
 
         return $collection->getClients();
     }
@@ -163,9 +163,9 @@ class AuthChoice extends Widget
     protected function defaultBaseAuthUrl()
     {
         $baseAuthUrl = [
-            Yii::$app->controller->getRoute()
+            Yii::getApp()->controller->getRoute()
         ];
-        $params = Yii::$app->getRequest()->getQueryParams();
+        $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params[$this->clientIdGetParamName]);
         $baseAuthUrl = array_merge($baseAuthUrl, $params);
 
@@ -254,7 +254,7 @@ class AuthChoice extends Widget
      */
     public function init()
     {
-        $view = Yii::$app->getView();
+        $view = Yii::getApp()->getView();
         if ($this->popupMode) {
             AuthChoiceAsset::register($view);
             if (empty($this->clientOptions)) {

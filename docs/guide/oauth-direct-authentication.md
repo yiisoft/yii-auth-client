@@ -20,9 +20,9 @@ For example:
 ```php
 $loginForm = new LoginForm();
 
-if ($loginForm->load(Yii::$app->request->post()) && $loginForm->validate()) {
+if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) {
     /* @var $client \yii\authclient\OAuth2 */
-    $client = Yii::$app->authClientCollection->getClient('someOAuth2');
+    $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
     try {
         // direct authentication via username and password:
@@ -46,7 +46,7 @@ For example:
 
 ```php
 /* @var $client \yii\authclient\OAuth2 */
-$client = Yii::$app->authClientCollection->getClient('someOAuth2');
+$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // direct authentication of client only:
 $accessToken = $client->authenticateClient();

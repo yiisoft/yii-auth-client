@@ -7,7 +7,7 @@
 
 namespace yii\authclient;
 
-use Yii;
+use yii\helpers\Yii;
 use yii\base\InvalidArgumentException;
 use yii\httpclient\Request;
 use yii\web\HttpException;
@@ -19,16 +19,16 @@ use yii\web\HttpException;
  *
  * ```php
  * use yii\authclient\OAuth1;
- * use Yii;
+ * use yii\helpers\Yii;
  *
  * // assuming class MyAuthClient extends OAuth1
  * $oauthClient = new MyAuthClient();
  * $requestToken = $oauthClient->fetchRequestToken(); // Get request token
  * $url = $oauthClient->buildAuthUrl($requestToken); // Get authorization URL
- * return Yii::$app->getResponse()->redirect($url); // Redirect to authorization URL
+ * return Yii::getApp()->getResponse()->redirect($url); // Redirect to authorization URL
  *
  * // After user returns at our site:
- * $accessToken = $oauthClient->fetchAccessToken(Yii::$app->request->get('oauth_token'), $requestToken); // Upgrade to access token
+ * $accessToken = $oauthClient->fetchAccessToken(Yii::getApp()->request->get('oauth_token'), $requestToken); // Upgrade to access token
  * ```
  *
  * @see https://oauth.net/1/
@@ -87,7 +87,7 @@ abstract class OAuth1 extends BaseOAuth
         $defaultParams = [
             'oauth_consumer_key' => $this->consumerKey,
             'oauth_callback' => $this->getReturnUrl(),
-            //'xoauth_displayname' => Yii::$app->name,
+            //'xoauth_displayname' => Yii::getApp()->name,
         ];
         if (!empty($this->scope)) {
             $defaultParams['scope'] = $this->scope;
@@ -142,7 +142,7 @@ abstract class OAuth1 extends BaseOAuth
      */
     public function fetchAccessToken($oauthToken = null, OAuthToken $requestToken = null, $oauthVerifier = null, array $params = [])
     {
-        $incomingRequest = Yii::$app->getRequest();
+        $incomingRequest = Yii::getApp()->getRequest();
 
         if ($oauthToken === null) {
             $oauthToken = $incomingRequest->get('oauth_token', $incomingRequest->post('oauth_token', $oauthToken));
@@ -252,11 +252,11 @@ abstract class OAuth1 extends BaseOAuth
      */
     protected function defaultReturnUrl()
     {
-        $params = Yii::$app->getRequest()->getQueryParams();
+        $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params['oauth_token']);
-        $params[0] = Yii::$app->controller->getRoute();
+        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::$app->getUrlManager()->createAbsoluteUrl($params);
+        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 
     /**
