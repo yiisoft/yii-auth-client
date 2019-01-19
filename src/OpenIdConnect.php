@@ -13,8 +13,7 @@ use yii\helpers\Yii;
 use yii\authclient\signature\HmacSha;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidArgumentException;
-use yii\caching\Cache;
-use yii\di\Instance;
+use yii\cache\Cache;
 use yii\helpers\Json;
 use yii\web\HttpException;
 
@@ -145,7 +144,7 @@ class OpenIdConnect extends OAuth2
     public function getCache()
     {
         if ($this->_cache !== null && !is_object($this->_cache)) {
-            $this->_cache = Instance::ensure($this->_cache, Cache::class);
+            $this->_cache = Yii::ensureObject($this->_cache, Cache::class);
         }
         return $this->_cache;
     }

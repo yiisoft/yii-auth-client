@@ -52,8 +52,10 @@ class RsaSha extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function init()
+    public function __construct($algorithm = null)
     {
+        if($algorithm != null) $this->algorithm = $algorithm;
+        
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }

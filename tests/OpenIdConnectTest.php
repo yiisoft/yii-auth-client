@@ -3,27 +3,28 @@
 namespace yii\authclient\tests;
 
 use yii\authclient\OpenIdConnect;
-use yii\caching\ArrayCache;
-use yii\caching\Cache;
+use yii\cache\ArrayCache;
+use yii\cache\Cache;
+use yii\helpers\Yii;
 
 class OpenIdConnectTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {
-        $config = [
-            'components' => [
-                'request' => [
-                    'hostInfo' => 'http://testdomain.com',
-                    'scriptUrl' => '/index.php',
-                ],
-            ]
+        $services = [
+            'request' => [
+                '__class' => \yii\web\Request::class,
+                'hostInfo' => 'http://testdomain.com',
+                'scriptUrl' => '/index.php',
+            ],
         ];
-        $this->mockApplication($config, \yii\web\Application::class);
+        $this->mockWebApplication([], null, $services);
     }
 
     public function testDiscoverConfig()
     {
-        $authClient = new OpenIdConnect([
+        $authClient = Yii::createObject([
+            '__class' => OpenIdConnect::class,
             'issuerUrl' => 'https://accounts.google.com',
             'cache' => null,
         ]);
@@ -40,23 +41,26 @@ class OpenIdConnectTest extends \yii\tests\TestCase
      */
     public function testDiscoverConfigCache()
     {
-        $cache = new Cache(['handler' => new ArrayCache()]);
+        $cache = new Cache(new ArrayCache());
 
-        $authClient = new OpenIdConnect([
+        $authClient = $this->app->createObject([
+            '__class' => OpenIdConnect::class,
             'issuerUrl' => 'https://accounts.google.com',
             'id' => 'google',
             'cache' => $cache,
         ]);
         $cachedConfigParams = $authClient->getConfigParams();
 
-        $authClient = new OpenIdConnect([
+        $authClient = $this->app->createObject([
+            '__class' => OpenIdConnect::class,
             'issuerUrl' => 'https://invalid-url.com',
             'id' => 'google',
             'cache' => $cache,
         ]);
         $this->assertEquals($cachedConfigParams, $authClient->getConfigParams());
 
-        $authClient = new OpenIdConnect([
+        $authClient = $this->app->createObject([
+            '__class' => OpenIdConnect::class,
             'issuerUrl' => 'https://invalid-url.com',
             'id' => 'foo',
             'cache' => $cache,
@@ -70,7 +74,8 @@ class OpenIdConnectTest extends \yii\tests\TestCase
      */
     public function testBuildAuthUrl()
     {
-        $authClient = new OpenIdConnect([
+        $authClient = $this->app->createObject([
+            '__class' => OpenIdConnect::class,
             'issuerUrl' => 'https://accounts.google.com',
             'cache' => null,
         ]);

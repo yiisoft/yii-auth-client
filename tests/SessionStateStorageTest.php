@@ -10,7 +10,7 @@ class SessionStateStorageTest extends \yii\tests\TestCase
     public function testSetState()
     {
         $storage = new SessionStateStorage([
-            'session' => Session::class
+            '__class' => Session::class
         ]);
 
         $key = 'test-key';

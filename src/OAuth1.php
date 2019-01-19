@@ -11,6 +11,7 @@ use yii\helpers\Yii;
 use yii\base\InvalidArgumentException;
 use yii\httpclient\Request;
 use yii\web\HttpException;
+use yii\httpclient\RequestEvent;
 
 /**
  * OAuth1 serves as a client for the OAuth 1/1.0a flow.
@@ -195,7 +196,7 @@ abstract class OAuth1 extends BaseOAuth
     public function createRequest()
     {
         $request = parent::createRequest();
-        $request->on(Request::EVENT_BEFORE_SEND, [$this, 'beforeRequestSend']);
+        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
         return $request;
     }
 
@@ -207,8 +208,8 @@ abstract class OAuth1 extends BaseOAuth
         $request = parent::createApiRequest();
 
         // ensure correct event handlers order :
-        $request->off(Request::EVENT_BEFORE_SEND, [$this, 'beforeRequestSend']);
-        $request->on(Request::EVENT_BEFORE_SEND, [$this, 'beforeRequestSend']);
+        $request->off(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
+        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
 
         return $request;
     }

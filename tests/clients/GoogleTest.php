@@ -13,15 +13,14 @@ class GoogleTest extends \yii\tests\TestCase
 {
     protected function setUp()
     {
-        $config = [
-            'components' => [
-                'request' => [
-                    'hostInfo' => 'http://testdomain.com',
-                    'scriptUrl' => '/index.php',
-                ],
-            ]
+        $services = [
+            'request' => [
+                '__class' => \yii\web\Request::class,
+                'hostInfo' => 'http://testdomain.com',
+                'scriptUrl' => '/index.php',
+            ],
         ];
-        $this->mockApplication($config, '\yii\web\Application');
+        $this->mockWebApplication([], null, $services);
     }
 
     public function testAuthenticateUserJwt()
