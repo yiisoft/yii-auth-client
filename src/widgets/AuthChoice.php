@@ -8,7 +8,7 @@
 namespace yii\authclient\widgets;
 
 use yii\authclient\ClientInterface;
-use yii\base\InvalidConfigException;
+use yii\exceptions\InvalidConfigException;
 use yii\helpers\Json;
 use yii\helpers\Html;
 use yii\helpers\Url;
