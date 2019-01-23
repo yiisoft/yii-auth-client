@@ -24,8 +24,10 @@ class RsaSha1 extends RsaSha
     /**
      * {@inheritdoc}
      */
-    public $algorithm = OPENSSL_ALGO_SHA1;
-
+    public function __construct()
+    {
+        parent::__construct($OPENSSL_ALGO_SHA1);
+    }    
 
     /**
      * {@inheritdoc}

@@ -31,9 +31,7 @@ class HmacSha extends BaseMethod
      */
     public function __construct(string $algorithm = null)
     {
-        if ($algorithm != null) {
-            $this->algorithm = $algorithm;
-        }
+        $this->algorithm = $algorithm;
 
         if (!function_exists('hash_hmac')) {
             throw new NotSupportedException('PHP "Hash" extension is required.');
