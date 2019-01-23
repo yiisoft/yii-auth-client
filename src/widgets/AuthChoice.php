@@ -7,13 +7,13 @@
 
 namespace yii\authclient\widgets;
 
-use yii\base\InvalidConfigException;
-use yii\base\Widget;
-use yii\helpers\Yii;
-use yii\helpers\Json;
-use yii\helpers\Url;
-use yii\helpers\Html;
 use yii\authclient\ClientInterface;
+use yii\base\InvalidConfigException;
+use yii\helpers\Json;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\helpers\Yii;
+use yii\widgets\Widget;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -252,7 +252,7 @@ class AuthChoice extends Widget
     /**
      * Initializes the widget.
      */
-    public function init()
+    public function init(): void
     {
         $view = Yii::getApp()->getView();
         if ($this->popupMode) {

@@ -24,7 +24,7 @@ class AuthChoiceAsset extends AssetBundle
         'authchoice.js',
     ];
     public $depends = [
-        'yii\authclient\widgets\AuthChoiceStyleAsset',
-        'yii\web\YiiAsset',
+        \yii\authclient\widgets\AuthChoiceStyleAsset::class,
+        \yii\jquery\YiiAsset::class,
     ];
 }
