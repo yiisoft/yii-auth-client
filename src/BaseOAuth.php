@@ -11,6 +11,7 @@ use yii\base\Exception;
 use yii\base\InvalidArgumentException;
 use yii\helpers\Yii;
 use yii\httpclient\Request;
+use yii\httpclient\RequestEvent;
 
 /**
  * BaseOAuth is a base class for the OAuth clients.
@@ -280,7 +281,7 @@ abstract class BaseOAuth extends BaseClient
     public function createApiRequest()
     {
         $request = $this->createRequest();
-        $request->on(Request::EVENT_BEFORE_SEND, [$this, 'beforeApiRequestSend']);
+        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeApiRequestSend']);
         return $request;
     }
 

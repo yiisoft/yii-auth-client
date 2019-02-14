@@ -83,13 +83,13 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
             $this->markTestSkipped('Constants processing is unavailable at HHVM');
         }
 
-        $signatureMethod = new RsaSha(['algorithm' => $algorithm]);
+        $signatureMethod = new RsaSha($algorithm);
         $this->assertEquals($expectedName, $signatureMethod->getName());
     }
 
     public function testGenerateSignature()
     {
-        $signatureMethod = new RsaSha(['algorithm' => OPENSSL_ALGO_SHA1]);
+        $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
         $signatureMethod->setPrivateCertificate($this->getTestPrivateCertificate());
         $signatureMethod->setPublicCertificate($this->getTestPublicCertificate());
 
@@ -105,7 +105,7 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
      */
     public function testVerify()
     {
-        $signatureMethod = new RsaSha(['algorithm' => OPENSSL_ALGO_SHA1]);
+        $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
         $signatureMethod->setPrivateCertificate($this->getTestPrivateCertificate());
         $signatureMethod->setPublicCertificate($this->getTestPublicCertificate());
 
@@ -120,7 +120,7 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
 
     public function testInitPrivateCertificate()
     {
-        $signatureMethod = new RsaSha(['algorithm' => OPENSSL_ALGO_SHA1]);
+        $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
 
         $certificateFileName = __FILE__;
         $signatureMethod->privateCertificateFile = $certificateFileName;
@@ -129,7 +129,7 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
 
     public function testInitPublicCertificate()
     {
-        $signatureMethod = new RsaSha(['algorithm' => OPENSSL_ALGO_SHA1]);
+        $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
 
         $certificateFileName = __FILE__;
         $signatureMethod->publicCertificateFile = $certificateFileName;

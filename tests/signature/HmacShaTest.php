@@ -8,7 +8,7 @@ class HmacShaTest extends \yii\tests\TestCase
 {
     public function testGenerateSignature()
     {
-        $signatureMethod = new HmacSha(['algorithm' => 'sha256']);
+        $signatureMethod = new HmacSha('sha256');
 
         $baseString = 'test_base_string';
         $key = 'test_key';

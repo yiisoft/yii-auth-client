@@ -24,5 +24,8 @@ class HmacSha1 extends HmacSha
     /**
      * {@inheritdoc}
      */
-    public $algorithm = 'sha1';
+    public function __construct()
+    {
+        parent::__construct('sha1');
+    }    
 }
