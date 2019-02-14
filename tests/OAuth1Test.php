@@ -33,7 +33,9 @@ class OAuth1Test extends \yii\tests\TestCase
     }
 
     // Tests :
-
+    /**
+     * @runInSeparateProcess
+     */
     public function testSignRequest()
     {
         $oauthClient = $this->createClient();
@@ -83,6 +85,7 @@ class OAuth1Test extends \yii\tests\TestCase
 
     /**
      * @depends testSignRequest
+     * @runInSeparateProcess
      */
     public function testAuthorizationHeaderMethods()
     {
