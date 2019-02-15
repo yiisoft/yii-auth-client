@@ -29,4 +29,4 @@ before_script:
     fi
 
 script:
-  - phpunit $PHPUNIT_FLAGS --stderr --exclude-group google
+  - vendor/bin/phpunit $PHPUNIT_FLAGS --exclude-group google

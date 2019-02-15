@@ -40,6 +40,7 @@ class AuthActionTest extends \yii\tests\TestCase
 
     /**
      * @depends testSetGet
+     * @runInSeparateProcess
      */
     public function testGetDefaultSuccessUrl()
     {
@@ -50,6 +51,7 @@ class AuthActionTest extends \yii\tests\TestCase
 
     /**
      * @depends testSetGet
+     * @runInSeparateProcess
      */
     public function testGetDefaultCancelUrl()
     {
@@ -58,6 +60,9 @@ class AuthActionTest extends \yii\tests\TestCase
         $this->assertNotEmpty($action->getSuccessUrl(), 'Unable to get default cancel URL!');
     }
 
+    /**
+     * @runInSeparateProcess
+     */
     public function testRedirect()
     {
         $action = $this->createAction();

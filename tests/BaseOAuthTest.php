@@ -58,6 +58,9 @@ class BaseOAuthTest extends \yii\tests\TestCase
         $this->assertEquals($oauthClient->apiBaseUrl, $oauthClient->getHttpClient()->baseUrl);
     }
 
+    /**
+     * @runInSeparateProcess
+    */    
     public function testSetupComponents()
     {
         $oauthClient = $this->createClient();
@@ -71,6 +74,9 @@ class BaseOAuthTest extends \yii\tests\TestCase
         $this->assertEquals($oauthSignatureMethod, $oauthClient->getSignatureMethod(), 'Unable to setup signature method!');
     }
 
+    /**
+     * @runInSeparateProcess
+     */
     public function testSetupAccessToken()
     {
         $oauthClient = $this->createClient();
@@ -92,6 +98,7 @@ class BaseOAuthTest extends \yii\tests\TestCase
     /**
      * @depends testSetupComponents
      * @depends testSetupAccessToken
+     * @runInSeparateProcess
      */
     public function testSetupComponentsByConfig()
     {
@@ -186,7 +193,7 @@ class BaseOAuthTest extends \yii\tests\TestCase
      * @depends testSetupAccessToken
      *
      * @dataProvider apiUrlDataProvider
-     *
+     * @runInSeparateProcess
      * @param $apiBaseUrl
      * @param $apiSubUrl
      * @param $expectedApiFullUrl

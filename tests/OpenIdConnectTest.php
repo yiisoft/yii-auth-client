@@ -71,6 +71,7 @@ class OpenIdConnectTest extends \yii\tests\TestCase
 
     /**
      * @depends testDiscoverConfig
+     * @runInSeparateProcess
      */
     public function testBuildAuthUrl()
     {
