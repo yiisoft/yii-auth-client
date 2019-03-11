@@ -2,14 +2,18 @@
 
 namespace yii\authclient\tests;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use yii\authclient\BaseClient;
-use yii\authclient\SessionStateStorage;
 
-class BaseClientTest extends \yii\tests\TestCase
+class BaseClientTest extends TestCase
 {
-    protected function setUp()
+    private function getRequestFactory(): RequestFactoryInterface
     {
-        $this->mockApplication();
+        return new Psr17Factory();
     }
 
     /**
@@ -18,9 +22,13 @@ class BaseClientTest extends \yii\tests\TestCase
      */
     protected function createClient()
     {
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+
         $oauthClient = $this->getMockBuilder(BaseClient::class)
-            ->setMethods(['initUserAttributes'])
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory()])
+            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
+
         return $oauthClient;
     }
 
@@ -29,18 +37,6 @@ class BaseClientTest extends \yii\tests\TestCase
     public function testSetGet()
     {
         $client = $this->createClient();
-
-        $id = 'test_id';
-        $client->setId($id);
-        $this->assertEquals($id, $client->getId(), 'Unable to setup id!');
-
-        $name = 'test_name';
-        $client->setName($name);
-        $this->assertEquals($name, $client->getName(), 'Unable to setup name!');
-
-        $title = 'test_title';
-        $client->setTitle($title);
-        $this->assertEquals($title, $client->getTitle(), 'Unable to setup title!');
 
         $userAttributes = [
             'attribute1' => 'value1',
@@ -62,23 +58,6 @@ class BaseClientTest extends \yii\tests\TestCase
         ];
         $client->setViewOptions($viewOptions);
         $this->assertEquals($viewOptions, $client->getViewOptions(), 'Unable to setup view options!');
-
-        $requestOptions = [
-            'option1' => 'value1',
-            'option2' => 'value2',
-        ];
-        $client->setRequestOptions($requestOptions);
-        $this->assertEquals($requestOptions, $client->getRequestOptions(), 'Unable to setup request options!');
-    }
-
-    public function testGetDefaults()
-    {
-        $client = $this->createClient();
-
-        $this->assertNotEmpty($client->getName(), 'Unable to get default name!');
-        $this->assertNotEmpty($client->getTitle(), 'Unable to get default title!');
-        $this->assertNotNull($client->getViewOptions(), 'Unable to get default view options!');
-        $this->assertNotNull($client->getNormalizeUserAttributeMap(), 'Unable to get default normalize user attribute map!');
     }
 
     /**
@@ -105,8 +84,8 @@ class BaseClientTest extends \yii\tests\TestCase
             [
                 [
                     'name' => function ($attributes) {
-                            return $attributes['firstName'] . ' ' . $attributes['lastName'];
-                        },
+                        return $attributes['firstName'] . ' ' . $attributes['lastName'];
+                    },
                 ],
                 [
                     'firstName' => 'John',
@@ -160,7 +139,7 @@ class BaseClientTest extends \yii\tests\TestCase
     /**
      * @dataProvider dataProviderNormalizeUserAttributes
      *
-     * @depends testSetGet
+     * @depends      testSetGet
      *
      * @param array $normalizeUserAttributeMap
      * @param array $rawUserAttributes
@@ -177,54 +156,12 @@ class BaseClientTest extends \yii\tests\TestCase
         $this->assertEquals(array_merge($rawUserAttributes, $expectedNormalizedUserAttributes), $normalizedUserAttributes);
     }
 
-    public function testSetupHttpClient()
-    {
-        $client = $this->createClient();
-
-        $client->setHttpClient([
-            'baseUrl' => 'http://domain.com'
-        ]);
-        $httpClient = $client->getHttpClient();
-
-        $this->assertTrue($httpClient instanceof \yii\httpclient\Client, 'Unable to setup http client.');
-        $this->assertEquals('http://domain.com', $httpClient->baseUrl, 'Unable to setup http client property.');
-
-        $client = $this->createClient();
-        $httpClient = $client->getHttpClient();
-        $this->assertTrue($httpClient instanceof \yii\httpclient\Client, 'Unable to get default http client.');
-    }
-
     /**
      * @depends testSetGet
-     * @depends testSetupHttpClient
      */
     public function testCreateRequest()
     {
-        $client = $this->createClient();
-
-        $request = $client->createRequest();
-        $this->assertTrue($request instanceof \yii\httpclient\Request);
-
-        $options = [
-            'userAgent' => 'Test User Agent'
-        ];
-        $client->setRequestOptions($options);
-        $request = $client->createRequest();
-        $expectedOptions = array_merge($options, $this->invokeMethod($client, 'defaultRequestOptions'));
-        $this->assertEquals($expectedOptions, $request->getOptions());
-    }
-
-    public function testSetupStateStorage()
-    {
-        $client = $this->createClient();
-
-        $stateStorage = new SessionStateStorage();
-        $client->setStateStorage($stateStorage);
-
-        $this->assertSame($stateStorage, $client->getStateStorage(), 'Unable to setup state storage.');
-
-        $client = $this->createClient();
-        $stateStorage = $client->getStateStorage();
-        $this->assertTrue($stateStorage instanceof SessionStateStorage, 'Unable to get default http client.');
+        $request = $this->createClient()->createRequest('GET', 'http://example.com/');
+        $this->assertInstanceOf(RequestInterface::class, $request);
     }
 }

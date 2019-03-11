@@ -9,13 +9,16 @@ namespace yii\authclient;
 
 use Jose\Factory\JWKFactory;
 use Jose\Loader;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\SimpleCache\CacheInterface;
 use yii\helpers\Yii;
 use yii\authclient\signature\HmacSha;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidArgumentException;
-use yii\cache\Cache;
 use yii\helpers\Json;
 use yii\web\HttpException;
+use \Psr\Http\Client\ClientInterface;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -53,12 +56,6 @@ use yii\web\HttpException;
  * @see http://openid.net/connect/
  * @see OAuth2
  *
- * @property Cache|null $cache The cache object, `null` - if not enabled. Note that the type of this property
- * differs in getter and setter. See [[getCache()]] and [[setCache()]] for details.
- * @property array $configParams OpenID provider configuration parameters. This property is read-only.
- * @property bool $validateAuthNonce Whether to use and validate auth 'nonce' parameter in authentication
- * flow.
- *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 2.1.3
  */
@@ -71,7 +68,7 @@ class OpenIdConnect extends OAuth2
     /**
      * @var string OpenID Issuer (provider) base URL, e.g. `https://example.com`.
      */
-    public $issuerUrl;
+    private $issuerUrl;
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
      * Note: this functionality requires `spomky-labs/jose` composer package to be installed.
@@ -101,13 +98,13 @@ class OpenIdConnect extends OAuth2
      * @var bool|null whether to use and validate auth 'nonce' parameter in authentication flow.
      * The option is used for preventing replay attacks.
      */
-    private $_validateAuthNonce;
+    private $validateAuthNonce;
     /**
      * @var array OpenID provider configuration parameters.
      */
-    private $_configParams;
+    private $configParams;
     /**
-     * @var Cache|string the cache object or the ID of the cache application component that
+     * @var CacheInterface the cache object or the ID of the cache application component that
      * is used for caching. This can be one of the following:
      *
      * - an application component ID (e.g. `cache`)
@@ -116,18 +113,32 @@ class OpenIdConnect extends OAuth2
      *
      * When this is not set, it means caching is not enabled.
      */
-    private $_cache = 'cache';
+    private $cache;
 
+    private $name;
+    private $title;
+
+    /**
+     * OpenIdConnect constructor.
+     * @param CacheInterface $cache
+     */
+    public function __construct(?string $endpoint, $name, $title, ClientInterface $httpClient, RequestFactoryInterface $requestFactory, CacheInterface $cache)
+    {
+        $this->name = $name;
+        $this->title = $title;
+        $this->cache = $cache;
+        parent::__construct($endpoint, $httpClient, $requestFactory);
+    }
 
     /**
      * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
      */
     public function getValidateAuthNonce()
     {
-        if ($this->_validateAuthNonce === null) {
-            $this->_validateAuthNonce = $this->validateJws && in_array('nonce', $this->getConfigParam('claims_supported'));
+        if ($this->validateAuthNonce === null) {
+            $this->validateAuthNonce = $this->validateJws && in_array('nonce', $this->getConfigParam('claims_supported'));
         }
-        return $this->_validateAuthNonce;
+        return $this->validateAuthNonce;
     }
 
     /**
@@ -135,34 +146,7 @@ class OpenIdConnect extends OAuth2
      */
     public function setValidateAuthNonce($validateAuthNonce)
     {
-        $this->_validateAuthNonce = $validateAuthNonce;
-    }
-
-    /**
-     * @return Cache|null the cache object, `null` - if not enabled.
-     */
-    public function getCache()
-    {
-        if ($this->_cache !== null && !is_object($this->_cache)) {
-            $this->_cache = Yii::ensureObject($this->_cache, Cache::class);
-        }
-        return $this->_cache;
-    }
-
-    /**
-     * Sets up a component to be used for caching.
-     * This can be one of the following:
-     *
-     * - an application component ID (e.g. `cache`)
-     * - a configuration array
-     * - a [[\yii\caching\Cache]] object
-     *
-     * When `null` is passed, it means caching is not enabled.
-     * @param Cache|array|string|null $cache the cache object or the ID of the cache application component.
-     */
-    public function setCache($cache)
-    {
-        $this->_cache = $cache;
+        $this->validateAuthNonce = $validateAuthNonce;
     }
 
     /**
@@ -170,20 +154,16 @@ class OpenIdConnect extends OAuth2
      */
     public function getConfigParams()
     {
-        if ($this->_configParams === null) {
-            $cache = $this->getCache();
-            $cacheKey = $this->configParamsCacheKeyPrefix . $this->getId();
-            if ($cache === null || ($configParams = $cache->get($cacheKey)) === null) {
+        if ($this->configParams === null) {
+            $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
+            if (($configParams = $this->cache->get($cacheKey)) === null) {
                 $configParams = $this->discoverConfig();
             }
 
-            $this->_configParams = $configParams;
-
-            if ($cache !== null) {
-                $cache->set($cacheKey, $configParams);
-            }
+            $this->configParams = $configParams;
+            $this->cache->set($cacheKey, $configParams);
         }
-        return $this->_configParams;
+        return $this->configParams;
     }
 
     /**
@@ -202,14 +182,16 @@ class OpenIdConnect extends OAuth2
      * @return array OpenID Provider configuration parameters.
      * @throws InvalidResponseException on failure.
      */
-    protected function discoverConfig()
+    private function discoverConfig()
     {
-        $request = $this->createRequest();
-        $configUrl = rtrim($this->issuerUrl, '/') . '/.well-known/openid-configuration';
-        $request->setMethod('GET')
-            ->setUrl($configUrl);
+        if ($this->issuerUrl === null) {
+            throw new \yii\exceptions\InvalidConfigException('Cannot discover config because issuer URL is not set.');
+        }
+        $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
+        $request = $this->createRequest('GET', $configUrl);
         $response = $this->sendRequest($request);
-        return $response;
+
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -263,20 +245,18 @@ class OpenIdConnect extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function applyClientCredentialsToRequest($request)
+    protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = $this->getConfigParam('token_endpoint_auth_methods_supported');
 
-        if (in_array('client_secret_basic', $supportedAuthMethods)) {
-            $request->addHeaders([
-                'Authorization' => 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)
-            ]);
-        } elseif (in_array('client_secret_post', $supportedAuthMethods)) {
+        if (\in_array('client_secret_basic', $supportedAuthMethods, true)) {
+            $request = $request->withHeader('Authorization', 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret));
+        } elseif (\in_array('client_secret_post', $supportedAuthMethods, true)) {
             $request->addParams([
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ]);
-        } elseif (in_array('client_secret_jwt', $supportedAuthMethods)) {
+        } elseif (\in_array('client_secret_jwt', $supportedAuthMethods, true)) {
             $header = [
                 'typ' => 'JWT',
                 'alg' => 'HS256',
@@ -311,13 +291,9 @@ class OpenIdConnect extends OAuth2
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
         // OAuth2 specifics :
-        unset($params['code']);
-        unset($params['state']);
+        unset($params['code'], $params['state']);
         // OpenIdConnect specifics :
-        unset($params['nonce']);
-        unset($params['authuser']);
-        unset($params['session_state']);
-        unset($params['prompt']);
+        unset($params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
         $params[0] = Yii::getApp()->controller->getRoute();
 
         return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
@@ -337,9 +313,9 @@ class OpenIdConnect extends OAuth2
                 $authNonce = $this->getState('authNonce');
                 if (!isset($jwsData['nonce']) || empty($authNonce) || strcmp($jwsData['nonce'], $authNonce) !== 0) {
                     throw new HttpException(400, 'Invalid auth nonce');
-                } else {
-                    $this->removeState('authNonce');
                 }
+
+                $this->removeState('authNonce');
             }
         }
 
@@ -386,5 +362,26 @@ class OpenIdConnect extends OAuth2
     protected function generateAuthNonce()
     {
         return Yii::getApp()->security->generateRandomString();
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'open_id_connect';
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'OpenID Connect';
+    }
+
+    public function setIssuerUrl(string $url): void
+    {
+        $this->issuerUrl = rtrim($url, '/');
     }
 }

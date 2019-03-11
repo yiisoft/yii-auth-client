@@ -7,21 +7,19 @@
 
 namespace yii\authclient\signature;
 
-use yii\base\BaseObject;
-
 /**
  * BaseMethod is a base class for the OAuth signature methods.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 2.0
  */
-abstract class BaseMethod extends BaseObject
+abstract class BaseMethod
 {
     /**
      * Return the canonical name of the Signature Method.
      * @return string method name.
      */
-    abstract public function getName();
+    abstract public function getName(): string;
 
     /**
      * Generates OAuth request signature.
@@ -29,7 +27,7 @@ abstract class BaseMethod extends BaseObject
      * @param string $key signature key.
      * @return string signature string.
      */
-    abstract public function generateSignature($baseString, $key);
+    abstract public function generateSignature(string $baseString, string $key): string;
 
     /**
      * Verifies given OAuth request.
@@ -38,7 +36,7 @@ abstract class BaseMethod extends BaseObject
      * @param string $key signature key.
      * @return bool success.
      */
-    public function verify($signature, $baseString, $key)
+    public function verify(string $signature, string $baseString, string $key): bool
     {
         $expectedSignature = $this->generateSignature($baseString, $key);
         if (empty($signature) || empty($expectedSignature)) {

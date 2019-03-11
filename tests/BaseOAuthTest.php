@@ -2,28 +2,32 @@
 
 namespace yii\authclient\tests;
 
-use yii\authclient\signature\PlainText;
-use yii\authclient\OAuthToken;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use yii\authclient\BaseOAuth;
-use yii\httpclient\Client;
+use yii\authclient\OAuthToken;
+use yii\authclient\signature\PlainText;
+use yii\tests\TestCase;
 
-class BaseOAuthTest extends \yii\tests\TestCase
+class BaseOAuthTest extends TestCase
 {
-    protected function setUp()
+    private function getRequestFactory(): RequestFactoryInterface
     {
-        parent::setUp();
-
-        $this->mockApplication();
+        return new Psr17Factory();
     }
 
     /**
      * Creates test OAuth client instance.
      * @return BaseOAuth oauth client.
      */
-    protected function createClient()
+    protected function createClient(?string $endpoint = null)
     {
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+
         $oauthClient = $this->getMockBuilder(BaseOAuth::class)
-            ->setMethods(['composeRequestCurlOptions', 'refreshAccessToken', 'applyAccessTokenToRequest', 'initUserAttributes'])
+            ->setConstructorArgs([$endpoint, $httpClient, $this->getRequestFactory()])
+            ->setMethods(['composeRequestCurlOptions', 'refreshAccessToken', 'applyAccessTokenToRequest', 'initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
         return $oauthClient;
     }
@@ -39,28 +43,9 @@ class BaseOAuthTest extends \yii\tests\TestCase
         $this->assertEquals($returnUrl, $oauthClient->getReturnUrl(), 'Unable to setup return URL!');
     }
 
-    public function testSetupHttpClient()
-    {
-        $oauthClient = $this->createClient();
-        $oauthClient->apiBaseUrl = 'http://api.test.url';
-
-        $this->assertEquals($oauthClient->apiBaseUrl, $oauthClient->getHttpClient()->baseUrl);
-
-        $httpClient = new Client();
-        $oauthClient->setHttpClient($httpClient);
-        $actualHttpClient = $oauthClient->getHttpClient();
-        $this->assertNotSame($httpClient, $actualHttpClient);
-        $this->assertEquals($oauthClient->apiBaseUrl, $actualHttpClient->baseUrl);
-
-        $oauthClient->setHttpClient([
-            'transport' => \yii\httpclient\CurlTransport::class
-        ]);
-        $this->assertEquals($oauthClient->apiBaseUrl, $oauthClient->getHttpClient()->baseUrl);
-    }
-
     /**
      * @runInSeparateProcess
-    */    
+     */
     public function testSetupComponents()
     {
         $oauthClient = $this->createClient();
@@ -153,8 +138,8 @@ class BaseOAuthTest extends \yii\tests\TestCase
     /**
      * @dataProvider composeUrlDataProvider
      *
-     * @param string $url         request URL.
-     * @param array  $params      request params
+     * @param string $url request URL.
+     * @param array $params request params
      * @param string $expectedUrl expected composed URL.
      */
     public function testComposeUrl($url, array $params, $expectedUrl)
@@ -165,53 +150,19 @@ class BaseOAuthTest extends \yii\tests\TestCase
     }
 
     /**
-     * Data provider for [[testApiUrl]].
-     * @return array test data.
-     */
-    public function apiUrlDataProvider()
-    {
-        return [
-            [
-                'http://api.base.url',
-                'sub/url',
-                'http://api.base.url/sub/url',
-            ],
-            [
-                'http://api.base.url',
-                'http://api.base.url/sub/url',
-                'http://api.base.url/sub/url',
-            ],
-            [
-                'http://api.base.url',
-                'https://api.base.url/sub/url',
-                'https://api.base.url/sub/url',
-            ],
-        ];
-    }
-
-    /**
      * @depends testSetupAccessToken
-     *
-     * @dataProvider apiUrlDataProvider
-     * @runInSeparateProcess
-     * @param $apiBaseUrl
-     * @param $apiSubUrl
-     * @param $expectedApiFullUrl
      */
-    public function testApiUrl($apiBaseUrl, $apiSubUrl, $expectedApiFullUrl)
+    public function testApiUrl()
     {
-        $oauthClient = $this->createClient();
+        $endpoint = 'http://api.base.url';
+        $oauthClient = $this->createClient($endpoint);
 
         $accessToken = new OAuthToken();
         $accessToken->setToken('test_access_token');
         $accessToken->setExpireDuration(1000);
         $oauthClient->setAccessToken($accessToken);
 
-        $oauthClient->apiBaseUrl = $apiBaseUrl;
-
-        $request = $oauthClient->createApiRequest()
-            ->setUrl($apiSubUrl);
-
-        $this->assertEquals($expectedApiFullUrl, $request->getUri()->__toString());
+        $request = $oauthClient->createApiRequest('GET', '/sub/url');
+        $this->assertEquals('http://api.base.url/sub/url', $request->getUri()->__toString());
     }
 }

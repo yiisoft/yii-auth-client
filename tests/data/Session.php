@@ -10,7 +10,7 @@ class Session extends \yii\web\Session
     /**
      * {@inheritdoc}
      */
-    public function init()
+    public function __construct()
     {
         // blank, override, preventing shutdown function registration
     }

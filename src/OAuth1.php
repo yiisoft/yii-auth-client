@@ -7,11 +7,10 @@
 
 namespace yii\authclient;
 
-use yii\helpers\Yii;
+use Psr\Http\Message\RequestInterface;
 use yii\base\InvalidArgumentException;
-use yii\httpclient\Request;
+use yii\helpers\Yii;
 use yii\web\HttpException;
-use yii\httpclient\RequestEvent;
 
 /**
  * OAuth1 serves as a client for the OAuth 1/1.0a flow.
@@ -40,10 +39,8 @@ use yii\httpclient\RequestEvent;
  */
 abstract class OAuth1 extends BaseOAuth
 {
-    /**
-     * @var string protocol version.
-     */
-    public $version = '1.0';
+    private const PROTOCOL_VERSION = '1.0';
+
     /**
      * @var string OAuth consumer key.
      */
@@ -90,17 +87,13 @@ abstract class OAuth1 extends BaseOAuth
             'oauth_callback' => $this->getReturnUrl(),
             //'xoauth_displayname' => Yii::getApp()->name,
         ];
-        if (!empty($this->scope)) {
-            $defaultParams['scope'] = $this->scope;
+        if (!empty($this->getScope())) {
+            $defaultParams['scope'] = $this->getScope();
         }
 
-        $request = $this->createRequest()
-            ->setMethod($this->requestTokenMethod)
-            ->setUrl($this->requestTokenUrl)
-            ->setParams(array_merge($defaultParams, $params));
+        $request = $this->createRequest($this->requestTokenMethod, $this->requestTokenUrl . '?' . http_build_query(array_merge($defaultParams, $params)));
 
-        $this->signRequest($request);
-
+        $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
         $token = $this->createToken([
@@ -173,13 +166,11 @@ abstract class OAuth1 extends BaseOAuth
             $defaultParams['oauth_verifier'] = $oauthVerifier;
         }
 
-        $request = $this->createRequest()
-            ->setMethod($this->accessTokenMethod)
-            ->setUrl($this->accessTokenUrl)
-            ->setParams(array_merge($defaultParams, $params));
+        $request = $this->createRequest($this->accessTokenMethod, $this->composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params)));
 
-        $this->signRequest($request, $requestToken);
+        $request = $this->signRequest($request, $requestToken);
 
+        $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
         $token = $this->createToken([
@@ -193,47 +184,12 @@ abstract class OAuth1 extends BaseOAuth
     /**
      * {@inheritdoc}
      */
-    public function createRequest()
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        $request = parent::createRequest();
-        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
-        return $request;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createApiRequest()
-    {
-        $request = parent::createApiRequest();
-
-        // ensure correct event handlers order :
-        $request->off(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
-        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeRequestSend']);
-
-        return $request;
-    }
-
-    /**
-     * Handles [[Request::EVENT_BEFORE_SEND]] event.
-     * Ensures every request has been signed up before sending.
-     * @param \yii\httpclient\RequestEvent $event event instance.
-     * @since 2.1
-     */
-    public function beforeRequestSend($event)
-    {
-        $this->signRequest($event->request);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function applyAccessTokenToRequest($request, $accessToken)
-    {
-        $data = $request->getParams();
+        $data = RequestUtil::getParams($request);
         $data['oauth_consumer_key'] = $this->consumerKey;
         $data['oauth_token'] = $accessToken->getToken();
-        $request->setParams($data);
+        return RequestUtil::addParams($request, $data);
     }
 
     /**
@@ -285,7 +241,7 @@ abstract class OAuth1 extends BaseOAuth
     protected function generateCommonRequestParams()
     {
         $params = [
-            'oauth_version' => $this->version,
+            'oauth_version' => self::PROTOCOL_VERSION,
             'oauth_nonce' => $this->generateNonce(),
             'oauth_timestamp' => $this->generateTimestamp(),
         ];
@@ -295,20 +251,20 @@ abstract class OAuth1 extends BaseOAuth
 
     /**
      * Sign given request with [[signatureMethod]].
-     * @param \yii\httpclient\Request $request request instance.
+     * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set [[accessToken]] will be used.
      * @since 2.1 this method is public.
      */
-    public function signRequest($request, $token = null)
+    public function signRequest(RequestInterface $request, $token = null): RequestInterface
     {
-        $params = $request->getParams();
+        $params = RequestUtil::getParams($request);
 
         if (isset($params['oauth_signature_method']) || $request->hasHeader('authorization')) {
             // avoid double sign of request
-            return;
+            return $request;
         }
 
-        if (empty($params)) {
+        if (empty($request->getUri()->getQuery())) {
             $params = $this->generateCommonRequestParams();
         } else {
             $params = array_merge($this->generateCommonRequestParams(), $params);
@@ -326,7 +282,9 @@ abstract class OAuth1 extends BaseOAuth
         if ($this->authorizationHeaderMethods === null || in_array(strtoupper($request->getMethod()), array_map('strtoupper', $this->authorizationHeaderMethods), true)) {
             $authorizationHeader = $this->composeAuthorizationHeader($params);
             if (!empty($authorizationHeader)) {
-                $request->addHeaders($authorizationHeader);
+                foreach ($authorizationHeader as $name => $value) {
+                    $request = $request->withHeader($name, $value);
+                }
 
                 // removing authorization header params, avoiding duplicate param server error :
                 foreach ($params as $key => $value) {
@@ -337,7 +295,8 @@ abstract class OAuth1 extends BaseOAuth
             }
         }
 
-        $request->setParams($params);
+        $uri = $request->getUri()->withQuery(http_build_query($params));
+        return $request->withUri($uri);
     }
 
     /**

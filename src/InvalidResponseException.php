@@ -7,7 +7,8 @@
 
 namespace yii\authclient;
 
-use yii\base\Exception;
+use Psr\Http\Message\ResponseInterface;
+use yii\exceptions\Exception;
 
 /**
  * InvalidResponseException represents an exception caused by invalid remote server response.
@@ -18,7 +19,7 @@ use yii\base\Exception;
 class InvalidResponseException extends Exception
 {
     /**
-     * @var \yii\httpclient\Response HTTP response instance.
+     * @var ResponseInterface HTTP response instance.
      * @since 2.1
      */
     public $response;
@@ -26,7 +27,7 @@ class InvalidResponseException extends Exception
 
     /**
      * Constructor.
-     * @param \yii\httpclient\Response $response response body
+     * @param ResponseInterface $response HTTP response instance
      * @param string $message error message
      * @param int $code error code
      * @param \Throwable $previous The previous exception used for the exception chaining.

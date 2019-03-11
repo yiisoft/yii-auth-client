@@ -7,8 +7,8 @@
 
 namespace yii\authclient\signature;
 
-use yii\base\InvalidConfigException;
-use yii\base\NotSupportedException;
+use yii\exceptions\InvalidConfigException;
+use yii\exceptions\NotSupportedException;
 
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
@@ -56,7 +56,7 @@ class RsaSha extends BaseMethod
     {
         $this->algorithm = $algorithm;
         
-        if (!function_exists('openssl_sign')) {
+        if (!\function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
     }
@@ -92,7 +92,7 @@ class RsaSha extends BaseMethod
     /**
      * @return string private key certificate content.
      */
-    public function getPrivateCertificate()
+    public function getPrivateCertificate(): string
     {
         if ($this->_privateCertificate === null) {
             $this->_privateCertificate = $this->initPrivateCertificate();
@@ -104,9 +104,9 @@ class RsaSha extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
-        if (is_int($this->algorithm)) {
+        if (\is_int($this->algorithm)) {
             $constants = get_defined_constants(true);
             if (isset($constants['openssl'])) {
                 foreach ($constants['openssl'] as $name => $value) {
@@ -166,7 +166,7 @@ class RsaSha extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function generateSignature($baseString, $key)
+    public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
         // Pull the private key ID from the certificate
@@ -182,7 +182,7 @@ class RsaSha extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function verify($signature, $baseString, $key)
+    public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);
         // Fetch the public key cert based on the request

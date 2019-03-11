@@ -7,7 +7,11 @@
 
 namespace yii\authclient\clients;
 
+use Psr\Http\Message\RequestInterface;
+use SebastianBergmann\CodeCoverage\Util;
 use yii\authclient\OAuth2;
+use yii\authclient\OAuthToken;
+use yii\authclient\RequestUtil;
 
 /**
  * Yandex allows authentication via Yandex OAuth.
@@ -51,7 +55,7 @@ class Yandex extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://login.yandex.ru';
+    public $endpoint = 'https://login.yandex.ru';
 
 
     /**
@@ -65,28 +69,30 @@ class Yandex extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public function applyAccessTokenToRequest($request, $accessToken)
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        $data = $request->getParams();
-        if (!isset($data['format'])) {
-            $data['format'] = 'json';
+        $params = RequestUtil::getParams($request);
+
+        $paramsToAdd = [];
+        if (!isset($params['format'])) {
+            $paramsToAdd['format'] = 'json';
         }
-        $data['oauth_token'] = $accessToken->getToken();
-        $request->setParams($data);
+        $paramsToAdd['oauth_token'] = $accessToken->getToken();
+        return RequestUtil::addParams($request, $paramsToAdd);
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'yandex';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'Yandex';
     }

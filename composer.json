@@ -20,7 +20,13 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "yiisoft/yii-http-client": "^3.0@dev"
+        "psr/http-client": "^1.0",
+        "psr/http-message": "^1.0",
+        "psr/http-message-implementation": "1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-factory-implementation": "1.0",
+        "psr/simple-cache-implementation": "^1.0",
+        "psr/log-implementation": "^1.0"
     },
     "require-dev": {
         "yiisoft/yii-web": "^3.0@dev",
@@ -29,10 +35,12 @@
         "yiisoft/rbac": "^3.0@dev",
         "yiisoft/cache": "^3.0@dev",
         "hiqdev/composer-config-plugin": "^1.0@dev",
-        "phpunit/phpunit": "^7.5"
+        "phpunit/phpunit": "^7.5",
+        "kriswallsmith/buzz": "^1.0",
+        "nyholm/psr7": "^1.0"
     },
     "suggest": {
-        "spomky-labs/jose": "required for JWS,JWT or JWK related flows like OpenIDConnect"
+        "spomky-labs/jose": "required for JWS, JWT or JWK related flows like OpenIDConnect"
     },
     "repositories": [
         {

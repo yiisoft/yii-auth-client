@@ -16,42 +16,22 @@ namespace yii\authclient;
 interface ClientInterface
 {
     /**
-     * @param string $id service id.
-     */
-    public function setId($id);
-
-    /**
-     * @return string service id
-     */
-    public function getId();
-
-    /**
      * @return string service name.
      */
-    public function getName();
-
-    /**
-     * @param string $name service name.
-     */
-    public function setName($name);
+    public function getName(): string;
 
     /**
      * @return string service title.
      */
-    public function getTitle();
-
-    /**
-     * @param string $title service title.
-     */
-    public function setTitle($title);
+    public function getTitle(): string;
 
     /**
      * @return array list of user attributes
      */
-    public function getUserAttributes();
+    public function getUserAttributes(): array;
 
     /**
      * @return array view options in format: optionName => optionValue
      */
-    public function getViewOptions();
+    public function getViewOptions(): array;
 }

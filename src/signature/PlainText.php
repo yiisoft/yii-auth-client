@@ -18,7 +18,7 @@ class PlainText extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         return 'PLAINTEXT';
     }
@@ -26,7 +26,7 @@ class PlainText extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function generateSignature($baseString, $key)
+    public function generateSignature(string $baseString, string $key): string
     {
         return $key;
     }

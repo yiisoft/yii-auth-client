@@ -7,9 +7,10 @@
 
 namespace yii\authclient\clients;
 
+use Psr\Http\Message\RequestInterface;
 use yii\authclient\OAuth2;
-use yii\web\HttpException;
-use yii\helpers\Yii;
+use yii\authclient\OAuthToken;
+use yii\authclient\RequestUtil;
 
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
@@ -54,7 +55,7 @@ class LinkedIn extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://api.linkedin.com/v1';
+    public $endpoint = 'https://api.linkedin.com/v1';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      * @since 2.0.4
@@ -67,19 +68,9 @@ class LinkedIn extends OAuth2
         'public-profile-url',
     ];
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
+    protected function getDefaultScope(): string
     {
-        parent::init();
-        if ($this->scope === null) {
-            $this->scope = implode(' ', [
-                'r_basicprofile',
-                'r_emailaddress',
-            ]);
-        }
+        return 'r_basicprofile r_emailaddress';
     }
 
     /**
@@ -105,25 +96,25 @@ class LinkedIn extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public function applyAccessTokenToRequest($request, $accessToken)
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        $data = $request->getParams();
-        $data['oauth2_access_token'] = $accessToken->getToken();
-        $request->setParams($data);
+        return RequestUtil::addParams($request, [
+            'oauth2_access_token' => $accessToken->getToken()
+        ]);
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'linkedin';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'LinkedIn';
     }
