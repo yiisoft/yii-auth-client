@@ -10,7 +10,7 @@ namespace yii\authclient\signature;
 use yii\exceptions\NotSupportedException;
 
 /**
- * HmacSha1 represents 'HMAC SHA' signature method.
+ * HmacSha represents 'HMAC SHA' signature method.
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
  *

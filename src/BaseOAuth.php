@@ -9,6 +9,7 @@ namespace yii\authclient;
 
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use yii\authclient\signature\HmacSha;
 use yii\exceptions\Exception;
 use yii\exceptions\InvalidArgumentException;
 use yii\helpers\Yii;
@@ -160,7 +161,8 @@ abstract class BaseOAuth extends BaseClient
     protected function createSignatureMethod(array $signatureMethodConfig)
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = signature\HmacSha1::class;
+            $signatureMethodConfig['__class'] = signature\HmacSha::class;
+            $signatureMethodConfig['__construct()'] = ['sha1'];
         }
         return Yii::createObject($signatureMethodConfig);
     }
