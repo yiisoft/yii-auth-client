@@ -51,21 +51,11 @@ class Live extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://apis.live.net/v5.0';
+    public $endpoint = 'https://apis.live.net/v5.0';
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
+    protected function getDefaultScope(): string
     {
-        parent::init();
-        if ($this->scope === null) {
-            $this->scope = implode(',', [
-                'wl.basic',
-                'wl.emails',
-            ]);
-        }
+        return 'wl.basic wl.emails';
     }
 
     /**
@@ -77,17 +67,17 @@ class Live extends OAuth2
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'live';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'Live';
     }

@@ -7,8 +7,11 @@
 
 namespace yii\authclient\clients;
 
+use Psr\Http\Message\RequestInterface;
 use yii\authclient\InvalidResponseException;
 use yii\authclient\OAuth2;
+use yii\authclient\OAuthToken;
+use yii\authclient\RequestUtil;
 use yii\helpers\Json;
 
 /**
@@ -53,7 +56,7 @@ class VKontakte extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://api.vk.com/method';
+    public $endpoint = 'https://api.vk.com/method';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      * @since 2.0.4
@@ -108,29 +111,13 @@ class VKontakte extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public function applyAccessTokenToRequest($request, $accessToken)
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        $data = $request->getParams();
-        $data['v'] = $this->apiVersion;
-        $data['uids'] = $accessToken->getParam('user_id');
-        $data['access_token'] = $accessToken->getToken();
-        $request->setParams($data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function defaultName()
-    {
-        return 'vkontakte';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function defaultTitle()
-    {
-        return 'VKontakte';
+        return RequestUtil::addParams($request, [
+            'v' => $this->apiVersion,
+            'uids' => $accessToken->getParam('user_id'),
+            'access_token' => $accessToken->getToken()
+        ]);
     }
 
     /**
@@ -141,5 +128,21 @@ class VKontakte extends OAuth2
         return [
             'id' => 'uid'
         ];
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'vkontakte';
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'VKontakte';
     }
 }

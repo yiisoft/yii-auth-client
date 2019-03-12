@@ -7,7 +7,9 @@
 
 namespace yii\authclient\clients;
 
+use Psr\Http\Message\RequestInterface;
 use yii\authclient\OAuth2;
+use yii\authclient\OAuthToken;
 
 /**
  * TwitterOAuth2 allows authentication via Twitter OAuth 2.
@@ -38,7 +40,7 @@ class TwitterOAuth2 extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://api.twitter.com/1.1';
+    public $endpoint = 'https://api.twitter.com/1.1';
 
 
     /**
@@ -52,24 +54,24 @@ class TwitterOAuth2 extends OAuth2
     /**
      * {@inheritdoc}
      */
-    protected function defaultName()
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
+    {
+        return $request->withHeader('Authorization', 'Bearer '. $accessToken->getToken());
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
     {
         return 'twitter';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'Twitter';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function applyAccessTokenToRequest($request, $accessToken)
-    {
-        $request->setHeader('Authorization', 'Bearer '. $accessToken->getToken());
     }
 }

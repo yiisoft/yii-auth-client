@@ -5,11 +5,9 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace yii\authclient\stateStorage;
 
-use yii\helpers\Yii;
 use yii\base\Component;
-use yii\di\Instance;
 use yii\web\Session;
 
 /**
@@ -24,7 +22,7 @@ use yii\web\Session;
 class SessionStateStorage extends Component implements StateStorageInterface
 {
     /**
-     * @var Session|array|string session object or the application component ID of the session object to be used.
+     * @var Session session object to be used.
      *
      * After the SessionStateStorage object is created, if you want to change this property,
      * you should only assign it with a session object.
@@ -32,23 +30,14 @@ class SessionStateStorage extends Component implements StateStorageInterface
      * If not set - application 'session' component will be used, but only, if it is available (e.g. in web application),
      * otherwise - no session will be used and no data saving will be performed.
      */
-    public $session;
-
+    private $session;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct($session = null)
+    public function __construct(Session $session)
     {
         $this->session = $session;
-
-        if ($this->session === null) {
-            if (Yii::getApp()->has('session')) {
-                $this->session = Yii::getApp()->get('session');
-            }
-        } else {
-            $this->session = Yii::ensureObject($this->session, Session::class);
-        }
     }
 
     /**

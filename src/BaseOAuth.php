@@ -7,11 +7,12 @@
 
 namespace yii\authclient;
 
-use yii\base\Exception;
-use yii\base\InvalidArgumentException;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
+use yii\authclient\signature\HmacSha;
+use yii\exceptions\Exception;
+use yii\exceptions\InvalidArgumentException;
 use yii\helpers\Yii;
-use yii\httpclient\Request;
-use yii\httpclient\RequestEvent;
 
 /**
  * BaseOAuth is a base class for the OAuth clients.
@@ -29,16 +30,13 @@ use yii\httpclient\RequestEvent;
  */
 abstract class BaseOAuth extends BaseClient
 {
-    /**
-     * @var string protocol version.
-     */
-    public $version = '1.0';
+
     /**
      * @var string API base URL.
      * This field will be used as [[\yii\httpclient\Client::baseUrl]] value of [[httpClient]].
      * Note: changing this property will take no effect after [[httpClient]] is instantiated.
      */
-    public $apiBaseUrl;
+    private $endpoint;
     /**
      * @var string authorize URL.
      */
@@ -46,7 +44,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @var string auth request scope.
      */
-    public $scope;
+    private $scope;
     /**
      * @var bool whether to automatically perform 'refresh access token' request on expired access token.
      * @since 2.0.6
@@ -68,6 +66,14 @@ abstract class BaseOAuth extends BaseClient
      */
     private $_signatureMethod = [];
 
+    /**
+     * BaseOAuth constructor.
+     */
+    public function __construct(?string $endpoint, \Psr\Http\Client\ClientInterface $httpClient, RequestFactoryInterface $requestFactory)
+    {
+        $this->endpoint = rtrim($endpoint, '/');
+        parent::__construct($httpClient, $requestFactory);
+    }
 
     /**
      * @param string $returnUrl return URL
@@ -139,46 +145,12 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function setHttpClient($httpClient)
-    {
-        if (is_object($httpClient)) {
-            $httpClient = clone $httpClient;
-            $httpClient->baseUrl = $this->apiBaseUrl;
-        }
-        parent::setHttpClient($httpClient);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function createHttpClient($reference)
-    {
-        $httpClient = parent::createHttpClient($reference);
-        $httpClient->baseUrl = $this->apiBaseUrl;
-        return $httpClient;
-    }
-
-    /**
      * Composes default [[returnUrl]] value.
      * @return string return URL.
      */
     protected function defaultReturnUrl()
     {
         return Yii::getApp()->getRequest()->getAbsoluteUrl();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function defaultRequestOptions()
-    {
-        return [
-            'userAgent' => Yii::getApp()->name . ' OAuth ' . $this->version . ' Client',
-            'timeout' => 30,
-            'sslVerifyPeer' => false,
-        ];
     }
 
     /**
@@ -189,7 +161,8 @@ abstract class BaseOAuth extends BaseClient
     protected function createSignatureMethod(array $signatureMethodConfig)
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = signature\HmacSha1::class;
+            $signatureMethodConfig['__class'] = signature\HmacSha::class;
+            $signatureMethodConfig['__construct()'] = ['sha1'];
         }
         return Yii::createObject($signatureMethodConfig);
     }
@@ -205,24 +178,6 @@ abstract class BaseOAuth extends BaseClient
             $tokenConfig['__class'] = OAuthToken::class;
         }
         return Yii::createObject($tokenConfig);
-    }
-
-    /**
-     * Sends the given HTTP request, returning response data.
-     * @param \yii\httpclient\Request $request HTTP request to be sent.
-     * @return array response data.
-     * @throws InvalidResponseException on invalid remote response.
-     * @since 2.1
-     */
-    protected function sendRequest($request)
-    {
-        $response = $request->send();
-
-        if (!$response->getIsOk()) {
-            throw new InvalidResponseException($response, 'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody());
-        }
-
-        return $response->getParsedBody();
     }
 
     /**
@@ -275,31 +230,24 @@ abstract class BaseOAuth extends BaseClient
      * The created request will be automatically processed adding access token parameters and signature
      * before sending. You may use [[createRequest()]] to gain full control over request composition and execution.
      * @see createRequest()
-     * @return Request HTTP request instance.
+     * @return RequestInterface HTTP request instance.
      * @since 2.1
      */
-    public function createApiRequest()
+    public function createApiRequest(string $method, string $uri): RequestInterface
     {
-        $request = $this->createRequest();
-        $request->on(RequestEvent::BEFORE_SEND, [$this, 'beforeApiRequestSend']);
+        $request = $this->createRequest($method, $this->endpoint . $uri);
         return $request;
     }
 
-    /**
-     * Handles [[Request::EVENT_BEFORE_SEND]] event.
-     * Applies [[accessToken]] to the request.
-     * @param \yii\httpclient\RequestEvent $event event instance.
-     * @throws Exception on invalid access token.
-     * @since 2.1
-     */
-    public function beforeApiRequestSend($event)
+
+    public function beforeApiRequestSend(RequestInterface $request)
     {
         $accessToken = $this->getAccessToken();
-        if (!is_object($accessToken) || !$accessToken->getIsValid()) {
+        if (!\is_object($accessToken) || !$accessToken->getIsValid()) {
             throw new Exception('Invalid access token.');
         }
 
-        $this->applyAccessTokenToRequest($event->request, $accessToken);
+        return $this->applyAccessTokenToRequest($request, $accessToken);
     }
 
     /**
@@ -314,20 +262,26 @@ abstract class BaseOAuth extends BaseClient
      */
     public function api($apiSubUrl, $method = 'GET', $data = [], $headers = [])
     {
-        $request = $this->createApiRequest()
-            ->setMethod($method)
-            ->setUrl($apiSubUrl)
+        $request = $this->createApiRequest($method, $apiSubUrl)
             ->addHeaders($headers);
 
         if (!empty($data)) {
-            if (is_array($data)) {
+            if (\is_array($data)) {
                 $request->setParams($data);
             } else {
                 $request->getBody()->write($data);
             }
         }
 
-        return $this->sendRequest($request);
+        $request = $this->beforeApiRequestSend($request);
+        $response =  $this->sendRequest($request);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new InvalidResponseException($response, 'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody());
+        }
+
+        // TODO: parse response body into array
+        return $response->getBody();
     }
 
     /**
@@ -339,9 +293,34 @@ abstract class BaseOAuth extends BaseClient
 
     /**
      * Applies access token to the HTTP request instance.
-     * @param \yii\httpclient\Request $request HTTP request instance.
+     * @param RequestInterface $request HTTP request instance.
      * @param OAuthToken $accessToken access token instance.
      * @since 2.1
      */
-    abstract public function applyAccessTokenToRequest($request, $accessToken);
+    abstract public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface;
+
+    /**
+     * @return string
+     */
+    public function getScope(): string
+    {
+        if ($this->scope === null) {
+            return $this->getDefaultScope();
+        }
+
+        return $this->scope;
+    }
+
+    /**
+     * @param string $scope
+     */
+    public function setScope(string $scope): void
+    {
+        $this->scope = $scope;
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return '';
+    }
 }

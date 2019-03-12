@@ -2,22 +2,20 @@
 
 namespace yii\authclient\tests;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use yii\authclient\OAuth1;
-use yii\authclient\signature\BaseMethod;
 use yii\authclient\OAuthToken;
+use yii\authclient\RequestUtil;
+use yii\authclient\signature\BaseMethod;
+use yii\tests\TestCase;
 
-class OAuth1Test extends \yii\tests\TestCase
+class OAuth1Test extends TestCase
 {
-    protected function setUp()
+    private function getRequestFactory(): RequestFactoryInterface
     {
-        $services = [
-            'request' => [
-                '__class' => \yii\web\Request::class,
-                'hostInfo' => 'http://testdomain.com',
-                'scriptUrl' => '/index.php',
-            ],
-        ];
-        $this->mockWebApplication([], null, $services);
+        return new Psr17Factory();
     }
 
     /**
@@ -26,25 +24,25 @@ class OAuth1Test extends \yii\tests\TestCase
      */
     protected function createClient()
     {
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+
         $oauthClient = $this->getMockBuilder(OAuth1::class)
-            ->setMethods(['initUserAttributes'])
-            ->getMock();
+            ->setConstructorArgs([null, $httpClient, $this->getRequestFactory()])
+            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->getMockForAbstractClass();
         return $oauthClient;
     }
 
     // Tests :
+
     /**
-     * @runInSeparateProcess
+     * @ runInSeparateProcess
      */
     public function testSignRequest()
     {
         $oauthClient = $this->createClient();
 
-        $request = $oauthClient->createRequest();
-        $request->setUrl('https://example.com?s=some');
-        $request->setParams([
-            'a' => 'another',
-        ]);
+        $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
         /* @var $oauthSignatureMethod BaseMethod|\PHPUnit_Framework_MockObject_MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
@@ -59,9 +57,9 @@ class OAuth1Test extends \yii\tests\TestCase
 
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
 
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->signRequest($request);
 
-        $signedParams = $request->getParams();
+        $signedParams = RequestUtil::getParams($request);
 
         $this->assertNotEmpty($signedParams['oauth_signature'], 'Unable to sign request!');
 
@@ -85,38 +83,33 @@ class OAuth1Test extends \yii\tests\TestCase
 
     /**
      * @depends testSignRequest
-     * @runInSeparateProcess
+     * @ runInSeparateProcess
      */
     public function testAuthorizationHeaderMethods()
     {
         $oauthClient = $this->createClient();
 
-        $request = $oauthClient->createRequest();
-        $request->setMethod('POST');
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->createRequest('POST', 'http://example.com/');
+        $request = $oauthClient->signRequest($request);
         $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
-        $request = $oauthClient->createRequest();
-        $request->setMethod('GET');
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->createRequest('GET', 'http://example.com/');
+        $request = $oauthClient->signRequest($request);
         $this->assertEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = ['GET'];
-        $request = $oauthClient->createRequest();
-        $request->setMethod('GET');
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->createRequest('GET', 'http://example.com/');
+        $request = $oauthClient->signRequest($request);
         $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = null;
-        $request = $oauthClient->createRequest();
-        $request->setMethod('GET');
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->createRequest('GET', 'http://example.com/');
+        $request = $oauthClient->signRequest($request);
         $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
         $oauthClient->authorizationHeaderMethods = [];
-        $request = $oauthClient->createRequest();
-        $request->setMethod('POST');
-        $oauthClient->signRequest($request);
+        $request = $oauthClient->createRequest('POST', 'http://example.com/');
+        $request = $oauthClient->signRequest($request);
         $this->assertEmpty($request->getHeaderLine('Authorization'));
     }
 
@@ -157,8 +150,8 @@ class OAuth1Test extends \yii\tests\TestCase
     /**
      * @dataProvider composeAuthorizationHeaderDataProvider
      *
-     * @param string $realm                       authorization realm.
-     * @param array  $params                      request params.
+     * @param string $realm authorization realm.
+     * @param array $params request params.
      * @param string $expectedAuthorizationHeader expected authorization header.
      */
     public function testComposeAuthorizationHeader($realm, array $params, $expectedAuthorizationHeader)

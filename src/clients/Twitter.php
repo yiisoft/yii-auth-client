@@ -70,7 +70,7 @@ class Twitter extends OAuth1
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://api.twitter.com/1.1';
+    public $endpoint = 'https://api.twitter.com/1.1';
     /**
      * @var array list of extra parameters, which should be used, while requesting user attributes from Twitter API.
      * For example:
@@ -96,17 +96,17 @@ class Twitter extends OAuth1
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'twitter';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'Twitter';
     }

@@ -7,8 +7,12 @@
 
 namespace yii\authclient\clients;
 
+use Psr\Http\Message\RequestInterface;
+use SebastianBergmann\CodeCoverage\Util;
 use yii\authclient\OAuth2;
 use yii\authclient\OAuthToken;
+use yii\authclient\RequestUtil;
+use yii\web\Request;
 
 /**
  * Facebook allows authentication via Facebook OAuth.
@@ -52,11 +56,8 @@ class Facebook extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://graph.facebook.com';
-    /**
-     * {@inheritdoc}
-     */
-    public $scope = 'email';
+    public $endpoint = 'https://graph.facebook.com';
+
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      * @since 2.0.5
@@ -98,32 +99,16 @@ class Facebook extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public function applyAccessTokenToRequest($request, $accessToken)
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        parent::applyAccessTokenToRequest($request, $accessToken);
+        $request = parent::applyAccessTokenToRequest($request, $accessToken);
 
-        $data = $request->getParams();
+        $params = [];
         if (($machineId = $accessToken->getParam('machine_id')) !== null) {
-            $data['machine_id'] = $machineId;
+            $params['machine_id'] = $machineId;
         }
-        $data['appsecret_proof'] = hash_hmac('sha256', $accessToken->getToken(), $this->clientSecret);
-        $request->setParams($data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function defaultName()
-    {
-        return 'facebook';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function defaultTitle()
-    {
-        return 'Facebook';
+        $params['appsecret_proof'] = hash_hmac('sha256', $accessToken->getToken(), $this->clientSecret);
+        return RequestUtil::addParams($request, $params);
     }
 
     /**
@@ -165,13 +150,9 @@ class Facebook extends OAuth2
             'fb_exchange_token' => $token->getToken(),
         ];
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams($params);
-
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        //->setParams($params);
         $this->applyClientCredentialsToRequest($request);
-
         $response = $this->sendRequest($request);
 
         $token = $this->createToken(['params' => $response]);
@@ -202,14 +183,14 @@ class Facebook extends OAuth2
             'redirect_uri' => $this->getReturnUrl(),
         ], $params);
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->clientAuthCodeUrl)
-            ->setParams($params);
+        $request = $this->createRequest('POST', $this->clientAuthCodeUrl);
+        $request = RequestUtil::addParams($request, $params);
 
-        $this->applyClientCredentialsToRequest($request);
+        $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
+
+        // TODO: parse response!
 
         return $response['code'];
     }
@@ -233,10 +214,8 @@ class Facebook extends OAuth2
             'client_id' => $this->clientId,
         ], $params);
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams($params);
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams($request, $params);
 
         $response = $this->sendRequest($request);
 
@@ -244,5 +223,26 @@ class Facebook extends OAuth2
         $this->setAccessToken($token);
 
         return $token;
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'facebook';
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'Facebook';
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return 'email';
     }
 }

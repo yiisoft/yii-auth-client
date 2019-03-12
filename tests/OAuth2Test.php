@@ -2,30 +2,25 @@
 
 namespace yii\authclient\tests;
 
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use yii\authclient\OAuth2;
 
-class OAuth2Test extends \yii\tests\TestCase
+class OAuth2Test extends TestCase
 {
-    protected function setUp()
-    {
-        $services = [
-            'request' => [
-                '__class' => \yii\web\Request::class,
-                'hostInfo' => 'http://testdomain.com',
-                'scriptUrl' => '/index.php',
-            ],
-        ];
-        $this->mockWebApplication([], null, $services);
-    }
-
     /**
      * Creates test OAuth2 client instance.
      * @return OAuth2 oauth client.
      */
     protected function createClient()
     {
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
+
         $oauthClient = $this->getMockBuilder(OAuth2::class)
-            ->setMethods(['initUserAttributes'])
+            ->setConstructorArgs([null, $httpClient, $requestFactory])
+            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
         return $oauthClient;
     }

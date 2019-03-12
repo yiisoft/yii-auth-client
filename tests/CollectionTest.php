@@ -2,20 +2,33 @@
 
 namespace yii\authclient\tests;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use yii\authclient\Collection;
 use yii\authclient\tests\data\TestClient;
 
-class CollectionTest extends \yii\tests\TestCase
+class CollectionTest extends TestCase
 {
-    // Tests :
+    private function getRequestFactory(): RequestFactoryInterface
+    {
+        return new Psr17Factory();
+    }
+
+    private function getTestClient()
+    {
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        return new TestClient($httpClient, $this->getRequestFactory());
+    }
 
     public function testSetGet()
     {
         $collection = new Collection();
 
         $clients = [
-            'testClient1' => new TestClient(),
-            'testClient2' => new TestClient(),
+            'testClient1' => $this->getTestClient(),
+            'testClient2' => $this->getTestClient(),
         ];
         $collection->setClients($clients);
         $this->assertEquals($clients, $collection->getClients(), 'Unable to setup clients!');
@@ -24,12 +37,12 @@ class CollectionTest extends \yii\tests\TestCase
     /**
      * @depends testSetGet
      */
-    public function testGetProviderById()
+    public function testGetProviderByName()
     {
         $collection = new Collection();
 
         $clientId = 'testClientId';
-        $client = new TestClient();
+        $client = $this->getTestClient();
         $clients = [
             $clientId => $client
         ];
@@ -38,26 +51,7 @@ class CollectionTest extends \yii\tests\TestCase
         $this->assertEquals($client, $collection->getClient($clientId), 'Unable to get client by id!');
     }
 
-    /**
-     * @depends testGetProviderById
-     */
-    public function testCreateProvider()
-    {
-        $collection = new Collection();
 
-        $clientId = 'testClientId';
-        $clientClassName = TestClient::class;
-        $clients = [
-            $clientId => [
-                '__class' => $clientClassName
-            ]
-        ];
-        $collection->setClients($clients);
-
-        $provider = $collection->getClient($clientId);
-        $this->assertTrue(is_object($provider), 'Unable to create client by config!');
-        $this->assertTrue(is_a($provider, $clientClassName), 'Client has wrong class name!');
-    }
 
     /**
      * @depends testSetGet
@@ -67,37 +61,11 @@ class CollectionTest extends \yii\tests\TestCase
         $collection = new Collection();
 
         $clientName = 'testClientName';
-        $clients = [
-            $clientName => [
-                '__class' => 'TestClient1'
-            ],
-        ];
-        $collection->setClients($clients);
+        $collection->setClients([
+            $clientName => $this->getTestClient(),
+        ]);
 
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
-        $this->assertFalse($collection->hasClient('unExistingClientName'), 'Not existing client check fails!');
-    }
-
-    /**
-     * @depends testCreateProvider
-     */
-    public function testSetupHttpClient()
-    {
-        $collection = new Collection();
-        $collection->httpClient = new \yii\httpclient\Client();
-
-        $clientId = 'testClientId';
-        $clientClassName = TestClient::class;
-        $clients = [
-            $clientId => [
-                '__class' => $clientClassName
-            ]
-        ];
-        $collection->setClients($clients);
-
-        /* @var $provider TestClient */
-        $provider = $collection->getClient($clientId);
-
-        $this->assertSame($collection->httpClient, $provider->getHttpClient());
+        $this->assertFalse($collection->hasClient('nonExistingClientName'), 'Not existing client check fails!');
     }
 }

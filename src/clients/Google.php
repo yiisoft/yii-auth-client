@@ -53,21 +53,11 @@ class Google extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://www.googleapis.com/plus/v1';
+    public $endpoint = 'https://www.googleapis.com/plus/v1';
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
+    protected function getDefaultScope(): string
     {
-        parent::init();
-        if ($this->scope === null) {
-            $this->scope = implode(' ', [
-                'profile',
-                'email',
-            ]);
-        }
+        return 'profile email';
     }
 
     /**
@@ -79,17 +69,17 @@ class Google extends OAuth2
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'google';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'Google';
     }

@@ -51,18 +51,11 @@ class GitHub extends OAuth2
     /**
      * {@inheritdoc}
      */
-    public $apiBaseUrl = 'https://api.github.com';
+    public $endpoint = 'https://api.github.com';
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init()
+    protected function getDefaultScope(): string
     {
-        parent::init();
-        if ($this->scope === null) {
-            $this->scope = 'user';
-        }
+        return 'user';
     }
 
     /**
@@ -74,12 +67,12 @@ class GitHub extends OAuth2
 
         if (empty($attributes['email'])) {
             // in case user set 'Keep my email address private' in GitHub profile, email should be retrieved via extra API request
-            $scopes = explode(' ', $this->scope);
-            if (in_array('user:email', $scopes, true) || in_array('user', $scopes, true)) {
+            $scopes = explode(' ', $this->getScope());
+            if (\in_array('user:email', $scopes, true) || \in_array('user', $scopes, true)) {
                 $emails = $this->api('user/emails', 'GET');
                 if (!empty($emails)) {
                     foreach ($emails as $email) {
-                        if ($email['primary'] == 1 && $email['verified'] == 1) {
+                        if ($email['primary'] && $email['verified']) {
                             $attributes['email'] = $email['email'];
                             break;
                         }
@@ -92,17 +85,17 @@ class GitHub extends OAuth2
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service name.
      */
-    protected function defaultName()
+    public function getName(): string
     {
         return 'github';
     }
 
     /**
-     * {@inheritdoc}
+     * @return string service title.
      */
-    protected function defaultTitle()
+    public function getTitle(): string
     {
         return 'GitHub';
     }

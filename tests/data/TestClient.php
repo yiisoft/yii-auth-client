@@ -16,4 +16,14 @@ class TestClient extends BaseClient
     {
         return [];
     }
+
+    public function getName(): string
+    {
+        return 'test';
+    }
+
+    public function getTitle(): string
+    {
+        return 'Test';
+    }
 }

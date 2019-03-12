@@ -2,16 +2,17 @@
 
 namespace yii\authclient\tests;
 
-use yii\authclient\SessionStateStorage;
+use PHPUnit\Framework\TestCase;
+use yii\authclient\stateStorage\SessionStateStorage;
 use yii\authclient\tests\data\Session;
 
-class SessionStateStorageTest extends \yii\tests\TestCase
+class SessionStateStorageTest extends TestCase
 {
     public function testSetState()
     {
-        $storage = new SessionStateStorage([
-            '__class' => Session::class
-        ]);
+        $storage = new SessionStateStorage(
+            new Session()
+        );
 
         $key = 'test-key';
         $value = 'test-value';

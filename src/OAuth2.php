@@ -7,6 +7,7 @@
 
 namespace yii\authclient;
 
+use Psr\Http\Message\RequestInterface;
 use yii\helpers\Yii;
 use yii\helpers\Json;
 use yii\web\HttpException;
@@ -36,10 +37,6 @@ use yii\web\HttpException;
  */
 abstract class OAuth2 extends BaseOAuth
 {
-    /**
-     * @var string protocol version.
-     */
-    public $version = '2.0';
     /**
      * @var string OAuth client ID.
      */
@@ -76,8 +73,8 @@ abstract class OAuth2 extends BaseOAuth
             'redirect_uri' => $this->getReturnUrl(),
             'xoauth_displayname' => Yii::getApp()->name,
         ];
-        if (!empty($this->scope)) {
-            $defaultParams['scope'] = $this->scope;
+        if (!empty($this->getScope())) {
+            $defaultParams['scope'] = $this->getScope();
         }
 
         if ($this->validateAuthState) {
@@ -119,7 +116,7 @@ abstract class OAuth2 extends BaseOAuth
             ->setUrl($this->tokenUrl)
             ->setParams(array_merge($defaultParams, $params));
 
-        $this->applyClientCredentialsToRequest($request);
+        $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
 
@@ -132,20 +129,20 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * {@inheritdoc}
      */
-    public function applyAccessTokenToRequest($request, $accessToken)
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        $data = $request->getParams();
-        $data['access_token'] = $accessToken->getToken();
-        $request->setParams($data);
+        return RequestUtil::addParams($request, [
+            'access_token' => $accessToken->getToken(),
+        ]);
     }
 
     /**
      * Applies client credentials (e.g. [[clientId]] and [[clientSecret]]) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
-     * @param \yii\httpclient\Request $request HTTP request instance.
+     * @param RequestInterface $request HTTP request instance.
      * @since 2.1.3
      */
-    protected function applyClientCredentialsToRequest($request)
+    protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $request->addParams([
             'client_id' => $this->clientId,
@@ -170,7 +167,7 @@ abstract class OAuth2 extends BaseOAuth
             ->setUrl($this->tokenUrl)
             ->setParams($params);
 
-        $this->applyClientCredentialsToRequest($request);
+        $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
 
@@ -234,8 +231,8 @@ abstract class OAuth2 extends BaseOAuth
             'grant_type' => 'client_credentials',
         ];
 
-        if (!empty($this->scope)) {
-            $defaultParams['scope'] = $this->scope;
+        if (!empty($this->getScope())) {
+            $defaultParams['scope'] = $this->getScope();
         }
 
         $request = $this->createRequest()
@@ -243,7 +240,7 @@ abstract class OAuth2 extends BaseOAuth
             ->setUrl($this->tokenUrl)
             ->setParams(array_merge($defaultParams, $params));
 
-        $this->applyClientCredentialsToRequest($request);
+        $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
 
@@ -270,8 +267,8 @@ abstract class OAuth2 extends BaseOAuth
             'password' => $password,
         ];
 
-        if (!empty($this->scope)) {
-            $defaultParams['scope'] = $this->scope;
+        if (!empty($this->getScope())) {
+            $defaultParams['scope'] = $this->getScope();
         }
 
         $request = $this->createRequest()
@@ -279,7 +276,7 @@ abstract class OAuth2 extends BaseOAuth
             ->setUrl($this->tokenUrl)
             ->setParams(array_merge($defaultParams, $params));
 
-        $this->applyClientCredentialsToRequest($request);
+        $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
 
@@ -332,7 +329,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $payload = array_merge([
             'iss' => $username,
-            'scope' => $this->scope,
+            'scope' => $this->getScope(),
             'aud' => $this->tokenUrl,
             'iat' => time(),
         ], $payload);

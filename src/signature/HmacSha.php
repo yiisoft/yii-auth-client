@@ -7,10 +7,10 @@
 
 namespace yii\authclient\signature;
 
-use yii\base\NotSupportedException;
+use yii\exceptions\NotSupportedException;
 
 /**
- * HmacSha1 represents 'HMAC SHA' signature method.
+ * HmacSha represents 'HMAC SHA' signature method.
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
  *
@@ -23,25 +23,24 @@ class HmacSha extends BaseMethod
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
      * @see http://php.net/manual/ru/function.hash-algos.php
      */
-    public $algorithm;
-
+    private $algorithm;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(string $algorithm = null)
+    public function __construct(string $algorithm)
     {
-        $this->algorithm = $algorithm;
-
-        if (!function_exists('hash_hmac')) {
+        if (!\function_exists('hash_hmac')) {
             throw new NotSupportedException('PHP "Hash" extension is required.');
         }
+
+        $this->algorithm = $algorithm;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         return 'HMAC-' . strtoupper($this->algorithm);
     }
@@ -49,7 +48,7 @@ class HmacSha extends BaseMethod
     /**
      * {@inheritdoc}
      */
-    public function generateSignature($baseString, $key)
+    public function generateSignature(string $baseString, string $key): string
     {
         return base64_encode(hash_hmac($this->algorithm, $baseString, $key, true));
     }

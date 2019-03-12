@@ -3,8 +3,9 @@
 namespace yii\authclient\tests;
 
 use yii\authclient\OAuthToken;
+use yii\tests\TestCase;
 
-class TokenTest extends \yii\tests\TestCase
+class TokenTest extends TestCase
 {
     public function testCreate()
     {

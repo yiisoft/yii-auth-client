@@ -7,9 +7,7 @@
 
 namespace yii\authclient;
 
-use yii\base\Component;
-use yii\base\InvalidArgumentException;
-use yii\helpers\Yii;
+use yii\exceptions\InvalidArgumentException;
 
 /**
  * Collection is a storage for all auth clients in the application.
@@ -20,7 +18,7 @@ use yii\helpers\Yii;
  * 'components' => [
  *     'authClientCollection' => [
  *         '__class' => yii\authclient\Collection::class,
- *         'clients' => [
+ *         'setClients' => [
  *             'google' => [
  *                 '__class' => yii\authclient\clients\Google::class,
  *                 'clientId' => 'google_client_id',
@@ -37,88 +35,62 @@ use yii\helpers\Yii;
  * ]
  * ```
  *
- * @property ClientInterface[] $clients List of auth clients. This property is read-only.
+ * @property ClientInterface[] $clients List of auth clients indexed by their names. This property is read-only.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 2.0
  */
-class Collection extends Component
+class Collection
 {
     /**
-     * @var \yii\httpclient\Client|array|string HTTP client instance or configuration for the [[clients]].
-     * If set, this value will be passed as 'httpClient' config option while instantiating particular client object.
-     * This option is useful for adjusting HTTP client configuration for the entire list of auth clients.
+     * @var array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    public $httpClient;
+    private $clients = [];
 
     /**
-     * @var array list of Auth clients with their configuration in format: 'clientId' => [...]
+     * @param array $clients list of auth clients indexed by their names
      */
-    private $_clients = [];
-
-
-    /**
-     * @param array $clients list of auth clients
-     */
-    public function setClients(array $clients)
+    public function setClients(array $clients): void
     {
-        $this->_clients = $clients;
+        $this->clients = $clients;
     }
 
     /**
      * @return ClientInterface[] list of auth clients.
      */
-    public function getClients()
+    public function getClients(): array
     {
         $clients = [];
-        foreach ($this->_clients as $id => $client) {
-            $clients[$id] = $this->getClient($id);
+        foreach ($this->clients as $name => $client) {
+            $clients[$name] = $this->getClient($name);
         }
 
         return $clients;
     }
 
     /**
-     * @param string $id service id.
+     * @param string $name client name
      * @return ClientInterface auth client instance.
      * @throws InvalidArgumentException on non existing client request.
      */
-    public function getClient($id)
+    public function getClient(string $name): ClientInterface
     {
-        if (!array_key_exists($id, $this->_clients)) {
-            throw new InvalidArgumentException("Unknown auth client '{$id}'.");
-        }
-        if (!is_object($this->_clients[$id])) {
-            $this->_clients[$id] = $this->createClient($id, $this->_clients[$id]);
+        if (!array_key_exists($name, $this->clients)) {
+            throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
-        return $this->_clients[$id];
+        // TODO: support declarative syntax and callables?
+
+        return $this->clients[$name];
     }
 
     /**
      * Checks if client exists in the hub.
-     * @param string $id client id.
+     * @param string $name client id.
      * @return bool whether client exist.
      */
-    public function hasClient($id)
+    public function hasClient(string $name): bool
     {
-        return array_key_exists($id, $this->_clients);
-    }
-
-    /**
-     * Creates auth client instance from its array configuration.
-     * @param string $id auth client id.
-     * @param array $config auth client instance configuration.
-     * @return ClientInterface auth client instance.
-     */
-    protected function createClient($id, $config)
-    {
-        $config['id'] = $id;
-
-        if (!isset($config['httpClient']) && $this->httpClient !== null) {
-            $config['httpClient'] = $this->httpClient;
-        }
-
-        return Yii::createObject($config);
+        return array_key_exists($name, $this->clients);
     }
 }
