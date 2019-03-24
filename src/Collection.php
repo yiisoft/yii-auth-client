@@ -18,7 +18,7 @@ use yii\exceptions\InvalidArgumentException;
  * 'components' => [
  *     'authClientCollection' => [
  *         '__class' => yii\authclient\Collection::class,
- *         'setClients' => [
+ *         'setClients()' => [
  *             'google' => [
  *                 '__class' => yii\authclient\clients\Google::class,
  *                 'clientId' => 'google_client_id',
