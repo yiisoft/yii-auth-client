@@ -40,7 +40,7 @@ use app\models\Auth;
 use app\models\User;
 use Yii;
 use yii\authclient\ClientInterface;
-use yii\helpers\ArrayHelper;
+use Yiisoft\Arrays\ArrayHelper;
 
 /**
  * AuthHandler handles successful authentication via Yii auth component
