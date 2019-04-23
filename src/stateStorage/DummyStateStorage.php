@@ -5,7 +5,6 @@ namespace yii\authclient\stateStorage;
 
 class DummyStateStorage implements StateStorageInterface
 {
-
     public function set($key, $value)
     {
         // do nothing
