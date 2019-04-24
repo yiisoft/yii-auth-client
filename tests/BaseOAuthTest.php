@@ -1,13 +1,13 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use yii\authclient\BaseOAuth;
-use yii\authclient\OAuthToken;
-use yii\authclient\signature\PlainText;
+use Yiisoft\Yii\AuthClient\BaseOAuth;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\Signature\PlainText;
 use yii\tests\TestCase;
 
 class BaseOAuthTest extends TestCase
@@ -97,7 +97,7 @@ class BaseOAuthTest extends TestCase
         $this->assertEquals($oauthToken['token'], $oauthClient->getAccessToken()->getToken(), 'Unable to setup token as config!');
 
         $oauthSignatureMethod = [
-            '__class' => \yii\authclient\signature\PlainText::class
+            '__class' => \Yiisoft\Yii\AuthClient\Signature\PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();

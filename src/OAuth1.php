@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 use yii\base\InvalidArgumentException;
@@ -18,7 +18,7 @@ use yii\web\HttpException;
  * In order to acquire access token perform following sequence:
  *
  * ```php
- * use yii\authclient\OAuth1;
+ * use Yiisoft\Yii\AuthClient\OAuth1;
  * use yii\helpers\Yii;
  *
  * // assuming class MyAuthClient extends OAuth1
@@ -33,9 +33,6 @@ use yii\web\HttpException;
  *
  * @see https://oauth.net/1/
  * https://tools.ietf.org/html/rfc5849
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 abstract class OAuth1 extends BaseOAuth
 {
@@ -69,7 +66,6 @@ abstract class OAuth1 extends BaseOAuth
      * @var array|null list of the request methods, which require adding 'Authorization' header.
      * By default only POST requests will have 'Authorization' header.
      * You may set this option to `null` in order to make all requests to use 'Authorization' header.
-     * @since 2.1.1
      */
     public $authorizationHeaderMethods = ['POST'];
 
@@ -253,7 +249,6 @@ abstract class OAuth1 extends BaseOAuth
      * Sign given request with [[signatureMethod]].
      * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set [[accessToken]] will be used.
-     * @since 2.1 this method is public.
      */
     public function signRequest(RequestInterface $request, $token = null): RequestInterface
     {

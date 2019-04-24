@@ -5,12 +5,12 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use yii\base\Action;
-use yii\base\Exception;
-use yii\base\InvalidConfigException;
-use yii\base\NotSupportedException;
+use yii\exceptions\Exception;
+use yii\exceptions\InvalidConfigException;
+use yii\exceptions\NotSupportedException;
 use yii\helpers\Url;
 use yii\web\Response;
 use yii\web\HttpException;
@@ -29,7 +29,7 @@ use yii\web\NotFoundHttpException;
  *     {
  *         return [
  *             'auth' => [
- *                 '__class' => \yii\authclient\AuthAction::class,
+ *                 '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
  *                 'successCallback' => [$this, 'successCallback'],
  *             ],
  *         ]
@@ -47,13 +47,10 @@ use yii\web\NotFoundHttpException;
  * This action handles the redirection and closing of popup window correctly.
  *
  * @see Collection
- * @see \yii\authclient\widgets\AuthChoice
+ * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
  *
  * @property string $cancelUrl Cancel URL.
  * @property string $successUrl Successful URL.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthAction extends Action
 {
@@ -98,8 +95,6 @@ class AuthAction extends Action
      *
      * If this callback returns [[Response]] instance, it will be used as action response,
      * otherwise redirection to [[cancelUrl]] will be performed.
-     *
-     * @since 2.1.5
      */
     public $cancelCallback;
     /**
@@ -183,7 +178,7 @@ class AuthAction extends Action
     {
         $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
         if (!empty($clientId)) {
-            /* @var $collection \yii\authclient\Collection */
+            /* @var $collection \Yiisoft\Yii\AuthClient\Collection */
             $collection = $this->app->get($this->clientCollection);
             if (!$collection->hasClient($clientId)) {
                 throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
@@ -239,7 +234,6 @@ class AuthAction extends Action
      * This method is invoked in case of authentication cancelation.
      * @param ClientInterface $client auth client instance.
      * @return Response response instance.
-     * @since 2.1.5
      */
     protected function authCancel($client)
     {

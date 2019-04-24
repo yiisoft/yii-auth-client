@@ -1,8 +1,8 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
-use yii\authclient\AuthAction;
+use Yiisoft\Yii\AuthClient\AuthAction;
 use yii\web\Controller;
 
 class AuthActionTest extends \yii\tests\TestCase

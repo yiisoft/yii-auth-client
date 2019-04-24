@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 use yii\helpers\Yii;
@@ -18,7 +18,7 @@ use yii\web\HttpException;
  * In oder to acquire access token perform following sequence:
  *
  * ```php
- * use yii\authclient\OAuth2;
+ * use Yiisoft\Yii\AuthClient\OAuth2;
  *
  * // assuming class MyAuthClient extends OAuth2
  * $oauthClient = new MyAuthClient();
@@ -31,9 +31,6 @@ use yii\web\HttpException;
  *
  * @see http://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 abstract class OAuth2 extends BaseOAuth
 {
@@ -55,7 +52,6 @@ abstract class OAuth2 extends BaseOAuth
      * state between the request and callback. The authorization server includes this value,
      * when redirecting the user-agent back to the client.
      * The option is used for preventing cross-site request forgery.
-     * @since 2.1
      */
     public $validateAuthState = true;
 
@@ -140,7 +136,6 @@ abstract class OAuth2 extends BaseOAuth
      * Applies client credentials (e.g. [[clientId]] and [[clientSecret]]) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      * @param RequestInterface $request HTTP request instance.
-     * @since 2.1.3
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
@@ -194,7 +189,6 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * Generates the auth state value.
      * @return string auth state value.
-     * @since 2.1
      */
     protected function generateAuthState()
     {
@@ -223,7 +217,6 @@ abstract class OAuth2 extends BaseOAuth
      * @see http://tools.ietf.org/html/rfc6749#section-4.4
      * @param array $params additional request params.
      * @return OAuthToken access token.
-     * @since 2.1.0
      */
     public function authenticateClient($params = [])
     {
@@ -257,7 +250,6 @@ abstract class OAuth2 extends BaseOAuth
      * @param string $password user password.
      * @param array $params additional request params.
      * @return OAuthToken access token.
-     * @since 2.1.0
      */
     public function authenticateUser($username, $password, $params = [])
     {
@@ -290,7 +282,7 @@ abstract class OAuth2 extends BaseOAuth
      * Authenticates user directly using JSON Web Token (JWT).
      * @see https://tools.ietf.org/html/rfc7515
      * @param string $username
-     * @param \yii\authclient\signature\BaseMethod|array $signature signature method or its array configuration.
+     * @param \Yiisoft\Yii\AuthClient\Signature\BaseMethod|array $signature signature method or its array configuration.
      * If empty - [[signatureMethod]] will be used.
      * @param array $options additional options. Valid options are:
      *
@@ -300,7 +292,6 @@ abstract class OAuth2 extends BaseOAuth
      *
      * @param array $params additional request params.
      * @return OAuthToken access token.
-     * @since 2.1.3
      */
     public function authenticateUserJwt($username, $signature = null, $options = [], $params = [])
     {

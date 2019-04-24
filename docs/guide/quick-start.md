@@ -3,7 +3,7 @@ Quick Start
 
 ## Adding action to controller
 
-Next step is to add [[yii\authclient\AuthAction]] to a web controller and provide a `successCallback` implementation,
+Next step is to add [[Yiisoft\Yii\AuthClient\AuthAction]] to a web controller and provide a `successCallback` implementation,
 which is suitable for your needs. Typically final controller code may look like following:
 
 ```php
@@ -15,7 +15,7 @@ class SiteController extends Controller
     {
         return [
             'auth' => [
-                '__class' => \yii\authclient\AuthAction::class,
+                '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
                 'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];
@@ -39,7 +39,7 @@ namespace app\components;
 use app\models\Auth;
 use app\models\User;
 use Yii;
-use yii\authclient\ClientInterface;
+use Yiisoft\Yii\AuthClient\ClientInterface;
 use Yiisoft\Arrays\ArrayHelper;
 
 /**
@@ -182,7 +182,7 @@ we can retrieve information received. In our case we'd like to:
 
 ### Auth client basic structure
 
-Although, all clients are different they shares same basic interface [[yii\authclient\ClientInterface]],
+Although, all clients are different they shares same basic interface [[Yiisoft\Yii\AuthClient\ClientInterface]],
 which governs common API.
 
 Each client has some descriptive data, which can be used for different purposes:
@@ -204,20 +204,20 @@ names.
 
 Defining list of attributes, which external auth provider should return, depends on client type:
 
-- [[yii\authclient\OpenId]]: combination of `requiredAttributes` and `optionalAttributes`.
-- [[yii\authclient\OAuth1]] and [[yii\authclient\OAuth2]]: field `scope`, note that different
+- [[Yiisoft\Yii\AuthClient\OpenId]]: combination of `requiredAttributes` and `optionalAttributes`.
+- [[Yiisoft\Yii\AuthClient\OAuth1]] and [[Yiisoft\Yii\AuthClient\OAuth2]]: field `scope`, note that different
   providers use different formats for the scope.
 
 > Tip: If you are using several different clients, you can unify the structure of the attributes, which they return,
-  using [[yii\authclient\BaseClient::$normalizeUserAttributeMap]].
+  using [[Yiisoft\Yii\AuthClient\BaseClient::$normalizeUserAttributeMap]].
 
 
 ## Adding widget to login view
 
-There's ready to use [[yii\authclient\widgets\AuthChoice]] widget to use in views:
+There's ready to use [[Yiisoft\Yii\AuthClient\Widgets\AuthChoice]] widget to use in views:
 
 ```php
-<?= yii\authclient\widgets\AuthChoice::widget([
+<?= Yiisoft\Yii\AuthClient\Widgets\AuthChoice::widget([
      'baseAuthUrl' => ['site/auth'],
      'popupMode' => false,
 ]) ?>

@@ -1,7 +1,7 @@
 OpenID Connect
 ==============
 
-このエクステンションは [[\yii\authclient\OpenIdConnect]] クラスを通じて、[OpenId Connect](http://openid.net/connect/) 
+このエクステンションは [[\Yiisoft\Yii\AuthClient\OpenIdConnect]] クラスを通じて、[OpenId Connect](http://openid.net/connect/) 
 認証プロトコルのサポートを提供します。
 
 アプリケーション構成例:
@@ -9,10 +9,10 @@ OpenID Connect
 ```php
 'components' => [
     'authClientCollection' => [
-        '__class' => yii\authclient\Collection::class,
+        '__class' => Yiisoft\Yii\AuthClient\Collection::class,
         'clients' => [
             'google' => [
-                '__class' => yii\authclient\OpenIdConnect::class,
+                '__class' => Yiisoft\Yii\AuthClient\OpenIdConnect::class,
                 'issuerUrl' => 'https://accounts.google.com',
                 'clientId' => 'google_client_id',
                 'clientSecret' => 'google_client_secret',
@@ -43,5 +43,5 @@ composer require --prefer-dist "spomky-labs/jose:~5.0.6"
 
 を追加します。
 
-> Note: 十分に信用できる 'OpenID Connect' プロバイダを使用する場合は、[[\yii\authclient\OpenIdConnect::$validateJws]] を無効にして、`spomky-labs/jose` ライブラリのインストールを不要にすることが出来ます。
+> Note: 十分に信用できる 'OpenID Connect' プロバイダを使用する場合は、[[\Yiisoft\Yii\AuthClient\OpenIdConnect::$validateJws]] を無効にして、`spomky-labs/jose` ライブラリのインストールを不要にすることが出来ます。
   ただし、これはプロトコルの仕様に違反することですので、推奨は出来ません。

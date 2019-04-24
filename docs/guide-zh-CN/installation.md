@@ -6,13 +6,13 @@
 要安装该扩展，请使用 Composer。运行
                                             
 ```
-composer require --prefer-dist yiisoft/yii2-authclient "~2.1.0"
+composer require --prefer-dist yiisoft/yii-auth-client "~3.0.0"
 ```
 
 或在你的 composer.json 文件的“require”一节添加以下代码：
 
 ```json
-"yiisoft/yii2-authclient": "~2.1.0"
+"yiisoft/yii-auth-client": "~3.0.0"
 ```
 
 ## 配置应用程序
@@ -23,15 +23,15 @@ composer require --prefer-dist yiisoft/yii2-authclient "~2.1.0"
 return [
     'components' => [
         'authClientCollection' => [
-            'class' => 'yii\authclient\Collection',
+            '__class' => 'Yiisoft\Yii\AuthClient\Collection',
             'clients' => [
                 'google' => [
-                    'class' => 'yii\authclient\clients\Google',
+                    '__class' => 'Yiisoft\Yii\AuthClient\Clients\Google',
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    'class' => 'yii\authclient\clients\Facebook',
+                    '__class' => 'Yiisoft\Yii\AuthClient\Clients\Facebook',
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],
@@ -46,14 +46,14 @@ return [
 
 提供了以下几个立即可用的客户端：
 
-- [[\yii\authclient\clients\Facebook|Facebook]].
-- [[yii\authclient\clients\GitHub|GitHub]].
-- Google (通过 [[yii\authclient\clients\Google|OAuth]] 和 [[yii\authclient\clients\GoogleHybrid|OAuth Hybrid]]).
-- [[yii\authclient\clients\LinkedIn|LinkedIn]].
-- [[yii\authclient\clients\Live|Microsoft Live]].
-- [[yii\authclient\clients\Twitter|Twitter]].
-- [[yii\authclient\clients\VKontakte|VKontakte]].
-- [[yii\authclient\clients\Yandex|Yandex]].
+- [[\Yiisoft\Yii\AuthClient\Clients\Facebook|Facebook]].
+- [[Yiisoft\Yii\AuthClient\Clients\GitHub|GitHub]].
+- Google (通过 [[Yiisoft\Yii\AuthClient\Clients\Google|OAuth]] 和 [[Yiisoft\Yii\AuthClient\Clients\GoogleHybrid|OAuth Hybrid]]).
+- [[Yiisoft\Yii\AuthClient\Clients\LinkedIn|LinkedIn]].
+- [[Yiisoft\Yii\AuthClient\Clients\Live|Microsoft Live]].
+- [[Yiisoft\Yii\AuthClient\Clients\Twitter|Twitter]].
+- [[Yiisoft\Yii\AuthClient\Clients\VKontakte|VKontakte]].
+- [[Yiisoft\Yii\AuthClient\Clients\Yandex|Yandex]].
 
 配置每个客户端稍有不同。对于 OAuth 客户端需要从服务端获取客户端 ID 和密钥。而对于 OpenID 客户端，大多数情况下不需要调整。
 

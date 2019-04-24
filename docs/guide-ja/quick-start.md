@@ -3,7 +3,7 @@
 
 ## コントローラにアクションを追加する
 
-次のステップは、ウェブのコントローラに [[yii\authclient\AuthAction]] を追加して、あなたの必要に応じた `successCallback` の実装を提供することです。
+次のステップは、ウェブのコントローラに [[Yiisoft\Yii\AuthClient\AuthAction]] を追加して、あなたの必要に応じた `successCallback` の実装を提供することです。
 典型的な場合、コントローラのコードは、最終的には次のようなものになります。
 
 ```php
@@ -15,7 +15,7 @@ class SiteController extends Controller
     {
         return [
             'auth' => [
-                '__class' => yii\authclient\AuthAction::class,
+                '__class' => Yiisoft\Yii\AuthClient\AuthAction::class,
                 'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];
@@ -39,7 +39,7 @@ namespace app\components;
 use app\models\Auth;
 use app\models\User;
 use Yii;
-use yii\authclient\ClientInterface;
+use Yiisoft\Yii\AuthClient\ClientInterface;
 use Yiisoft\Arrays\ArrayHelper;
 
 /**
@@ -189,7 +189,7 @@ class AuthHandler
 
 ### Auth クライアントの基本的な構造
 
-全ての Auth クライアントには違いがありますが、同じインタフェイス  [[yii\authclient\ClientInterface]] を共有し、共通の API によって管理されます。
+全ての Auth クライアントには違いがありますが、同じインタフェイス  [[Yiisoft\Yii\AuthClient\ClientInterface]] を共有し、共通の API によって管理されます。
 
 各クライアントは、異なる目的に使用できるいくつかの説明的なデータを持っています。
 
@@ -208,20 +208,20 @@ class AuthHandler
 
 外部認証プロバイダが返すべき属性を定義するリストは、クライアントのタイプに依存します。
 
-- [[yii\authclient\OpenId]]: `requiredAttributes` と `optionalAttributes` の組み合わせ。
-- [[yii\authclient\OAuth1]] と [[yii\authclient\OAuth2]]: `scope` フィールド。
+- [[Yiisoft\Yii\AuthClient\OpenId]]: `requiredAttributes` と `optionalAttributes` の組み合わせ。
+- [[Yiisoft\Yii\AuthClient\OAuth1]] と [[Yiisoft\Yii\AuthClient\OAuth2]]: `scope` フィールド。
   プロバイダによってスコープの形式が異なることに注意。
 
 
-> Tip: いくつかの異なるクライアントを使用する場合は、[[yii\authclient\BaseClient::$normalizeUserAttributeMap]] を使って、クライアントが返す属性を統一することが出来ます。
+> Tip: いくつかの異なるクライアントを使用する場合は、[[Yiisoft\Yii\AuthClient\BaseClient::$normalizeUserAttributeMap]] を使って、クライアントが返す属性を統一することが出来ます。
 
 
 ## ログインビューにウィジェットを追加する
 
-そのまま使える [[yii\authclient\widgets\AuthChoice]] ウィジェットをビューで使用することが出来ます。
+そのまま使える [[Yiisoft\Yii\AuthClient\Widgets\AuthChoice]] ウィジェットをビューで使用することが出来ます。
 
 ```php
-<?= yii\authclient\widgets\AuthChoice::widget([
+<?= Yiisoft\Yii\AuthClient\Widgets\AuthChoice::widget([
      'baseAuthUrl' => ['site/auth'],
      'popupMode' => false,
 ]) ?>

@@ -1,6 +1,6 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Buzz\Client\Curl;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\SimpleCache\CacheInterface;
-use yii\authclient\OpenIdConnect;
+use Yiisoft\Yii\AuthClient\OpenIdConnect;
 use yii\cache\ArrayCache;
 use yii\cache\DummyCache;
 

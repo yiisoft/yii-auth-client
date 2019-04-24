@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Jose\Factory\JWKFactory;
 use Jose\Loader;
@@ -13,9 +13,8 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use yii\helpers\Yii;
-use yii\authclient\signature\HmacSha;
-use yii\base\InvalidConfigException;
-use yii\base\InvalidArgumentException;
+use Yiisoft\Yii\AuthClient\Signature\HmacSha;
+use yii\exceptions\InvalidConfigException;
 use yii\helpers\Json;
 use yii\web\HttpException;
 use \Psr\Http\Client\ClientInterface;
@@ -28,10 +27,10 @@ use \Psr\Http\Client\ClientInterface;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         '__class' => yii\authclient\Collection::class,
+ *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
  *         'clients' => [
  *             'google' => [
- *                 '__class' => yii\authclient\OpenIdConnect::class,
+ *                 '__class' => Yiisoft\Yii\AuthClient\OpenIdConnect::class,
  *                 'issuerUrl' => 'https://accounts.google.com',
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',
@@ -55,9 +54,6 @@ use \Psr\Http\Client\ClientInterface;
  *
  * @see http://openid.net/connect/
  * @see OAuth2
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1.3
  */
 class OpenIdConnect extends OAuth2
 {

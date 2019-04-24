@@ -6,13 +6,13 @@ Installation
 In order to install extension use Composer. Either run
 
 ```
-composer require --prefer-dist yiisoft/yii2-authclient "~2.2.0"
+composer require --prefer-dist yiisoft/yii-auth-client "~3.0.0"
 ```
 
 or add
 
 ```json
-"yiisoft/yii2-authclient": "~2.2.0"
+"yiisoft/yii-auth-client": "~3.0.0"
 ```
 
 to the `require` section of your composer.json.
@@ -25,15 +25,15 @@ After extension is installed you need to setup auth client collection applicatio
 return [
     'components' => [
         'authClientCollection' => [
-            '__class' => yii\authclient\Collection::class,
+            '__class' => Yiisoft\Yii\AuthClient\Collection::class,
             'clients' => [
                 'google' => [
-                    '__class' => yii\authclient\clients\Google::class,
+                    '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    '__class' => yii\authclient\clients\Facebook::class,
+                    '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],
@@ -48,14 +48,14 @@ return [
 
 Out of the box the following clients are provided:
 
-- [[\yii\authclient\clients\Facebook|Facebook]].
-- [[yii\authclient\clients\GitHub|GitHub]].
-- Google (via [[yii\authclient\clients\Google|OAuth]] and [[yii\authclient\clients\GoogleHybrid|OAuth Hybrid]]).
-- [[yii\authclient\clients\LinkedIn|LinkedIn]].
-- [[yii\authclient\clients\Live|Microsoft Live]].
-- [[yii\authclient\clients\Twitter|Twitter]].
-- [[yii\authclient\clients\VKontakte|VKontakte]].
-- [[yii\authclient\clients\Yandex|Yandex]].
+- [[\Yiisoft\Yii\AuthClient\Clients\Facebook|Facebook]].
+- [[Yiisoft\Yii\AuthClient\Clients\GitHub|GitHub]].
+- Google (via [[Yiisoft\Yii\AuthClient\Clients\Google|OAuth]] and [[Yiisoft\Yii\AuthClient\Clients\GoogleHybrid|OAuth Hybrid]]).
+- [[Yiisoft\Yii\AuthClient\Clients\LinkedIn|LinkedIn]].
+- [[Yiisoft\Yii\AuthClient\Clients\Live|Microsoft Live]].
+- [[Yiisoft\Yii\AuthClient\Clients\Twitter|Twitter]].
+- [[Yiisoft\Yii\AuthClient\Clients\VKontakte|VKontakte]].
+- [[Yiisoft\Yii\AuthClient\Clients\Yandex|Yandex]].
 
 Configuration for each client is a bit different. For OAuth it's required to get client ID and secret key from
 the service you're going to use. For OpenID it works out of the box in most cases.

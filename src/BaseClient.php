@@ -5,22 +5,19 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use yii\authclient\stateStorage\DummyStateStorage;
-use yii\authclient\stateStorage\StateStorageInterface;
-use yii\base\InvalidConfigException;
+use yii\exceptions\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
  * BaseClient is a base Auth Client class.
  *
  * @see ClientInterface
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 abstract class BaseClient implements ClientInterface
 {

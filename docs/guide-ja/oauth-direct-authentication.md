@@ -14,14 +14,14 @@ OAuth プロバイダのウェブサイトを訪問する必要のない、直�
 [リソース・オーナー・パスワード・クレデンシャル・グラント](https://tools.ietf.org/html/rfc6749#section-4.3) のワークフローは、OAuth プロバイダのウェブサイトにリダイレクトすることなく、ユーザ名/パスワードのペアによる直接のユーザ認証を可能にするものです。
 ([4.3.  リソースオーナーパスワードクレデンシャルグラント](http://openid-foundation-japan.github.io/rfc6749.ja.html#grant-password) を参照)
 
-[[\yii\authclient\OAuth2::authenticateUser()]] を使うと、このワークフローによってユーザを認証することが出来ます。
+[[\Yiisoft\Yii\AuthClient\OAuth2::authenticateUser()]] を使うと、このワークフローによってユーザを認証することが出来ます。
 例えば、
 
 ```php
 $loginForm = new LoginForm();
 
 if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) {
-    /* @var $client \yii\authclient\OAuth2 */
+    /* @var $client \Yiisoft\Yii\AuthClient\OAuth2 */
     $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
     try {
@@ -41,11 +41,11 @@ if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) 
 そのサードパーティ (実際のユーザ) とは無関係に認証するものです。
 ユーザには関係のない、何らかの一般的な API にだけアクセス出来れば良いという場合に使います。
 
-[[\yii\authclient\OAuth2::authenticateClient()]] を使うと、このワークフローによってクライアントだけを認証することが出来ます。
+[[\Yiisoft\Yii\AuthClient\OAuth2::authenticateClient()]] を使うと、このワークフローによってクライアントだけを認証することが出来ます。
 例えば、
 
 ```php
-/* @var $client \yii\authclient\OAuth2 */
+/* @var $client \Yiisoft\Yii\AuthClient\OAuth2 */
 $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // クライアントだけの直接認証
@@ -59,8 +59,8 @@ JSON Web Token (JWT) work flow allows authentication of the particular account u
 The following example allows authentication of [Google Service Account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount):
 
 ```php
-use yii\authclient\clients\Google;
-use yii\authclient\signature\RsaSha;
+use Yiisoft\Yii\AuthClient\Clients\Google;
+use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
 $oauthClient = new Google();
 
