@@ -9,5 +9,5 @@ for both A and B.
 
 # Upgrade from yii2-authclient
 
-* The signature of the `yii\authclient\BaseOAuth::saveAccessToken()` method has been changed.
+* The signature of the `Yiisoft\Yii\AuthClient\BaseOAuth::saveAccessToken()` method has been changed.
   In case you are extending related class and override this method, you should check, if it matches parent declaration.

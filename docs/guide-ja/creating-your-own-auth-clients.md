@@ -6,15 +6,15 @@ OpenID または OAuth プロトコルをサポートすることが出来ます
 そうするためには、最初に、外部認証プロバイダによってどのプロトコルがサポートされているかを見出す必要があります。
 それによって、あなたのエクステンションの基底クラスの名前が決ります。
 
- - OAuth 2 のためには [[yii\authclient\OAuth2]] を使います。
- - OAuth 1/1.0a のためには [[yii\authclient\OAuth1]] を使います。
- - OpenID のためには [[yii\authclient\OpenId]] を使います。
+ - OAuth 2 のためには [[Yiisoft\Yii\AuthClient\OAuth2]] を使います。
+ - OAuth 1/1.0a のためには [[Yiisoft\Yii\AuthClient\OAuth1]] を使います。
+ - OpenID のためには [[Yiisoft\Yii\AuthClient\OpenId]] を使います。
 
 この段階で、対応するメソッドを宣言することによって、認証クライアントのデフォルトの名前、タイトル、および、
 ビューオプションを決定することが出来ます。
 
 ```php
-use yii\authclient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
 class MyAuthClient extends OAuth2
 {
@@ -40,20 +40,20 @@ class MyAuthClient extends OAuth2
 
 使用する基底クラスによって、宣言し直さなければならないフィールドやメソッドが異なります。
 
-## [[yii\authclient\OAuth2]]
+## [[Yiisoft\Yii\AuthClient\OAuth2]]
 
 以下のものを指定する必要があります。
 
-- 認証 URL - [[yii\authclient\OAuth2::authUrl|authUrl]] フィールド。
-- トークンリクエスト URL - [[yii\authclient\OAuth2::tokenUrl|tokenUrl]] フィールド。
-- API のベース URL - [[yii\authclient\OAuth2::apiBaseUrl|apiBaseUrl]] フィールド。
-- ユーザ属性取得ストラテジー - [[yii\authclient\OAuth2::initUserAttributes()|initUserAttributes()]]
+- 認証 URL - [[Yiisoft\Yii\AuthClient\OAuth2::authUrl|authUrl]] フィールド。
+- トークンリクエスト URL - [[Yiisoft\Yii\AuthClient\OAuth2::tokenUrl|tokenUrl]] フィールド。
+- API のベース URL - [[Yiisoft\Yii\AuthClient\OAuth2::apiBaseUrl|apiBaseUrl]] フィールド。
+- ユーザ属性取得ストラテジー - [[Yiisoft\Yii\AuthClient\OAuth2::initUserAttributes()|initUserAttributes()]]
 メソッド。
 
 例えば、
 
 ```php
-use yii\authclient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
 class MyAuthClient extends OAuth2
 {
@@ -75,21 +75,21 @@ class MyAuthClient extends OAuth2
 > Note: OAuth プロバイダの中には、OAuth の標準を厳格に遵守せず、標準と異なる仕様を導入しているものもあります。
   そのようなものに対してクライアントを実装するためには、追加の労力が必要になることがあります。
 
-## [[yii\authclient\OAuth1]]
+## [[Yiisoft\Yii\AuthClient\OAuth1]]
 
 以下のものを指定する必要があります。
 
-- 認証 URL - [[yii\authclient\OAuth1::authUrl|authUrl]] フィールド。
-- リクエストトークン URL - [[yii\authclient\OAuth1::requestTokenUrl|requestTokenUrl]] フィールド。
-- アクセストークン URL - [[yii\authclient\OAuth1::accessTokenUrl|accessTokenUrl]] フィールド。
-- API のベース URL - [[yii\authclient\OAuth1::apiBaseUrl|apiBaseUrl]] フィールド。
-- ユーザ属性取得ストラテジー - [[yii\authclient\OAuth1::initUserAttributes()|initUserAttributes()]]
+- 認証 URL - [[Yiisoft\Yii\AuthClient\OAuth1::authUrl|authUrl]] フィールド。
+- リクエストトークン URL - [[Yiisoft\Yii\AuthClient\OAuth1::requestTokenUrl|requestTokenUrl]] フィールド。
+- アクセストークン URL - [[Yiisoft\Yii\AuthClient\OAuth1::accessTokenUrl|accessTokenUrl]] フィールド。
+- API のベース URL - [[Yiisoft\Yii\AuthClient\OAuth1::apiBaseUrl|apiBaseUrl]] フィールド。
+- ユーザ属性取得ストラテジー - [[Yiisoft\Yii\AuthClient\OAuth1::initUserAttributes()|initUserAttributes()]]
 メソッド。
 
 例えば、
 
 ```php
-use yii\authclient\OAuth1;
+use Yiisoft\Yii\AuthClient\OAuth1;
 
 class MyAuthClient extends OAuth1
 {

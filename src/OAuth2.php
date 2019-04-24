@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 use yii\helpers\Yii;
@@ -18,7 +18,7 @@ use yii\web\HttpException;
  * In oder to acquire access token perform following sequence:
  *
  * ```php
- * use yii\authclient\OAuth2;
+ * use Yiisoft\Yii\AuthClient\OAuth2;
  *
  * // assuming class MyAuthClient extends OAuth2
  * $oauthClient = new MyAuthClient();
@@ -290,7 +290,7 @@ abstract class OAuth2 extends BaseOAuth
      * Authenticates user directly using JSON Web Token (JWT).
      * @see https://tools.ietf.org/html/rfc7515
      * @param string $username
-     * @param \yii\authclient\signature\BaseMethod|array $signature signature method or its array configuration.
+     * @param \Yiisoft\Yii\AuthClient\Signature\BaseMethod|array $signature signature method or its array configuration.
      * If empty - [[signatureMethod]] will be used.
      * @param array $options additional options. Valid options are:
      *

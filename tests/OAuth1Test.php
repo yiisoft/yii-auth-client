@@ -1,14 +1,14 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use yii\authclient\OAuth1;
-use yii\authclient\OAuthToken;
-use yii\authclient\RequestUtil;
-use yii\authclient\signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\OAuth1;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\RequestUtil;
+use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use yii\tests\TestCase;
 
 class OAuth1Test extends TestCase

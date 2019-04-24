@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use yii\base\Action;
 use yii\base\Exception;
@@ -29,7 +29,7 @@ use yii\web\NotFoundHttpException;
  *     {
  *         return [
  *             'auth' => [
- *                 '__class' => \yii\authclient\AuthAction::class,
+ *                 '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
  *                 'successCallback' => [$this, 'successCallback'],
  *             ],
  *         ]
@@ -47,7 +47,7 @@ use yii\web\NotFoundHttpException;
  * This action handles the redirection and closing of popup window correctly.
  *
  * @see Collection
- * @see \yii\authclient\widgets\AuthChoice
+ * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
  *
  * @property string $cancelUrl Cancel URL.
  * @property string $successUrl Successful URL.
@@ -183,7 +183,7 @@ class AuthAction extends Action
     {
         $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
         if (!empty($clientId)) {
-            /* @var $collection \yii\authclient\Collection */
+            /* @var $collection \Yiisoft\Yii\AuthClient\Collection */
             $collection = $this->app->get($this->clientCollection);
             if (!$collection->hasClient($clientId)) {
                 throw new NotFoundHttpException("Unknown auth client '{$clientId}'");

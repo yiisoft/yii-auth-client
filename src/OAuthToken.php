@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use yii\base\BaseObject;
 

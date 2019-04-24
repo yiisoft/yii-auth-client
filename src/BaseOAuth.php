@@ -5,11 +5,10 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
-use yii\authclient\signature\HmacSha;
 use yii\exceptions\Exception;
 use yii\exceptions\InvalidArgumentException;
 use yii\helpers\Yii;

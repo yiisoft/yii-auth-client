@@ -1,10 +1,10 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
-use yii\authclient\stateStorage\SessionStateStorage;
-use yii\authclient\tests\data\Session;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\data\Session;
 
 class SessionStateStorageTest extends TestCase
 {

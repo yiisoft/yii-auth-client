@@ -6,13 +6,13 @@
 エクステンションをインストールするためには、Composer を使います。次のコマンドを実行します。
 
 ```
-composer require --prefer-dist yiisoft/yii2-authclient "~2.2.0"
+composer require --prefer-dist yiisoft/yii-auth-client "~2.3.0"
 ```
 
 または、あなたの composer.json の `require` セクションに
 
 ```json
-"yiisoft/yii2-authclient": "~2.2.0"
+"yiisoft/yii-auth-client": "~3.0.0"
 ```
 
 を追加します。
@@ -25,15 +25,15 @@ composer require --prefer-dist yiisoft/yii2-authclient "~2.2.0"
 return [
     'components' => [
         'authClientCollection' => [
-            '__class' => yii\authclient\Collection::class,
+            '__class' => Yiisoft\Yii\AuthClient\Collection::class,
             'clients' => [
                 'google' => [
-                    '__class' => yii\authclient\clients\Google::class,
+                    '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    '__class' => yii\authclient\clients\Facebook::class,
+                    '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],
@@ -48,14 +48,14 @@ return [
 
 特別な設定なしに使用できる次のクライアントが提供されています。
 
-- [[\yii\authclient\clients\Facebook|Facebook]]
-- [[yii\authclient\clients\GitHub|GitHub]]
-- Google ([[yii\authclient\clients\Google|OAuth]] または [[yii\authclient\clients\GoogleHybrid|OAuth Hybrid]] で)
-- [[yii\authclient\clients\LinkedIn|LinkedIn]]
-- [[yii\authclient\clients\Live|Microsoft Live]]
-- [[yii\authclient\clients\Twitter|Twitter]]
-- [[yii\authclient\clients\VKontakte|VKontakte]]
-- [[yii\authclient\clients\Yandex|Yandex]]
+- [[\Yiisoft\Yii\AuthClient\Clients\Facebook|Facebook]]
+- [[Yiisoft\Yii\AuthClient\Clients\GitHub|GitHub]]
+- Google ([[Yiisoft\Yii\AuthClient\Clients\Google|OAuth]] または [[Yiisoft\Yii\AuthClient\Clients\GoogleHybrid|OAuth Hybrid]] で)
+- [[Yiisoft\Yii\AuthClient\Clients\LinkedIn|LinkedIn]]
+- [[Yiisoft\Yii\AuthClient\Clients\Live|Microsoft Live]]
+- [[Yiisoft\Yii\AuthClient\Clients\Twitter|Twitter]]
+- [[Yiisoft\Yii\AuthClient\Clients\VKontakte|VKontakte]]
+- [[Yiisoft\Yii\AuthClient\Clients\Yandex|Yandex]]
 
 それぞれのクライアントの構成は少しずつ異なります。
 OAuth では、使おうとしているサービスからクライアント ID と秘密キーを取得することが必要です。OpenID では、たいていの場合、何も設定しなくても動作します。

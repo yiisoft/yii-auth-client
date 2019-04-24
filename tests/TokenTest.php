@@ -1,8 +1,8 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
-use yii\authclient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuthToken;
 use yii\tests\TestCase;
 
 class TokenTest extends TestCase

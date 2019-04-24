@@ -1,5 +1,5 @@
 <?php
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 

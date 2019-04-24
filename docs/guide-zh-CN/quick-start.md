@@ -3,7 +3,7 @@
 
 ## 向控制器中添加动作
 
-下一步是向 Web 控制器中添加 [[yii\authclient\AuthAction]]，然后实现 `successCallback` 方法，
+下一步是向 Web 控制器中添加 [[Yiisoft\Yii\AuthClient\AuthAction]]，然后实现 `successCallback` 方法，
 该方法与你的实际需要保持一致。典型的最终控制器类似如下代码：
 
 ```php
@@ -13,7 +13,7 @@ class SiteController extends Controller
     {
         return [
             'auth' => [
-                'class' => 'yii\authclient\AuthAction',
+                'class' => 'Yiisoft\Yii\AuthClient\AuthAction',
                 'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];
@@ -91,7 +91,7 @@ class SiteController extends Controller
 
 ### 验证客户端基本结构
 
-尽管每个客户端不尽相同，但它们都共享同一个基础接口 [[yii\authclient\ClientInterface]]，
+尽管每个客户端不尽相同，但它们都共享同一个基础接口 [[Yiisoft\Yii\AuthClient\ClientInterface]]，
 该接口包含了通用的 API。
 
 每个客户端都有一些描述性的数据，分别用于不同的目的：
@@ -111,23 +111,23 @@ class SiteController extends Controller
 
 定义属性列表，用于通知外部验证提供商应当返回列表，根据不同的客户端类型：
 
-- [[yii\authclient\OpenId]]: 同时定义 `requiredAttributes` 和 `optionalAttributes`.
-- [[yii\authclient\OAuth1]] 和 [[yii\authclient\OAuth2]]: 定义 `scope` 域。注意，
+- [[Yiisoft\Yii\AuthClient\OpenId]]: 同时定义 `requiredAttributes` 和 `optionalAttributes`.
+- [[Yiisoft\Yii\AuthClient\OAuth1]] 和 [[Yiisoft\Yii\AuthClient\OAuth2]]: 定义 `scope` 域。注意，
   不同的提供商对于范围的格式定义可能不同。
 
-> 提示：如果你正在使用若干个不同的客户端，你可以使用 [[yii\authclient\BaseClient::normalizeUserAttributeMap]] 统一返回属性的列表。
+> 提示：如果你正在使用若干个不同的客户端，你可以使用 [[Yiisoft\Yii\AuthClient\BaseClient::normalizeUserAttributeMap]] 统一返回属性的列表。
 
 ### 通过补充 API 调用获取额外数据
 
-[[yii\authclient\OAuth1]] 和 [[yii\authclient\OAuth2]] 均提供了 `api()` 方法，
+[[Yiisoft\Yii\AuthClient\OAuth1]] 和 [[Yiisoft\Yii\AuthClient\OAuth2]] 均提供了 `api()` 方法，
 可以用于访问外部服务提供商的 REST API。然而该方法比较基础，可能并不足以访问
 所有外部 API 功能。该方法主要用于取回外部用户账户数据。
 
-要使用 API 调用，你需要根据 API 说明设置 [[yii\authclient\BaseOAuth::apiBaseUrl]]。
-之后就可以调用 [[yii\authclient\BaseOAuth::api()]] 方法了：
+要使用 API 调用，你需要根据 API 说明设置 [[Yiisoft\Yii\AuthClient\BaseOAuth::apiBaseUrl]]。
+之后就可以调用 [[Yiisoft\Yii\AuthClient\BaseOAuth::api()]] 方法了：
 
 ```php
-use yii\authclient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
 $client = new OAuth2;
 
@@ -139,10 +139,10 @@ $userInfo = $client->api('userinfo', 'GET');
 
 ## 向登录视图添加小部件
 
-[[yii\authclient\widgets\AuthChoice]] 小部件用于视图中：
+[[Yiisoft\Yii\AuthClient\Widgets\AuthChoice]] 小部件用于视图中：
 
 ```php
-<?= yii\authclient\widgets\AuthChoice::widget([
+<?= Yiisoft\Yii\AuthClient\Widgets\AuthChoice::widget([
      'baseAuthUrl' => ['site/auth'],
      'popupMode' => false,
 ]) ?>

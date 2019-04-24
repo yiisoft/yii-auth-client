@@ -1,11 +1,11 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use yii\authclient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
 class OAuth2Test extends TestCase
 {

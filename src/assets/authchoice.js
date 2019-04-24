@@ -1,7 +1,7 @@
 /**
  * Yii auth choice widget.
  *
- * This is the JavaScript widget used by the yii\authclient\widgets\AuthChoice widget.
+ * This is the JavaScript widget used by the Yiisoft\Yii\AuthClient\Widgets\AuthChoice widget.
  *
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC

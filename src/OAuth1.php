@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 use yii\base\InvalidArgumentException;
@@ -18,7 +18,7 @@ use yii\web\HttpException;
  * In order to acquire access token perform following sequence:
  *
  * ```php
- * use yii\authclient\OAuth1;
+ * use Yiisoft\Yii\AuthClient\OAuth1;
  * use yii\helpers\Yii;
  *
  * // assuming class MyAuthClient extends OAuth1

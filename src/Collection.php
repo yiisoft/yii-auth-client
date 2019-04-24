@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use yii\exceptions\InvalidArgumentException;
 
@@ -17,15 +17,15 @@ use yii\exceptions\InvalidArgumentException;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         '__class' => yii\authclient\Collection::class,
+ *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
  *         'setClients()' => [
  *             'google' => [
- *                 '__class' => yii\authclient\clients\Google::class,
+ *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
  *                 'clientId' => 'google_client_id',
  *                 'clientSecret' => 'google_client_secret',
  *              ],
  *             'facebook' => [
- *                 '__class' => yii\authclient\clients\Facebook::class,
+ *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
  *                 'clientId' => 'facebook_client_id',
  *                 'clientSecret' => 'facebook_client_secret',
  *             ],

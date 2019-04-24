@@ -1,13 +1,13 @@
 <?php
 
-namespace yii\authclient\tests;
+namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use yii\authclient\Collection;
-use yii\authclient\tests\data\TestClient;
+use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\Tests\data\TestClient;
 
 class CollectionTest extends TestCase
 {

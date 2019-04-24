@@ -5,13 +5,13 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace yii\authclient;
+namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use yii\authclient\stateStorage\DummyStateStorage;
-use yii\authclient\stateStorage\StateStorageInterface;
+use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use yii\base\InvalidConfigException;
 
 /**

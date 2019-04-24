@@ -20,6 +20,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
+        "yiisoft/yii-core": "^3.0@dev",
         "psr/http-client": "^1.0",
         "psr/http-message": "^1.0",
         "psr/http-message-implementation": "1.0",
@@ -49,10 +50,10 @@
         }
     ],
     "autoload": {
-        "psr-4": {"yii\\authclient\\": "src"}
+        "psr-4": {"Yiisoft\\Yii\\AuthClient\\": "src"}
     },
     "autoload-dev": {
-        "psr-4": {"yii\\authclient\\tests\\": "tests"}
+        "psr-4": {"Yiisoft\\Yii\\AuthClient\\Tests\\": "tests"}
     },
     "extra": {
         "branch-alias": {

@@ -14,14 +14,14 @@
 [Resource Owner Password Credentials Grant](https://tools.ietf.org/html/rfc6749#section-4.3) позволяет аутентифицировать
 пользователя напрямую используя пару "имя пользователя / пароль" без перенаправления на сайт OAuth провайдера.
 
-Вы можете аутентифицировать пользователя по этому процессу, используя [[\yii\authclient\OAuth2::authenticateUser()]].
+Вы можете аутентифицировать пользователя по этому процессу, используя [[\Yiisoft\Yii\AuthClient\OAuth2::authenticateUser()]].
 Например:
 
 ```php
 $loginForm = new LoginForm();
 
 if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) {
-    /* @var $client \yii\authclient\OAuth2 */
+    /* @var $client \Yiisoft\Yii\AuthClient\OAuth2 */
     $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
     try {
@@ -41,11 +41,11 @@ if ($loginForm->load(Yii::getApp()->request->post()) && $loginForm->validate()) 
 OAuth клиента (ваше приложение) без задействования третьей стороны (пользователя). Этот процесс используется, если
 вам нужно использовать только какое-то API общего назначения, которое не требует участия пользователя.
 
-Вы можете аутентифицировать исключительно клиента, используя [[\yii\authclient\OAuth2::authenticateClient()]].
+Вы можете аутентифицировать исключительно клиента, используя [[\Yiisoft\Yii\AuthClient\OAuth2::authenticateClient()]].
 Например:
 
 ```php
-/* @var $client \yii\authclient\OAuth2 */
+/* @var $client \Yiisoft\Yii\AuthClient\OAuth2 */
 $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // аутентификация исключительно клиета напрямую:
@@ -59,8 +59,8 @@ JSON Web Token (JWT) позволяет аутентифицировать ко�
 Следующий пример позволяет аутентифицировать [Сервисную учетную запись Google](https://developers.google.com/identity/protocols/OAuth2ServiceAccount):
 
 ```php
-use yii\authclient\clients\Google;
-use yii\authclient\signature\RsaSha;
+use Yiisoft\Yii\AuthClient\Clients\Google;
+use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
 $oauthClient = new Google();
 
