@@ -4,7 +4,7 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
-use Yiisoft\Yii\AuthClient\Tests\data\Session;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class SessionStateStorageTest extends TestCase
 {

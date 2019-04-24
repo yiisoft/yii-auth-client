@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Yii\AuthClient\Collection;
-use Yiisoft\Yii\AuthClient\Tests\data\TestClient;
+use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
 class CollectionTest extends TestCase
 {
