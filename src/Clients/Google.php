@@ -36,9 +36,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  * ```
  *
  * @see https://console.developers.google.com/project
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class Google extends OAuth2
 {

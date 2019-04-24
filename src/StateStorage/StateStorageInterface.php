@@ -14,9 +14,6 @@ namespace Yiisoft\Yii\AuthClient\StateStorage;
  *
  * Note: in order to function correctly state storage should vary depending on application session,
  * e.g. different web users should not share state with the same name.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1
  */
 interface StateStorageInterface
 {

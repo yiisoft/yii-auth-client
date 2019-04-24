@@ -23,9 +23,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * @see Twitter
  * @see https://dev.twitter.com/
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1.4
  */
 class TwitterOAuth2 extends OAuth2
 {

@@ -59,9 +59,6 @@ use yii\widgets\Widget;
  *
  * @property array $baseAuthUrl Base auth URL configuration. This property is read-only.
  * @property ClientInterface[] $clients Auth providers. This property is read-only.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthChoice extends Widget
 {

@@ -34,9 +34,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  *
  * @see http://developer.github.com/v3/oauth/
  * @see https://github.com/settings/applications/new
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class GitHub extends OAuth2
 {

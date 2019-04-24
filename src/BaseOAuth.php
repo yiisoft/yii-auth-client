@@ -23,9 +23,6 @@ use yii\helpers\Yii;
  * @property string $returnUrl Return URL.
  * @property signature\BaseMethod $signatureMethod Signature method instance. Note that the type of this
  * property differs in getter and setter. See [[getSignatureMethod()]] and [[setSignatureMethod()]] for details.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 abstract class BaseOAuth extends BaseClient
 {
@@ -230,7 +227,6 @@ abstract class BaseOAuth extends BaseClient
      * before sending. You may use [[createRequest()]] to gain full control over request composition and execution.
      * @see createRequest()
      * @return RequestInterface HTTP request instance.
-     * @since 2.1
      */
     public function createApiRequest(string $method, string $uri): RequestInterface
     {
@@ -294,7 +290,6 @@ abstract class BaseOAuth extends BaseClient
      * Applies access token to the HTTP request instance.
      * @param RequestInterface $request HTTP request instance.
      * @param OAuthToken $accessToken access token instance.
-     * @since 2.1
      */
     abstract public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface;
 

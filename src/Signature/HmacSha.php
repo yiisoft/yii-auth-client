@@ -13,9 +13,6 @@ use yii\exceptions\NotSupportedException;
  * HmacSha represents 'HMAC SHA' signature method.
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1.3
  */
 class HmacSha extends BaseMethod
 {

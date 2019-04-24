@@ -8,9 +8,9 @@
 namespace Yiisoft\Yii\AuthClient;
 
 use yii\base\Action;
-use yii\base\Exception;
-use yii\base\InvalidConfigException;
-use yii\base\NotSupportedException;
+use yii\exceptions\Exception;
+use yii\exceptions\InvalidConfigException;
+use yii\exceptions\NotSupportedException;
 use yii\helpers\Url;
 use yii\web\Response;
 use yii\web\HttpException;
@@ -51,9 +51,6 @@ use yii\web\NotFoundHttpException;
  *
  * @property string $cancelUrl Cancel URL.
  * @property string $successUrl Successful URL.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthAction extends Action
 {
@@ -98,8 +95,6 @@ class AuthAction extends Action
      *
      * If this callback returns [[Response]] instance, it will be used as action response,
      * otherwise redirection to [[cancelUrl]] will be performed.
-     *
-     * @since 2.1.5
      */
     public $cancelCallback;
     /**
@@ -239,7 +234,6 @@ class AuthAction extends Action
      * This method is invoked in case of authentication cancelation.
      * @param ClientInterface $client auth client instance.
      * @return Response response instance.
-     * @since 2.1.5
      */
     protected function authCancel($client)
     {

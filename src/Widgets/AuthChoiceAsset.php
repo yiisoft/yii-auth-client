@@ -7,15 +7,13 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
+use yii\jquery\YiiAsset;
 use yii\web\AssetBundle;
 
 /**
  * AuthChoiceAsset is an asset bundle for [[AuthChoice]] widget.
  *
  * @see AuthChoiceStyleAsset
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthChoiceAsset extends AssetBundle
 {
@@ -24,7 +22,7 @@ class AuthChoiceAsset extends AssetBundle
         'authchoice.js',
     ];
     public $depends = [
-        \Yiisoft\Yii\AuthClient\Widgets\AuthChoiceStyleAsset::class,
-        \yii\jquery\YiiAsset::class,
+        AuthChoiceStyleAsset::class,
+        YiiAsset::class,
     ];
 }

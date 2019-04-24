@@ -14,8 +14,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use yii\helpers\Yii;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-use yii\base\InvalidConfigException;
-use yii\base\InvalidArgumentException;
+use yii\exceptions\InvalidConfigException;
 use yii\helpers\Json;
 use yii\web\HttpException;
 use \Psr\Http\Client\ClientInterface;
@@ -55,9 +54,6 @@ use \Psr\Http\Client\ClientInterface;
  *
  * @see http://openid.net/connect/
  * @see OAuth2
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1.3
  */
 class OpenIdConnect extends OAuth2
 {

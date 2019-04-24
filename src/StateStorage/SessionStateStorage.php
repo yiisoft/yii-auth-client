@@ -15,9 +15,6 @@ use yii\web\Session;
  *
  * @see StateStorageInterface
  * @see Session
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.1
  */
 class SessionStateStorage extends Component implements StateStorageInterface
 {

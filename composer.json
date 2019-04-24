@@ -21,6 +21,8 @@
     "prefer-stable": true,
     "require": {
         "yiisoft/yii-core": "^3.0@dev",
+        "yiisoft/yii-jquery": "^3.0@dev",
+        "yiisoft/yii-web": "^3.0@dev",
         "psr/http-client": "^1.0",
         "psr/http-message": "^1.0",
         "psr/http-message-implementation": "1.0",
@@ -30,7 +32,6 @@
         "psr/log-implementation": "^1.0"
     },
     "require-dev": {
-        "yiisoft/yii-web": "^3.0@dev",
         "yiisoft/di": "^3.0@dev",
         "yiisoft/log": "^3.0@dev",
         "yiisoft/rbac": "^3.0@dev",

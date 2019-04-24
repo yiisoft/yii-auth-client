@@ -34,9 +34,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  *
  * @see https://account.live.com/developers/applications
  * @see http://msdn.microsoft.com/en-us/library/live/hh243647.aspx
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class Live extends OAuth2
 {

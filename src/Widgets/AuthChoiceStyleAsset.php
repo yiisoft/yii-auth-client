@@ -11,9 +11,6 @@ use yii\web\AssetBundle;
 
 /**
  * AuthChoiceAsset is an asset bundle for [[AuthChoice]] widget.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthChoiceStyleAsset extends AssetBundle
 {

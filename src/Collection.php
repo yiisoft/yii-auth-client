@@ -36,9 +36,6 @@ use yii\exceptions\InvalidArgumentException;
  * ```
  *
  * @property ClientInterface[] $clients List of auth clients indexed by their names. This property is read-only.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class Collection
 {

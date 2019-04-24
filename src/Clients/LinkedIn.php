@@ -38,9 +38,6 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see https://developer.linkedin.com/docs/oauth2
  * @see https://www.linkedin.com/secure/developer
  * @see https://developer.linkedin.com/docs/rest-api
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class LinkedIn extends OAuth2
 {
@@ -58,7 +55,6 @@ class LinkedIn extends OAuth2
     public $endpoint = 'https://api.linkedin.com/v1';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
-     * @since 2.0.4
      */
     public $attributeNames = [
         'id',

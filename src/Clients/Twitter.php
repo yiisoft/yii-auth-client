@@ -41,9 +41,6 @@ use Yiisoft\Yii\AuthClient\OAuth1;
  * @see TwitterOAuth2
  * @see https://apps.twitter.com/
  * @see https://dev.twitter.com/
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class Twitter extends OAuth1
 {
@@ -82,7 +79,6 @@ class Twitter extends OAuth1
      * ```
      *
      * @see https://dev.twitter.com/rest/reference/get/account/verify_credentials
-     * @since 2.0.6
      */
     public $attributeParams = [];
 

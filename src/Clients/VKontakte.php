@@ -38,9 +38,6 @@ use yii\helpers\Json;
  *
  * @see http://vk.com/editapp?act=create
  * @see http://vk.com/developers.php?oid=-1&p=users.get
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class VKontakte extends OAuth2
 {
@@ -58,7 +55,6 @@ class VKontakte extends OAuth2
     public $endpoint = 'https://api.vk.com/method';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
-     * @since 2.0.4
      */
     public $attributeNames = [
         'uid',
@@ -76,7 +72,6 @@ class VKontakte extends OAuth2
     /**
      * @var string the API version to send in the API request.
      * @see https://vk.com/dev/versions
-     * @since 2.1.4
      */
     public $apiVersion = '3.0';
 

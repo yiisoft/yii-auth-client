@@ -53,9 +53,6 @@ namespace Yiisoft\Yii\AuthClient\Clients;
  * @see Google
  * @see \Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton
  * @see https://developers.google.com/+/web/signin
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0.4
  */
 class GoogleHybrid extends Google
 {

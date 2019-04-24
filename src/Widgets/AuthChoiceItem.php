@@ -14,9 +14,6 @@ use yii\base\Widget;
  * for auth client at [[AuthChoice]].
  *
  * @see AuthChoice
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class AuthChoiceItem extends Widget
 {

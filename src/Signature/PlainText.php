@@ -9,9 +9,6 @@ namespace Yiisoft\Yii\AuthClient\Signature;
 
 /**
  * PlainText represents 'PLAINTEXT' signature method.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class PlainText extends BaseMethod
 {

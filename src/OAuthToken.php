@@ -20,9 +20,6 @@ use yii\base\BaseObject;
  * @property array $params This property is read-only.
  * @property string $token Token value.
  * @property string $tokenSecret Token secret value.
- *
- * @author Paul Klimov <klimov.paul@gmail.com>
- * @since 2.0
  */
 class OAuthToken extends BaseObject
 {
