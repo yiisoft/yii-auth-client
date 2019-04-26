@@ -7,7 +7,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\jquery\YiiAsset;
+use Yiisoft\Yii\JQuery\YiiAsset;
 use yii\web\AssetBundle;
 
 /**
