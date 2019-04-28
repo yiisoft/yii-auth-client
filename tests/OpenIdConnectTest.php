@@ -9,8 +9,8 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Yii\AuthClient\OpenIdConnect;
-use yii\cache\ArrayCache;
-use yii\cache\DummyCache;
+use Yiisoft\Cache\ArrayCache;
+use Yiisoft\Cache\DummyCache;
 
 class OpenIdConnectTest extends TestCase
 {
