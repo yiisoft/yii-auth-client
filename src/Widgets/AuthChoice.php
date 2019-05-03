@@ -228,7 +228,7 @@ class AuthChoice extends Widget
     {
         $this->autoRender = false;
         $url = $this->getBaseAuthUrl();
-        $url[$this->clientIdGetParamName] = $client->getId();
+        $url[$this->clientIdGetParamName] = $client->getName();
 
         return Url::to($url);
     }

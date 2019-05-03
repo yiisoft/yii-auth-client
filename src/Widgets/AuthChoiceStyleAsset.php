@@ -14,7 +14,7 @@ use yii\web\AssetBundle;
  */
 class AuthChoiceStyleAsset extends AssetBundle
 {
-    public $sourcePath = '@yii/authclient/assets';
+    public $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
     public $css = [
         'authchoice.css',
     ];
