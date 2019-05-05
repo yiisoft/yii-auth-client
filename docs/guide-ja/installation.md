@@ -70,7 +70,7 @@ OAuth では、使おうとしているサービスからクライアント ID �
 ユーザの情報をデータベースに保存しようとする場合、スキーマは次のようなものになります。
 
 ```php
-class m??????_??????_auth extends \yii\db\Migration
+class m??????_??????_auth extends \Yiisoft\Db\Migration
 {
     public function up()
     {

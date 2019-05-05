@@ -72,7 +72,7 @@ return [
 Если мы храним информацию о пользователях в базе данных, то код соответвующей миграции может выглядеть следующим образом:
 
 ```php
-class m??????_??????_auth extends \yii\db\Migration
+class m??????_??????_auth extends \Yiisoft\Db\Migration
 {
     public function up()
     {

@@ -70,7 +70,7 @@ both external authentication and good old login and password.
 If we're storing user information in a database the corresponding migration code could be the following:
 
 ```php
-class m??????_??????_auth extends \yii\db\Migration
+class m??????_??????_auth extends \Yiisoft\Db\Migration
 {
     public function up()
     {
