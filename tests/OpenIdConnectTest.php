@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Yii\AuthClient\OpenIdConnect;
 use Yiisoft\Cache\ArrayCache;
-use Yiisoft\Cache\DummyCache;
+use Yiisoft\Cache\NullCache;
 
 class OpenIdConnectTest extends TestCase
 {
@@ -26,7 +26,7 @@ class OpenIdConnectTest extends TestCase
 
     private function getDummyCache(): CacheInterface
     {
-        return new DummyCache();
+        return new NullCache();
     }
 
     private function getArrayCache(): CacheInterface
