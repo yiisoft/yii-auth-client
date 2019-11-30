@@ -1,7 +1,13 @@
 {
     "name": "yiisoft/yii-auth-client",
     "description": "Yii Framework external authentication via OAuth and OpenID Extension",
-    "keywords": ["yii", "OAuth", "OpenID Connect", "auth", "api"],
+    "keywords": [
+        "yii",
+        "OAuth",
+        "OpenID Connect",
+        "auth",
+        "api"
+    ],
     "type": "library",
     "license": "BSD-3-Clause",
     "support": {
@@ -50,14 +56,21 @@
         }
     ],
     "autoload": {
-        "psr-4": {"Yiisoft\\Yii\\AuthClient\\": "src"}
+        "psr-4": {
+            "Yiisoft\\Yii\\AuthClient\\": "src"
+        }
     },
     "autoload-dev": {
-        "psr-4": {"Yiisoft\\Yii\\AuthClient\\Tests\\": "tests"}
+        "psr-4": {
+            "Yiisoft\\Yii\\AuthClient\\Tests\\": "tests"
+        }
     },
     "extra": {
         "branch-alias": {
             "dev-master": "3.0.x-dev"
         }
+    },
+    "config": {
+        "sort-packages": true
     }
 }
