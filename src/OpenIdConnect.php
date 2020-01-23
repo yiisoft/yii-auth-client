@@ -17,7 +17,7 @@ use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use yii\exceptions\InvalidConfigException;
 use yii\helpers\Json;
 use yii\web\HttpException;
-use \Psr\Http\Client\ClientInterface;
+use Psr\Http\Client\ClientInterface;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
