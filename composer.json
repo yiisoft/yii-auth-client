@@ -43,7 +43,7 @@
         "yiisoft/rbac": "^3.0@dev",
         "yiisoft/cache": "^3.0@dev",
         "hiqdev/composer-config-plugin": "^1.0@dev",
-        "phpunit/phpunit": "^8.4",
+        "phpunit/phpunit": "^8.4 || ^9.0",
         "kriswallsmith/buzz": "^1.0",
         "nyholm/psr7": "^1.0"
     },
