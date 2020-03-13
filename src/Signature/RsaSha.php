@@ -46,9 +46,6 @@ class RsaSha extends BaseMethod
     protected $_publicCertificate;
 
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct($algorithm = null)
     {
         $this->algorithm = $algorithm;
@@ -98,9 +95,6 @@ class RsaSha extends BaseMethod
         return $this->_privateCertificate;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName(): string
     {
         if (\is_int($this->algorithm)) {
@@ -160,9 +154,6 @@ class RsaSha extends BaseMethod
         return '';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
@@ -176,9 +167,6 @@ class RsaSha extends BaseMethod
         return base64_encode($signature);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);

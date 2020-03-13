@@ -177,9 +177,6 @@ abstract class OAuth1 extends BaseOAuth
         return $token;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $data = RequestUtil::getParams($request);
@@ -249,6 +246,7 @@ abstract class OAuth1 extends BaseOAuth
      * Sign given request with [[signatureMethod]].
      * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set [[accessToken]] will be used.
+     * @return RequestInterface
      */
     public function signRequest(RequestInterface $request, $token = null): RequestInterface
     {

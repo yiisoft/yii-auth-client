@@ -39,17 +39,8 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 class Google extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://accounts.google.com/o/oauth2/auth';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://accounts.google.com/o/oauth2/token';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://www.googleapis.com/plus/v1';
 
     protected function getDefaultScope(): string
@@ -57,9 +48,6 @@ class Google extends OAuth2
         return 'profile email';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return $this->api('people/me', 'GET');

@@ -56,23 +56,14 @@ namespace Yiisoft\Yii\AuthClient\Clients;
  */
 class GoogleHybrid extends Google
 {
-    /**
-     * {@inheritdoc}
-     */
     public $validateAuthState = false;
 
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultReturnUrl()
     {
         return 'postmessage';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultViewOptions()
     {
         return [

@@ -40,19 +40,9 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 class Facebook extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://www.facebook.com/dialog/oauth';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://graph.facebook.com';
-
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
@@ -60,9 +50,6 @@ class Facebook extends OAuth2
         'name',
         'email',
     ];
-    /**
-     * {@inheritdoc}
-     */
     public $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
@@ -78,9 +65,6 @@ class Facebook extends OAuth2
     public $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
 
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return $this->api('me', 'GET', [
@@ -88,9 +72,6 @@ class Facebook extends OAuth2
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -103,9 +84,6 @@ class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultViewOptions()
     {
         return [
@@ -114,9 +92,6 @@ class Facebook extends OAuth2
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function fetchAccessToken($authCode, array $params = [])
     {
         $token = parent::fetchAccessToken($authCode, $params);

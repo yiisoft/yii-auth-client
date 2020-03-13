@@ -37,17 +37,8 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 class GitHub extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://github.com/login/oauth/authorize';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://github.com/login/oauth/access_token';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://api.github.com';
 
     protected function getDefaultScope(): string
@@ -55,9 +46,6 @@ class GitHub extends OAuth2
         return 'user';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         $attributes = $this->api('user', 'GET');

@@ -57,9 +57,6 @@ use Psr\Http\Client\ClientInterface;
  */
 class OpenIdConnect extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $scope = 'openid';
     /**
      * @var string OpenID Issuer (provider) base URL, e.g. `https://example.com`.
@@ -190,9 +187,6 @@ class OpenIdConnect extends OAuth2
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function buildAuthUrl(array $params = [])
     {
         if ($this->authUrl === null) {
@@ -201,9 +195,6 @@ class OpenIdConnect extends OAuth2
         return parent::buildAuthUrl($params);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function fetchAccessToken($authCode, array $params = [])
     {
         if ($this->tokenUrl === null) {
@@ -219,9 +210,6 @@ class OpenIdConnect extends OAuth2
         return parent::fetchAccessToken($authCode, $params);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function refreshAccessToken(OAuthToken $token)
     {
         if ($this->tokenUrl === null) {
@@ -230,17 +218,11 @@ class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return $this->api($this->getConfigParam('userinfo_endpoint'), 'GET');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = $this->getConfigParam('token_endpoint_auth_methods_supported');
@@ -280,9 +262,6 @@ class OpenIdConnect extends OAuth2
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultReturnUrl()
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
@@ -295,9 +274,6 @@ class OpenIdConnect extends OAuth2
         return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function createToken(array $tokenConfig = [])
     {
         if ($this->validateJws) {
