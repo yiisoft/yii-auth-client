@@ -12,17 +12,11 @@ namespace Yiisoft\Yii\AuthClient\Signature;
  */
 class PlainText extends BaseMethod
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getName(): string
     {
         return 'PLAINTEXT';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function generateSignature(string $baseString, string $key): string
     {
         return $key;

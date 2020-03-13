@@ -22,9 +22,6 @@ class HmacSha extends BaseMethod
      */
     private $algorithm;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct(string $algorithm)
     {
         if (!\function_exists('hash_hmac')) {
@@ -34,17 +31,11 @@ class HmacSha extends BaseMethod
         $this->algorithm = $algorithm;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName(): string
     {
         return 'HMAC-' . strtoupper($this->algorithm);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function generateSignature(string $baseString, string $key): string
     {
         return base64_encode(hash_hmac($this->algorithm, $baseString, $key, true));

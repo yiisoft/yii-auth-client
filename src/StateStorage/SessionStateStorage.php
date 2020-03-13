@@ -29,17 +29,11 @@ class SessionStateStorage extends Component implements StateStorageInterface
      */
     private $session;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct(Session $session)
     {
         $this->session = $session;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function set($key, $value)
     {
         if ($this->session !== null) {
@@ -47,9 +41,6 @@ class SessionStateStorage extends Component implements StateStorageInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function get($key)
     {
         if ($this->session !== null) {
@@ -58,9 +49,6 @@ class SessionStateStorage extends Component implements StateStorageInterface
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function remove($key)
     {
         if ($this->session !== null) {

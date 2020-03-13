@@ -7,9 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Data;
  */
 class Session extends \yii\web\Session
 {
-    /**
-     * {@inheritdoc}
-     */
     public function __construct()
     {
         // blank, override, preventing shutdown function registration

@@ -122,9 +122,6 @@ abstract class OAuth2 extends BaseOAuth
         return $token;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams($request, [
@@ -136,6 +133,7 @@ abstract class OAuth2 extends BaseOAuth
      * Applies client credentials (e.g. [[clientId]] and [[clientSecret]]) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      * @param RequestInterface $request HTTP request instance.
+     * @return RequestInterface
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {

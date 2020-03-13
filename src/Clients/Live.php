@@ -37,17 +37,8 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 class Live extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://login.live.com/oauth20_authorize.srf';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://login.live.com/oauth20_token.srf';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://apis.live.net/v5.0';
 
     protected function getDefaultScope(): string
@@ -55,9 +46,6 @@ class Live extends OAuth2
         return 'wl.basic wl.emails';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return $this->api('me', 'GET');

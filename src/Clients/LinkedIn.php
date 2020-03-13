@@ -41,17 +41,8 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 class LinkedIn extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://api.linkedin.com/v1';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
@@ -69,9 +60,6 @@ class LinkedIn extends OAuth2
         return 'r_basicprofile r_emailaddress';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultNormalizeUserAttributeMap()
     {
         return [
@@ -81,17 +69,11 @@ class LinkedIn extends OAuth2
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return $this->api('people/~:(' . implode(',', $this->attributeNames) . ')', 'GET');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams($request, [

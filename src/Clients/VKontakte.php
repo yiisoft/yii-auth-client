@@ -41,17 +41,8 @@ use yii\helpers\Json;
  */
 class VKontakte extends OAuth2
 {
-    /**
-     * {@inheritdoc}
-     */
     public $authUrl = 'https://oauth.vk.com/authorize';
-    /**
-     * {@inheritdoc}
-     */
     public $tokenUrl = 'https://oauth.vk.com/access_token';
-    /**
-     * {@inheritdoc}
-     */
     public $endpoint = 'https://api.vk.com/method';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
@@ -76,9 +67,6 @@ class VKontakte extends OAuth2
     public $apiVersion = '3.0';
 
 
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         $response = $this->api('users.get.json', 'GET', [
@@ -102,9 +90,6 @@ class VKontakte extends OAuth2
         return $attributes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams($request, [
@@ -114,9 +99,6 @@ class VKontakte extends OAuth2
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function defaultNormalizeUserAttributeMap()
     {
         return [

@@ -9,9 +9,6 @@ use Yiisoft\Yii\AuthClient\BaseClient;
  */
 class TestClient extends BaseClient
 {
-    /**
-     * {@inheritdoc}
-     */
     protected function initUserAttributes()
     {
         return [];
