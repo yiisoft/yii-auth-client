@@ -2,7 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\exceptions\InvalidArgumentException;
+use InvalidArgumentException;
 
 /**
  * Collection is a storage for all auth clients in the application.

@@ -2,7 +2,6 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\base\BaseObject;
 
 /**
  * Token represents OAuth token.
@@ -16,7 +15,7 @@ use yii\base\BaseObject;
  * @property string $token Token value.
  * @property string $tokenSecret Token secret value.
  */
-class OAuthToken extends BaseObject
+class OAuthToken
 {
     /**
      * @var string key in [[params]] array, which stores token key.
@@ -35,11 +34,11 @@ class OAuthToken extends BaseObject
      * @var string key in [[params]] array, which stores token expiration duration.
      * If not set will attempt to fetch its value automatically.
      */
-    private $_expireDurationParamKey;
+    private $expireDurationParamKey;
     /**
      * @var array token parameters.
      */
-    private $_params = [];
+    private $params = [];
 
 
     public function __construct()
@@ -60,11 +59,11 @@ class OAuthToken extends BaseObject
      */
     public function getExpireDurationParamKey()
     {
-        if ($this->_expireDurationParamKey === null) {
-            $this->_expireDurationParamKey = $this->defaultExpireDurationParamKey();
+        if ($this->expireDurationParamKey === null) {
+            $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
         }
 
-        return $this->_expireDurationParamKey;
+        return $this->expireDurationParamKey;
     }
 
     /**
@@ -72,7 +71,7 @@ class OAuthToken extends BaseObject
      */
     public function getParams()
     {
-        return $this->_params;
+        return $this->params;
     }
 
     /**
@@ -80,7 +79,7 @@ class OAuthToken extends BaseObject
      */
     public function setParams(array $params)
     {
-        $this->_params = $params;
+        $this->params = $params;
     }
 
     /**
@@ -90,7 +89,7 @@ class OAuthToken extends BaseObject
      */
     public function setParam($name, $value)
     {
-        $this->_params[$name] = $value;
+        $this->params[$name] = $value;
     }
 
     /**
@@ -100,7 +99,7 @@ class OAuthToken extends BaseObject
      */
     public function getParam($name)
     {
-        return isset($this->_params[$name]) ? $this->_params[$name] : null;
+        return isset($this->params[$name]) ? $this->params[$name] : null;
     }
 
     /**

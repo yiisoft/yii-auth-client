@@ -2,11 +2,10 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\base\InvalidConfigException;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\web\View;
+use Yiisoft\Html\Html;
+use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Clients\GoogleHybrid;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
 /**
  * GooglePlusButton renders Google+ sign-in button.
@@ -32,7 +31,7 @@ class GooglePlusButton extends AuthChoiceItem
      * You may pass an array configuration of the URL here, which will be used creating such
      * default callback.
      */
-    private $_callback;
+    private $callback;
 
 
     /**
@@ -40,7 +39,7 @@ class GooglePlusButton extends AuthChoiceItem
      */
     public function setCallback($callback)
     {
-        $this->_callback = $callback;
+        $this->callback = $callback;
     }
 
     /**
@@ -48,12 +47,12 @@ class GooglePlusButton extends AuthChoiceItem
      */
     public function getCallback()
     {
-        if (empty($this->_callback)) {
-            $this->_callback = $this->generateCallback();
-        } elseif (is_array($this->_callback)) {
-            $this->_callback = $this->generateCallback($this->_callback);
+        if (empty($this->callback)) {
+            $this->callback = $this->generateCallback();
+        } elseif (is_array($this->callback)) {
+            $this->callback = $this->generateCallback($this->callback);
         }
-        return $this->_callback;
+        return $this->callback;
     }
 
     /**
@@ -63,7 +62,8 @@ class GooglePlusButton extends AuthChoiceItem
     {
         if (!($this->client instanceof GoogleHybrid)) {
             throw new InvalidConfigException(
-                '"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '"'
+                '"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '". "'
+                . get_class($this->client) . '" given.'
             );
         }
     }
@@ -71,7 +71,7 @@ class GooglePlusButton extends AuthChoiceItem
     /**
      * Runs the widget.
      */
-    public function run()
+    public function run(): string
     {
         $this->registerClientScript();
         return $this->renderButton();
@@ -120,7 +120,7 @@ function $callbackName(authResult); {
     window.location = '$url' + urlParams.join('&');
 }
 JS;
-        $this->view->registerJs($js, View::POS_END, __CLASS__ . '#' . $this->id);
+        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__ . '#' . $this->id);
 
         return $callbackName;
     }
@@ -137,7 +137,7 @@ JS;
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
 })();
 JS;
-        $this->view->registerJs($js, View::POS_END, __CLASS__);
+        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__);
     }
 
     /**

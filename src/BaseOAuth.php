@@ -2,11 +2,9 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
+use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
-use yii\exceptions\Exception;
-use yii\exceptions\InvalidArgumentException;
-use yii\helpers\Yii;
 
 use function is_array;
 use function is_object;
@@ -246,7 +244,7 @@ abstract class BaseOAuth extends BaseClient
     {
         $accessToken = $this->getAccessToken();
         if (!is_object($accessToken) || !$accessToken->getIsValid()) {
-            throw new Exception('Invalid access token.');
+            throw new \Exception('Invalid access token.');
         }
 
         return $this->applyAccessTokenToRequest($request, $accessToken);

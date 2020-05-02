@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
 class DummyStateStorage implements StateStorageInterface

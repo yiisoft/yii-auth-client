@@ -2,7 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use yii\exceptions\NotSupportedException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 use function function_exists;
 

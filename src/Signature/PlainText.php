@@ -5,7 +5,7 @@ namespace Yiisoft\Yii\AuthClient\Signature;
 /**
  * PlainText represents 'PLAINTEXT' signature method.
  */
-class PlainText extends BaseMethod
+final class PlainText extends BaseMethod
 {
     public function getName(): string
     {

@@ -3,9 +3,6 @@
 namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
-use yii\helpers\Json;
-use yii\helpers\Yii;
-use yii\web\HttpException;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 /**

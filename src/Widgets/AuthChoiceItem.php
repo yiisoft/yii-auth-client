@@ -2,7 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\base\Widget;
+use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\ClientInterface;
 
 /**

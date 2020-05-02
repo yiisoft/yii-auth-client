@@ -2,14 +2,12 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\exceptions\InvalidConfigException;
-use yii\helpers\Html;
-use yii\helpers\Json;
-use yii\helpers\Url;
-use yii\helpers\Yii;
-use yii\widgets\Widget;
+use Yiisoft\Html\Html;
+use Yiisoft\Json\Json;
+use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\ClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -70,7 +68,7 @@ class AuthChoice extends Widget
     public $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $options = [];
     /**
@@ -172,6 +170,7 @@ class AuthChoice extends Widget
      * @param array $htmlOptions link HTML options.
      * @return string generated HTML.
      * @throws InvalidConfigException on wrong configuration.
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
     public function clientLink($client, $text = null, array $htmlOptions = [])
     {
@@ -267,7 +266,7 @@ class AuthChoice extends Widget
      * Runs the widget.
      * @return string rendered HTML.
      */
-    public function run()
+    public function run(): string
     {
         $content = '';
         if ($this->autoRender) {

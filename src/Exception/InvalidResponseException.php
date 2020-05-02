@@ -1,6 +1,6 @@
 <?php
 
-namespace Yiisoft\Yii\AuthClient;
+namespace Yiisoft\Yii\AuthClient\Exception;
 
 use Exception;
 use Psr\Http\Message\ResponseInterface;

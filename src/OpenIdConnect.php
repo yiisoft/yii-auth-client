@@ -9,10 +9,9 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
-use yii\exceptions\InvalidConfigException;
-use yii\helpers\Json;
-use yii\helpers\Yii;
-use yii\web\HttpException;
+use Yiisoft\Json\Json;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 
 use function in_array;
@@ -269,7 +268,7 @@ class OpenIdConnect extends OAuth2
             ];
 
             $signatureBaseString = base64_encode(Json::encode($header)) . '.' . base64_encode(Json::encode($payload));
-            $signatureMethod = new HmacSha(['algorithm' => 'sha256']);
+            $signatureMethod = new HmacSha('sha256');
             $signature = $signatureMethod->generateSignature($signatureBaseString, $this->clientSecret);
 
             $assertion = $signatureBaseString . '.' . $signature;

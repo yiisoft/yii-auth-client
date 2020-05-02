@@ -2,16 +2,13 @@
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
-use yii\base\Component;
-use yii\web\Session;
-
 /**
  * SessionStateStorage provides Auth client state storage based on web session.
  *
  * @see StateStorageInterface
  * @see Session
  */
-class SessionStateStorage extends Component implements StateStorageInterface
+class SessionStateStorage implements StateStorageInterface
 {
     /**
      * @var Session session object to be used.

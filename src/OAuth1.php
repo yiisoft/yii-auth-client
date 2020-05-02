@@ -2,10 +2,9 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
+use HttpException;
+use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
-use yii\base\InvalidArgumentException;
-use yii\helpers\Yii;
-use yii\web\HttpException;
 
 /**
  * OAuth1 serves as a client for the OAuth 1/1.0a flow.

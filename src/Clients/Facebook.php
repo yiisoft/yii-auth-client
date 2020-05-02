@@ -30,8 +30,8 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * ]
  * ```
  *
- * @see https://developers.facebook.com/apps
- * @see http://developers.facebook.com/docs/reference/api
+ * @link https://developers.facebook.com/apps
+ * @link http://developers.facebook.com/docs/reference/api
  */
 class Facebook extends OAuth2
 {
@@ -130,7 +130,7 @@ class Facebook extends OAuth2
      * Requests the authorization code for the client-specific access token.
      * This make sense for the distributed applications, which provides several Auth clients (web and mobile)
      * to avoid triggering Facebook's automated spam systems.
-     * @see https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAccessToken()
      * @param OAuthToken|null $token access token, if not set [[accessToken]] will be used.
      * @param array $params additional request params.
@@ -166,7 +166,7 @@ class Facebook extends OAuth2
      * Fetches access token from client-specific authorization code.
      * This make sense for the distributed applications, which provides several Auth clients (web and mobile)
      * to avoid triggering Facebook's automated spam systems.
-     * @see https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
      * @param string $authCode client auth code.
      * @param array $params

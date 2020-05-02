@@ -2,14 +2,8 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\base\Action;
-use yii\exceptions\Exception;
-use yii\exceptions\InvalidConfigException;
-use yii\exceptions\NotSupportedException;
-use yii\helpers\Url;
-use yii\web\HttpException;
-use yii\web\NotFoundHttpException;
-use yii\web\Response;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * AuthAction performs authentication via different auth clients.
@@ -190,7 +184,7 @@ class AuthAction extends Action
      * Perform authentication for the given client.
      * @param mixed $client auth client instance.
      * @return Response response instance.
-     * @throws \yii\base\NotSupportedException on invalid client.
+     * @throws NotSupportedException on invalid client.
      */
     protected function auth($client)
     {
@@ -198,7 +192,7 @@ class AuthAction extends Action
             return $this->authOAuth2($client);
         } elseif ($client instanceof OAuth1) {
             return $this->authOAuth1($client);
-        } elseif ($client instanceof OpenId) {
+        } elseif ($client instanceof OpenIdConnect) {
             return $this->authOpenId($client);
         }
 
@@ -298,7 +292,7 @@ class AuthAction extends Action
 
     /**
      * Performs OpenID auth flow.
-     * @param OpenId $client auth client instance.
+     * @param ClientInterface $client auth client instance.
      * @return Response action response.
      * @throws Exception on failure.
      * @throws HttpException on failure.
@@ -361,7 +355,7 @@ class AuthAction extends Action
      * Performs OAuth2 auth flow.
      * @param OAuth2 $client auth client instance.
      * @return Response action response.
-     * @throws \yii\base\Exception on failure.
+     * @throws \Exception on failure.
      */
     protected function authOAuth2($client)
     {
