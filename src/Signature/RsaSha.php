@@ -5,6 +5,9 @@ namespace Yiisoft\Yii\AuthClient\Signature;
 use yii\exceptions\InvalidConfigException;
 use yii\exceptions\NotSupportedException;
 
+use function function_exists;
+use function is_int;
+
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
  *
@@ -45,7 +48,7 @@ class RsaSha extends BaseMethod
     {
         $this->algorithm = $algorithm;
 
-        if (!\function_exists('openssl_sign')) {
+        if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
     }
@@ -92,7 +95,7 @@ class RsaSha extends BaseMethod
 
     public function getName(): string
     {
-        if (\is_int($this->algorithm)) {
+        if (is_int($this->algorithm)) {
             $constants = get_defined_constants(true);
             if (isset($constants['openssl'])) {
                 foreach ($constants['openssl'] as $name => $value) {
@@ -118,14 +121,16 @@ class RsaSha extends BaseMethod
     /**
      * Creates initial value for [[publicCertificate]].
      * This method will attempt to fetch the certificate value from [[publicCertificateFile]] file.
-     * @throws InvalidConfigException on failure.
      * @return string public certificate content.
+     * @throws InvalidConfigException on failure.
      */
     protected function initPublicCertificate()
     {
         if (!empty($this->publicCertificateFile)) {
             if (!file_exists($this->publicCertificateFile)) {
-                throw new InvalidConfigException("Public certificate file '{$this->publicCertificateFile}' does not exist!");
+                throw new InvalidConfigException(
+                    "Public certificate file '{$this->publicCertificateFile}' does not exist!"
+                );
             }
             return file_get_contents($this->publicCertificateFile);
         }
@@ -135,14 +140,16 @@ class RsaSha extends BaseMethod
     /**
      * Creates initial value for [[privateCertificate]].
      * This method will attempt to fetch the certificate value from [[privateCertificateFile]] file.
-     * @throws InvalidConfigException on failure.
      * @return string private certificate content.
+     * @throws InvalidConfigException on failure.
      */
     protected function initPrivateCertificate()
     {
         if (!empty($this->privateCertificateFile)) {
             if (!file_exists($this->privateCertificateFile)) {
-                throw new InvalidConfigException("Private certificate file '{$this->privateCertificateFile}' does not exist!");
+                throw new InvalidConfigException(
+                    "Private certificate file '{$this->privateCertificateFile}' does not exist!"
+                );
             }
             return file_get_contents($this->privateCertificateFile);
         }

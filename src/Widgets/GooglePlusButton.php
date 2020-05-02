@@ -2,11 +2,11 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use Yiisoft\Yii\AuthClient\Clients\GoogleHybrid;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
+use Yiisoft\Yii\AuthClient\Clients\GoogleHybrid;
 
 /**
  * GooglePlusButton renders Google+ sign-in button.
@@ -62,7 +62,9 @@ class GooglePlusButton extends AuthChoiceItem
     public function init()
     {
         if (!($this->client instanceof GoogleHybrid)) {
-            throw new InvalidConfigException('"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '"');
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '"'
+            );
         }
     }
 
@@ -95,7 +97,7 @@ class GooglePlusButton extends AuthChoiceItem
 
         $callbackName = 'googleSignInCallback' . md5($this->id);
         $js = <<<JS
-function $callbackName(authResult) {
+function $callbackName(authResult); {
     var urlParams = [];
 
     if (authResult['code']) {

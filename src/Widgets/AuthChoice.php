@@ -2,13 +2,14 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use Yiisoft\Yii\AuthClient\ClientInterface;
 use yii\exceptions\InvalidConfigException;
-use yii\helpers\Json;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\helpers\Yii;
 use yii\widgets\Widget;
+use Yiisoft\Yii\AuthClient\ClientInterface;
+use Yiisoft\Yii\AuthClient\Collection;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -142,7 +143,7 @@ class AuthChoice extends Widget
      */
     protected function defaultClients()
     {
-        /* @var $collection \Yiisoft\Yii\AuthClient\Collection */
+        /* @var $collection Collection */
         $collection = Yii::getApp()->get($this->clientCollection);
 
         return $collection->getClients();

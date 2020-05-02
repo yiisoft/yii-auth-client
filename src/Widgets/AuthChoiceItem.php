@@ -3,6 +3,7 @@
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
 use yii\base\Widget;
+use Yiisoft\Yii\AuthClient\ClientInterface;
 
 /**
  * AuthChoiceItem is a base class for creating widgets, which can be used to render link
@@ -13,7 +14,7 @@ use yii\base\Widget;
 class AuthChoiceItem extends Widget
 {
     /**
-     * @var \Yiisoft\Yii\AuthClient\ClientInterface auth client instance.
+     * @var ClientInterface auth client instance.
      */
     public $client;
     /**

@@ -4,6 +4,8 @@ namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 
+use function in_array;
+
 /**
  * GitHub allows authentication via GitHub OAuth.
  *
@@ -48,7 +50,7 @@ class GitHub extends OAuth2
         if (empty($attributes['email'])) {
             // in case user set 'Keep my email address private' in GitHub profile, email should be retrieved via extra API request
             $scopes = explode(' ', $this->getScope());
-            if (\in_array('user:email', $scopes, true) || \in_array('user', $scopes, true)) {
+            if (in_array('user:email', $scopes, true) || in_array('user', $scopes, true)) {
                 $emails = $this->api('user/emails', 'GET');
                 if (!empty($emails)) {
                     foreach ($emails as $email) {

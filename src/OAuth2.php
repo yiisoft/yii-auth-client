@@ -3,9 +3,10 @@
 namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
-use yii\helpers\Yii;
 use yii\helpers\Json;
+use yii\helpers\Yii;
 use yii\web\HttpException;
+use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
@@ -119,9 +120,12 @@ abstract class OAuth2 extends BaseOAuth
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        return RequestUtil::addParams($request, [
-            'access_token' => $accessToken->getToken(),
-        ]);
+        return RequestUtil::addParams(
+            $request,
+            [
+                'access_token' => $accessToken->getToken(),
+            ]
+        );
     }
 
     /**
@@ -132,10 +136,12 @@ abstract class OAuth2 extends BaseOAuth
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
-        $request->addParams([
-            'client_id' => $this->clientId,
-            'client_secret' => $this->clientSecret,
-        ]);
+        $request->addParams(
+            [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ]
+        );
     }
 
     /**
@@ -275,7 +281,7 @@ abstract class OAuth2 extends BaseOAuth
      * Authenticates user directly using JSON Web Token (JWT).
      * @see https://tools.ietf.org/html/rfc7515
      * @param string $username
-     * @param \Yiisoft\Yii\AuthClient\Signature\BaseMethod|array $signature signature method or its array configuration.
+     * @param BaseMethod|array $signature signature method or its array configuration.
      * If empty - [[signatureMethod]] will be used.
      * @param array $options additional options. Valid options are:
      *
@@ -299,9 +305,12 @@ abstract class OAuth2 extends BaseOAuth
         $header = isset($options['header']) ? $options['header'] : [];
         $payload = isset($options['payload']) ? $options['payload'] : [];
 
-        $header = array_merge([
-            'typ' => 'JWT'
-        ], $header);
+        $header = array_merge(
+            [
+                'typ' => 'JWT'
+            ],
+            $header
+        );
         if (!isset($header['alg'])) {
             $signatureName = $signatureMethod->getName();
             if (preg_match('/^([a-z])[a-z]*\-([a-z])[a-z]*([0-9]+)$/is', $signatureName, $matches)) {
@@ -311,12 +320,15 @@ abstract class OAuth2 extends BaseOAuth
             $header['alg'] = $signatureName;
         }
 
-        $payload = array_merge([
-            'iss' => $username,
-            'scope' => $this->getScope(),
-            'aud' => $this->tokenUrl,
-            'iat' => time(),
-        ], $payload);
+        $payload = array_merge(
+            [
+                'iss' => $username,
+                'scope' => $this->getScope(),
+                'aud' => $this->tokenUrl,
+                'iat' => time(),
+            ],
+            $payload
+        );
         if (!isset($payload['exp'])) {
             $payload['exp'] = $payload['iat'] + 3600;
         }
@@ -330,10 +342,15 @@ abstract class OAuth2 extends BaseOAuth
         $request = $this->createRequest()
             ->setMethod('POST')
             ->setUrl($this->tokenUrl)
-            ->setParams(array_merge([
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'assertion' => $assertion,
-            ], $params));
+            ->setParams(
+                array_merge(
+                    [
+                        'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                        'assertion' => $assertion,
+                    ],
+                    $params
+                )
+            );
 
         $response = $this->sendRequest($request);
 

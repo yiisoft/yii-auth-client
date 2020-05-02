@@ -82,14 +82,21 @@ abstract class OAuth1 extends BaseOAuth
             $defaultParams['scope'] = $this->getScope();
         }
 
-        $request = $this->createRequest($this->requestTokenMethod, $this->requestTokenUrl . '?' . http_build_query(array_merge($defaultParams, $params)));
+        $request = $this->createRequest(
+            $this->requestTokenMethod,
+            $this->requestTokenUrl . '?' . http_build_query(
+                array_merge($defaultParams, $params)
+            )
+        );
 
         $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken([
-            'params' => $response
-        ]);
+        $token = $this->createToken(
+            [
+                'params' => $response
+            ]
+        );
         $this->setState('requestToken', $token);
 
         return $token;
@@ -125,8 +132,12 @@ abstract class OAuth1 extends BaseOAuth
      * @throws InvalidArgumentException on failure.
      * @throws HttpException in case oauth token miss-matches request token.
      */
-    public function fetchAccessToken($oauthToken = null, OAuthToken $requestToken = null, $oauthVerifier = null, array $params = [])
-    {
+    public function fetchAccessToken(
+        $oauthToken = null,
+        OAuthToken $requestToken = null,
+        $oauthVerifier = null,
+        array $params = []
+    ) {
         $incomingRequest = Yii::getApp()->getRequest();
 
         if ($oauthToken === null) {
@@ -157,16 +168,21 @@ abstract class OAuth1 extends BaseOAuth
             $defaultParams['oauth_verifier'] = $oauthVerifier;
         }
 
-        $request = $this->createRequest($this->accessTokenMethod, $this->composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params)));
+        $request = $this->createRequest(
+            $this->accessTokenMethod,
+            $this->composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params))
+        );
 
         $request = $this->signRequest($request, $requestToken);
 
         $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken([
-            'params' => $response
-        ]);
+        $token = $this->createToken(
+            [
+                'params' => $response
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -267,7 +283,14 @@ abstract class OAuth1 extends BaseOAuth
         $signatureKey = $this->composeSignatureKey($token);
         $params['oauth_signature'] = $signatureMethod->generateSignature($signatureBaseString, $signatureKey);
 
-        if ($this->authorizationHeaderMethods === null || in_array(strtoupper($request->getMethod()), array_map('strtoupper', $this->authorizationHeaderMethods), true)) {
+        if ($this->authorizationHeaderMethods === null || in_array(
+                strtoupper($request->getMethod()),
+                array_map(
+                    'strtoupper',
+                    $this->authorizationHeaderMethods
+                ),
+                true
+            )) {
             $authorizationHeader = $this->composeAuthorizationHeader($params);
             if (!empty($authorizationHeader)) {
                 foreach ($authorizationHeader as $name => $value) {
@@ -302,7 +325,10 @@ abstract class OAuth1 extends BaseOAuth
             $params = array_merge($urlParams, $params);
         }
         unset($params['oauth_signature']);
-        uksort($params, 'strcmp'); // Parameters are sorted by name, using lexicographical byte value ordering. Ref: Spec: 9.1.1
+        uksort(
+            $params,
+            'strcmp'
+        ); // Parameters are sorted by name, using lexicographical byte value ordering. Ref: Spec: 9.1.1
         $parts = [
             strtoupper($method),
             $url,

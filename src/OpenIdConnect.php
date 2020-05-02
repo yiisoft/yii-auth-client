@@ -2,17 +2,20 @@
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Exception;
 use Jose\Factory\JWKFactory;
 use Jose\Loader;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
-use yii\helpers\Yii;
-use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use yii\exceptions\InvalidConfigException;
 use yii\helpers\Json;
+use yii\helpers\Yii;
 use yii\web\HttpException;
-use Psr\Http\Client\ClientInterface;
+use Yiisoft\Yii\AuthClient\Signature\HmacSha;
+
+use function in_array;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -70,10 +73,18 @@ class OpenIdConnect extends OAuth2
      * Make sure `spomky-labs/jose` supports the particular algorithm before adding it here.
      */
     public $allowedJwsAlgorithms = [
-        'HS256', 'HS384', 'HS512',
-        'ES256', 'ES384', 'ES512',
-        'RS256', 'RS384', 'RS512',
-        'PS256', 'PS384', 'PS512'
+        'HS256',
+        'HS384',
+        'HS512',
+        'ES256',
+        'ES384',
+        'ES512',
+        'RS256',
+        'RS384',
+        'RS512',
+        'PS256',
+        'PS384',
+        'PS512'
     ];
     /**
      * @var string the prefix for the key used to store [[configParams]] data in cache.
@@ -110,8 +121,14 @@ class OpenIdConnect extends OAuth2
      * OpenIdConnect constructor.
      * @param CacheInterface $cache
      */
-    public function __construct(?string $endpoint, $name, $title, ClientInterface $httpClient, RequestFactoryInterface $requestFactory, CacheInterface $cache)
-    {
+    public function __construct(
+        ?string $endpoint,
+        $name,
+        $title,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        CacheInterface $cache
+    ) {
         $this->name = $name;
         $this->title = $title;
         $this->cache = $cache;
@@ -124,7 +141,10 @@ class OpenIdConnect extends OAuth2
     public function getValidateAuthNonce()
     {
         if ($this->validateAuthNonce === null) {
-            $this->validateAuthNonce = $this->validateJws && in_array('nonce', $this->getConfigParam('claims_supported'));
+            $this->validateAuthNonce = $this->validateJws && in_array(
+                    'nonce',
+                    $this->getConfigParam('claims_supported')
+                );
         }
         return $this->validateAuthNonce;
     }
@@ -173,7 +193,7 @@ class OpenIdConnect extends OAuth2
     private function discoverConfig()
     {
         if ($this->issuerUrl === null) {
-            throw new \yii\exceptions\InvalidConfigException('Cannot discover config because issuer URL is not set.');
+            throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
         }
         $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
         $request = $this->createRequest('GET', $configUrl);
@@ -222,14 +242,19 @@ class OpenIdConnect extends OAuth2
     {
         $supportedAuthMethods = $this->getConfigParam('token_endpoint_auth_methods_supported');
 
-        if (\in_array('client_secret_basic', $supportedAuthMethods, true)) {
-            $request = $request->withHeader('Authorization', 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret));
-        } elseif (\in_array('client_secret_post', $supportedAuthMethods, true)) {
-            $request->addParams([
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-            ]);
-        } elseif (\in_array('client_secret_jwt', $supportedAuthMethods, true)) {
+        if (in_array('client_secret_basic', $supportedAuthMethods, true)) {
+            $request = $request->withHeader(
+                'Authorization',
+                'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)
+            );
+        } elseif (in_array('client_secret_post', $supportedAuthMethods, true)) {
+            $request->addParams(
+                [
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret,
+                ]
+            );
+        } elseif (in_array('client_secret_jwt', $supportedAuthMethods, true)) {
             $header = [
                 'typ' => 'JWT',
                 'alg' => 'HS256',
@@ -249,11 +274,18 @@ class OpenIdConnect extends OAuth2
 
             $assertion = $signatureBaseString . '.' . $signature;
 
-            $request->addParams([
-                'assertion' => $assertion,
-            ]);
+            $request->addParams(
+                [
+                    'assertion' => $assertion,
+                ]
+            );
         } else {
-            throw new InvalidConfigException('Unable to authenticate request: none of following auth methods is suported: ' . implode(', ', $supportedAuthMethods));
+            throw new InvalidConfigException(
+                'Unable to authenticate request: none of following auth methods is suported: ' . implode(
+                    ', ',
+                    $supportedAuthMethods
+                )
+            );
         }
     }
 
@@ -301,7 +333,7 @@ class OpenIdConnect extends OAuth2
             $jwkSet = JWKFactory::createFromJKU($this->getConfigParam('jwks_uri'));
             $loader = new Loader();
             return $loader->loadAndVerifySignatureUsingKeySet($jws, $jwkSet, $this->allowedJwsAlgorithms)->getPayload();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $message = YII_DEBUG ? 'Unable to verify JWS: ' . $e->getMessage() : 'Invalid JWS';
             throw new HttpException(400, $message, $e->getCode(), $e);
         }

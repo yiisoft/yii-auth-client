@@ -4,6 +4,8 @@ namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
 
+use function is_array;
+
 final class RequestUtil
 {
     /**
@@ -41,7 +43,7 @@ final class RequestUtil
             if (!isset($result[$key])) {
                 $result[$key] = $value;
             } else {
-                if (!\is_array($result[$key])) {
+                if (!is_array($result[$key])) {
                     $result[$key] = [$result[$key]];
                 }
                 $result[$key][] = $value;

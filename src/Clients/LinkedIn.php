@@ -71,9 +71,12 @@ class LinkedIn extends OAuth2
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        return RequestUtil::addParams($request, [
-            'oauth2_access_token' => $accessToken->getToken()
-        ]);
+        return RequestUtil::addParams(
+            $request,
+            [
+                'oauth2_access_token' => $accessToken->getToken()
+            ]
+        );
     }
 
     /**

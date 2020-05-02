@@ -8,6 +8,9 @@ use yii\exceptions\Exception;
 use yii\exceptions\InvalidArgumentException;
 use yii\helpers\Yii;
 
+use function is_array;
+use function is_object;
+
 /**
  * BaseOAuth is a base class for the OAuth clients.
  *
@@ -60,8 +63,11 @@ abstract class BaseOAuth extends BaseClient
     /**
      * BaseOAuth constructor.
      */
-    public function __construct(?string $endpoint, \Psr\Http\Client\ClientInterface $httpClient, RequestFactoryInterface $requestFactory)
-    {
+    public function __construct(
+        ?string $endpoint,
+        \Psr\Http\Client\ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ) {
         $this->endpoint = rtrim($endpoint, '/');
         parent::__construct($httpClient, $requestFactory);
     }
@@ -118,7 +124,13 @@ abstract class BaseOAuth extends BaseClient
     public function setSignatureMethod($signatureMethod)
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
-            throw new InvalidArgumentException('"' . get_class($this) . '::signatureMethod" should be instance of "\yii\autclient\signature\BaseMethod" or its array configuration. "' . gettype($signatureMethod) . '" has been given.');
+            throw new InvalidArgumentException(
+                '"' . get_class(
+                    $this
+                ) . '::signatureMethod" should be instance of "\yii\autclient\signature\BaseMethod" or its array configuration. "' . gettype(
+                    $signatureMethod
+                ) . '" has been given.'
+            );
         }
         $this->_signatureMethod = $signatureMethod;
     }
@@ -220,8 +232,8 @@ abstract class BaseOAuth extends BaseClient
      * Creates an HTTP request for the API call.
      * The created request will be automatically processed adding access token parameters and signature
      * before sending. You may use [[createRequest()]] to gain full control over request composition and execution.
-     * @see createRequest()
      * @return RequestInterface HTTP request instance.
+     * @see createRequest()
      */
     public function createApiRequest(string $method, string $uri): RequestInterface
     {
@@ -233,7 +245,7 @@ abstract class BaseOAuth extends BaseClient
     public function beforeApiRequestSend(RequestInterface $request)
     {
         $accessToken = $this->getAccessToken();
-        if (!\is_object($accessToken) || !$accessToken->getIsValid()) {
+        if (!is_object($accessToken) || !$accessToken->getIsValid()) {
             throw new Exception('Invalid access token.');
         }
 
@@ -243,12 +255,12 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Performs request to the OAuth API returning response data.
      * You may use [[createApiRequest()]] method instead, gaining more control over request execution.
-     * @see createApiRequest()
      * @param string $apiSubUrl API sub URL, which will be append to [[apiBaseUrl]], or absolute API URL.
      * @param string $method request method.
      * @param array|string $data request data or content.
      * @param array $headers additional request headers.
      * @return array API response data.
+     * @see createApiRequest()
      */
     public function api($apiSubUrl, $method = 'GET', $data = [], $headers = [])
     {
@@ -256,7 +268,7 @@ abstract class BaseOAuth extends BaseClient
             ->addHeaders($headers);
 
         if (!empty($data)) {
-            if (\is_array($data)) {
+            if (is_array($data)) {
                 $request->setParams($data);
             } else {
                 $request->getBody()->write($data);
@@ -264,10 +276,13 @@ abstract class BaseOAuth extends BaseClient
         }
 
         $request = $this->beforeApiRequestSend($request);
-        $response =  $this->sendRequest($request);
+        $response = $this->sendRequest($request);
 
         if ($response->getStatusCode() !== 200) {
-            throw new InvalidResponseException($response, 'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody());
+            throw new InvalidResponseException(
+                $response,
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
+            );
         }
 
         // TODO: parse response body into array
@@ -286,7 +301,10 @@ abstract class BaseOAuth extends BaseClient
      * @param RequestInterface $request HTTP request instance.
      * @param OAuthToken $accessToken access token instance.
      */
-    abstract public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface;
+    abstract public function applyAccessTokenToRequest(
+        RequestInterface $request,
+        OAuthToken $accessToken
+    ): RequestInterface;
 
     /**
      * @return string

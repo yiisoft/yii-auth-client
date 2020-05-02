@@ -3,10 +3,11 @@
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
+use RuntimeException;
+use yii\helpers\Json;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use yii\helpers\Json;
 
 /**
  * VKontakte allows authentication via VKontakte OAuth.
@@ -64,12 +65,18 @@ class VKontakte extends OAuth2
 
     protected function initUserAttributes()
     {
-        $response = $this->api('users.get.json', 'GET', [
-            'fields' => implode(',', $this->attributeNames),
-        ]);
+        $response = $this->api(
+            'users.get.json',
+            'GET',
+            [
+                'fields' => implode(',', $this->attributeNames),
+            ]
+        );
 
         if (empty($response['response'])) {
-            throw new \RuntimeException('Unable to init user attributes due to unexpected response: ' . Json::encode($response));
+            throw new RuntimeException(
+                'Unable to init user attributes due to unexpected response: ' . Json::encode($response)
+            );
         }
 
         $attributes = array_shift($response['response']);
@@ -87,11 +94,14 @@ class VKontakte extends OAuth2
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        return RequestUtil::addParams($request, [
-            'v' => $this->apiVersion,
-            'uids' => $accessToken->getParam('user_id'),
-            'access_token' => $accessToken->getToken()
-        ]);
+        return RequestUtil::addParams(
+            $request,
+            [
+                'v' => $this->apiVersion,
+                'uids' => $accessToken->getParam('user_id'),
+                'access_token' => $accessToken->getToken()
+            ]
+        );
     }
 
     protected function defaultNormalizeUserAttributeMap()

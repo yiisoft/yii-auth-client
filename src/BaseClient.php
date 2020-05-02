@@ -9,6 +9,10 @@ use yii\exceptions\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function get_class;
+use function is_array;
+use function is_callable;
+
 /**
  * BaseClient is a base Auth Client class.
  *
@@ -169,14 +173,14 @@ abstract class BaseClient implements ClientInterface
                 if (array_key_exists($actualName, $attributes)) {
                     $attributes[$normalizedName] = $attributes[$actualName];
                 }
-            } elseif (\is_callable($actualName)) {
+            } elseif (is_callable($actualName)) {
                 $attributes[$normalizedName] = $actualName($attributes);
-            } elseif (\is_array($actualName)) {
+            } elseif (is_array($actualName)) {
                 $haystack = $attributes;
                 $searchKeys = $actualName;
                 $isFound = true;
                 while (($key = array_shift($searchKeys)) !== null) {
-                    if (\is_array($haystack) && array_key_exists($key, $haystack)) {
+                    if (is_array($haystack) && array_key_exists($key, $haystack)) {
                         $haystack = $haystack[$key];
                     } else {
                         $isFound = false;
@@ -187,7 +191,11 @@ abstract class BaseClient implements ClientInterface
                     $attributes[$normalizedName] = $haystack;
                 }
             } else {
-                throw new InvalidConfigException('Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class($this) . '::normalizeUserAttributeMap"');
+                throw new InvalidConfigException(
+                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class(
+                        $this
+                    ) . '::normalizeUserAttributeMap"'
+                );
             }
         }
 
@@ -237,7 +245,7 @@ abstract class BaseClient implements ClientInterface
      */
     protected function getStateKeyPrefix()
     {
-        return \get_class($this) . '_' . $this->getName() . '_';
+        return get_class($this) . '_' . $this->getName() . '_';
     }
 
     protected function sendRequest(RequestInterface $request): ResponseInterface

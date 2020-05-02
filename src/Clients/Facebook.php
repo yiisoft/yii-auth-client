@@ -62,9 +62,13 @@ class Facebook extends OAuth2
 
     protected function initUserAttributes()
     {
-        return $this->api('me', 'GET', [
-            'fields' => implode(',', $this->attributeNames),
-        ]);
+        return $this->api(
+            'me',
+            'GET',
+            [
+                'fields' => implode(',', $this->attributeNames),
+            ]
+        );
     }
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
@@ -138,10 +142,13 @@ class Facebook extends OAuth2
             $token = $this->getAccessToken();
         }
 
-        $params = array_merge([
-            'access_token' => $token->getToken(),
-            'redirect_uri' => $this->getReturnUrl(),
-        ], $params);
+        $params = array_merge(
+            [
+                'access_token' => $token->getToken(),
+                'redirect_uri' => $this->getReturnUrl(),
+            ],
+            $params
+        );
 
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl);
         $request = RequestUtil::addParams($request, $params);
@@ -167,11 +174,14 @@ class Facebook extends OAuth2
      */
     public function fetchClientAccessToken($authCode, array $params = [])
     {
-        $params = array_merge([
-            'code' => $authCode,
-            'redirect_uri' => $this->getReturnUrl(),
-            'client_id' => $this->clientId,
-        ], $params);
+        $params = array_merge(
+            [
+                'code' => $authCode,
+                'redirect_uri' => $this->getReturnUrl(),
+                'client_id' => $this->clientId,
+            ],
+            $params
+        );
 
         $request = $this->createRequest('POST', $this->tokenUrl);
         $request = RequestUtil::addParams($request, $params);

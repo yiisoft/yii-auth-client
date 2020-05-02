@@ -7,9 +7,9 @@ use yii\exceptions\Exception;
 use yii\exceptions\InvalidConfigException;
 use yii\exceptions\NotSupportedException;
 use yii\helpers\Url;
-use yii\web\Response;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * AuthAction performs authentication via different auth clients.
@@ -173,7 +173,7 @@ class AuthAction extends Action
     {
         $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
         if (!empty($clientId)) {
-            /* @var $collection \Yiisoft\Yii\AuthClient\Collection */
+            /* @var $collection Collection */
             $collection = $this->app->get($this->clientCollection);
             if (!$collection->hasClient($clientId)) {
                 throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
@@ -208,13 +208,15 @@ class AuthAction extends Action
     /**
      * This method is invoked in case of successful authentication via auth client.
      * @param ClientInterface $client auth client instance.
-     * @throws InvalidConfigException on invalid success callback.
      * @return Response response instance.
+     * @throws InvalidConfigException on invalid success callback.
      */
     protected function authSuccess($client)
     {
         if (!is_callable($this->successCallback)) {
-            throw new InvalidConfigException('"' . get_class($this) . '::$successCallback" should be a valid callback.');
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+            );
         }
 
         $response = call_user_func($this->successCallback, $client);
@@ -246,7 +248,7 @@ class AuthAction extends Action
      * Redirect to the given URL or simply close the popup window.
      * @param mixed $url URL to redirect, could be a string or array config to generate a valid URL.
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
-     * @return \yii\web\Response response instance.
+     * @return Response response instance.
      */
     public function redirect($url, $enforceRedirect = true)
     {
@@ -271,7 +273,7 @@ class AuthAction extends Action
     /**
      * Redirect to the URL. If URL is null, [[successUrl]] will be used.
      * @param string $url URL to redirect.
-     * @return \yii\web\Response response instance.
+     * @return Response response instance.
      */
     public function redirectSuccess($url = null)
     {
@@ -284,7 +286,7 @@ class AuthAction extends Action
     /**
      * Redirect to the [[cancelUrl]] or simply close the popup window.
      * @param string $url URL to redirect.
-     * @return \yii\web\Response response instance.
+     * @return Response response instance.
      */
     public function redirectCancel($url = null)
     {
@@ -316,7 +318,10 @@ class AuthAction extends Action
                 if ($client->validate()) {
                     return $this->authSuccess($client);
                 }
-                throw new HttpException(400, 'Unable to complete the authentication because the required data was not received.');
+                throw new HttpException(
+                    400,
+                    'Unable to complete the authentication because the required data was not received.'
+                );
             case 'cancel':
                 return $this->authCancel($client);
             default:

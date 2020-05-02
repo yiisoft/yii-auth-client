@@ -2,6 +2,8 @@
 
 namespace Yiisoft\Yii\AuthClient\Clients;
 
+use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
+
 /**
  * GoogleHybrid is an enhanced version of the [[Google]], which uses Google+ hybrid sign-in flow,
  * which relies on embedded JavaScript code to generate a sign-in button and handle user authentication dialog.
@@ -63,7 +65,7 @@ class GoogleHybrid extends Google
     {
         return [
             'widget' => [
-                '__class' => \Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton::class
+                '__class' => GooglePlusButton::class
             ],
         ];
     }
