@@ -3,12 +3,12 @@
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Yii\AuthClient\BaseOAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
-use yii\tests\TestCase;
 
 class BaseOAuthTest extends TestCase
 {
@@ -27,7 +27,16 @@ class BaseOAuthTest extends TestCase
 
         $oauthClient = $this->getMockBuilder(BaseOAuth::class)
             ->setConstructorArgs([$endpoint, $httpClient, $this->getRequestFactory()])
-            ->setMethods(['composeRequestCurlOptions', 'refreshAccessToken', 'applyAccessTokenToRequest', 'initUserAttributes', 'getName', 'getTitle'])
+            ->setMethods(
+                [
+                    'composeRequestCurlOptions',
+                    'refreshAccessToken',
+                    'applyAccessTokenToRequest',
+                    'initUserAttributes',
+                    'getName',
+                    'getTitle'
+                ]
+            )
             ->getMock();
         return $oauthClient;
     }
@@ -56,7 +65,11 @@ class BaseOAuthTest extends TestCase
 
         $oauthSignatureMethod = new PlainText();
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
-        $this->assertEquals($oauthSignatureMethod, $oauthClient->getSignatureMethod(), 'Unable to setup signature method!');
+        $this->assertEquals(
+            $oauthSignatureMethod,
+            $oauthClient->getSignatureMethod(),
+            'Unable to setup signature method!'
+        );
     }
 
     /**
@@ -94,14 +107,22 @@ class BaseOAuthTest extends TestCase
             'tokenSecret' => 'test_token_secret',
         ];
         $oauthClient->setAccessToken($oauthToken);
-        $this->assertEquals($oauthToken['token'], $oauthClient->getAccessToken()->getToken(), 'Unable to setup token as config!');
+        $this->assertEquals(
+            $oauthToken['token'],
+            $oauthClient->getAccessToken()->getToken(),
+            'Unable to setup token as config!'
+        );
 
         $oauthSignatureMethod = [
             '__class' => \Yiisoft\Yii\AuthClient\Signature\PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
-        $this->assertEquals($oauthSignatureMethod['__class'], get_class($returnedSignatureMethod), 'Unable to setup signature method as config!');
+        $this->assertEquals(
+            $oauthSignatureMethod['__class'],
+            get_class($returnedSignatureMethod),
+            'Unable to setup signature method as config!'
+        );
     }
 
     /**

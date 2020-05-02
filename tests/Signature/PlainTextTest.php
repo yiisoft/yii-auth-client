@@ -2,9 +2,10 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
 
-class PlainTextTest extends \yii\tests\TestCase
+class PlainTextTest extends TestCase
 {
     public function testGenerateSignature()
     {

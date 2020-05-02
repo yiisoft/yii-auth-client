@@ -2,7 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\web\AssetBundle;
+use Yiisoft\Assets\AssetBundle;
 use Yiisoft\Yii\JQuery\YiiAsset;
 
 /**
@@ -12,11 +12,11 @@ use Yiisoft\Yii\JQuery\YiiAsset;
  */
 class AuthChoiceAsset extends AssetBundle
 {
-    public $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
-    public $js = [
+    public ?string $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
+    public array $js = [
         'authchoice.js',
     ];
-    public $depends = [
+    public array $depends = [
         AuthChoiceStyleAsset::class,
         YiiAsset::class,
     ];

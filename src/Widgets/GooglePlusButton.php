@@ -12,7 +12,7 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * This widget is designed to interact with [[GoogleHybrid]].
  *
  * @see GoogleHybrid
- * @see https://developers.google.com/+/web/signin/
+ * @link https://developers.google.com/+/web/signin/
  *
  * @property string $callback Callback JavaScript function name. Note that the type of this property differs
  * in getter and setter. See [[getCallback()]] and [[setCallback()]] for details.

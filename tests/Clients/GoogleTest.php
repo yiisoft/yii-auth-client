@@ -2,6 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Clients;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Clients\Google;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
@@ -9,9 +10,9 @@ use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 /**
  * @group google
  */
-class GoogleTest extends \yii\tests\TestCase
+class GoogleTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $services = [
             'request' => [

@@ -2,15 +2,15 @@
 
 namespace Yiisoft\Yii\AuthClient\Widgets;
 
-use yii\web\AssetBundle;
+use Yiisoft\Assets\AssetBundle;
 
 /**
  * AuthChoiceAsset is an asset bundle for [[AuthChoice]] widget.
  */
 class AuthChoiceStyleAsset extends AssetBundle
 {
-    public $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
-    public $css = [
+    public ?string $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
+    public array $css = [
         'authchoice.css',
     ];
 }

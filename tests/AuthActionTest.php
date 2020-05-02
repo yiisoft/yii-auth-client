@@ -2,12 +2,12 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\AuthAction;
-use yii\web\Controller;
 
-class AuthActionTest extends \yii\tests\TestCase
+class AuthActionTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $services = [
             'user' => [

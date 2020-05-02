@@ -1,16 +1,20 @@
 <?php
-use yii\helpers\Json;
 
-/* @var $this \yii\base\View */
+/* @var $this WebView */
+
 /* @var $url string */
+
 /* @var $enforceRedirect bool */
+
+use Yiisoft\Json\Json;
+use Yiisoft\View\WebView;
+
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <script>
-        function popupWindowRedirect(url, enforceRedirect)
-        {
+        function popupWindowRedirect(url, enforceRedirect) {
             if (window.opener && !window.opener.closed) {
                 if (enforceRedirect === undefined || enforceRedirect) {
                     window.opener.location = url;
@@ -21,6 +25,7 @@ use yii\helpers\Json;
                 window.location = url;
             }
         }
+
         popupWindowRedirect(<?= Json::htmlEncode($url) ?>, <?= Json::htmlEncode($enforceRedirect) ?>);
     </script>
 </head>

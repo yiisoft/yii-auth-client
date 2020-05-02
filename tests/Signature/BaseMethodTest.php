@@ -2,7 +2,9 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
-class BaseMethodTest extends \yii\tests\TestCase
+use PHPUnit\Framework\TestCase;
+
+class BaseMethodTest extends TestCase
 {
     /**
      * Creates test signature method instance.

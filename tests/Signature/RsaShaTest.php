@@ -2,9 +2,10 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
-class RsaShaTest extends \yii\tests\TestCase
+class RsaShaTest extends TestCase
 {
     /**
      * Returns test public certificate string.
