@@ -3,6 +3,7 @@
 namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 /**

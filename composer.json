@@ -28,7 +28,7 @@
         "psr/http-factory-implementation": "1.0",
         "psr/simple-cache-implementation": "^1.0",
         "psr/log-implementation": "^1.0",
-        "yiisoft/assets": "^3.0@dev",
+        "yiisoft/assets": "^1.0@dev",
         "yiisoft/widget": "^3.0@dev",
         "yiisoft/yii-jquery": "^3.0@dev",
         "yiisoft/yii-web": "^3.0@dev"

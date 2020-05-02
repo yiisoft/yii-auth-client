@@ -2,16 +2,18 @@
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
+use Yiisoft\Yii\Web\Session\SessionInterface;
+
 /**
  * SessionStateStorage provides Auth client state storage based on web session.
  *
  * @see StateStorageInterface
- * @see Session
+ * @see SessionInterface
  */
 class SessionStateStorage implements StateStorageInterface
 {
     /**
-     * @var Session session object to be used.
+     * @var SessionInterface session object to be used.
      *
      * After the SessionStateStorage object is created, if you want to change this property,
      * you should only assign it with a session object.
@@ -19,9 +21,9 @@ class SessionStateStorage implements StateStorageInterface
      * If not set - application 'session' component will be used, but only, if it is available (e.g. in web application),
      * otherwise - no session will be used and no data saving will be performed.
      */
-    private $session;
+    private SessionInterface $session;
 
-    public function __construct(Session $session)
+    public function __construct(SessionInterface $session)
     {
         $this->session = $session;
     }

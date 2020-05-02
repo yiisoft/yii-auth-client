@@ -41,7 +41,7 @@ class RsaSha extends BaseMethod
      * @var string OpenSSL public key certificate content.
      * This value can be fetched from file specified by [[publicCertificateFile]].
      */
-    protected $_publicCertificate;
+    protected $publicCertificate;
 
 
     public function __construct($algorithm = null)
@@ -58,7 +58,7 @@ class RsaSha extends BaseMethod
      */
     public function setPublicCertificate($publicCertificate)
     {
-        $this->_publicCertificate = $publicCertificate;
+        $this->publicCertificate = $publicCertificate;
     }
 
     /**
@@ -66,11 +66,11 @@ class RsaSha extends BaseMethod
      */
     public function getPublicCertificate()
     {
-        if ($this->_publicCertificate === null) {
-            $this->_publicCertificate = $this->initPublicCertificate();
+        if ($this->publicCertificate === null) {
+            $this->publicCertificate = $this->initPublicCertificate();
         }
 
-        return $this->_publicCertificate;
+        return $this->publicCertificate;
     }
 
     /**
