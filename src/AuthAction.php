@@ -1,9 +1,4 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
 
 namespace Yiisoft\Yii\AuthClient;
 
@@ -257,7 +252,7 @@ class AuthAction extends Action
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = __DIR__ . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
             $viewFile = $this->app->getAlias($viewFile);
         }

@@ -7,7 +7,7 @@
 		convertWarningsToExceptions="true"
 		stopOnFailure="false">
 		<testsuites>
-			<testsuite name="Test Suite">
+			<testsuite name="Yii Auth client tests">
 				<directory>./tests</directory>
 			</testsuite>
 		</testsuites>

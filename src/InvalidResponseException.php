@@ -1,19 +1,13 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
 
 namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\ResponseInterface;
-use yii\exceptions\Exception;
 
 /**
  * InvalidResponseException represents an exception caused by invalid remote server response.
  */
-class InvalidResponseException extends Exception
+class InvalidResponseException extends \Exception
 {
     /**
      * @var ResponseInterface HTTP response instance.
