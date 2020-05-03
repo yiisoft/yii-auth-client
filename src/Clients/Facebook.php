@@ -37,32 +37,32 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class Facebook extends OAuth2
 {
-    public $authUrl = 'https://www.facebook.com/dialog/oauth';
-    public $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
-    public $endpoint = 'https://graph.facebook.com';
+    protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
+    protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
+    protected string $endpoint = 'https://graph.facebook.com';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    public $attributeNames = [
+    protected array $attributeNames = [
         'name',
         'email',
     ];
-    public $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
+    protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
      * @see exchangeToken()
      */
-    public $autoExchangeAccessToken = false;
+    private bool $autoExchangeAccessToken = false;
     /**
      * @var string URL endpoint for the client auth code generation.
-     * @see https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
      * @see fetchClientAccessToken()
      */
-    public $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
+    private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
 
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return $this->api(
             'me',
@@ -85,7 +85,7 @@ final class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
-    protected function defaultViewOptions()
+    protected function defaultViewOptions(): array
     {
         return [
             'popupWidth' => 860,
@@ -93,7 +93,7 @@ final class Facebook extends OAuth2
         ];
     }
 
-    public function fetchAccessToken($authCode, array $params = [])
+    public function fetchAccessToken($authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($authCode, $params);
         if ($this->autoExchangeAccessToken) {
@@ -106,11 +106,11 @@ final class Facebook extends OAuth2
      * Exchanges short-live (2 hours) access token to long-live (60 days) one.
      * Note that this method will success for already long-live token, but will not actually prolong it any further.
      * Pay attention, that this method will fail on already expired access token.
-     * @see https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @param OAuthToken $token short-live access token.
      * @return OAuthToken long-live access token.
      */
-    public function exchangeAccessToken(OAuthToken $token)
+    public function exchangeAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
             'grant_type' => 'fb_exchange_token',
@@ -138,7 +138,7 @@ final class Facebook extends OAuth2
      * @param array $params additional request params.
      * @return string client auth code.
      */
-    public function fetchClientAuthCode(OAuthToken $token = null, $params = [])
+    public function fetchClientAuthCode(OAuthToken $token = null, $params = []): string
     {
         if ($token === null) {
             $token = $this->getAccessToken();
@@ -174,7 +174,7 @@ final class Facebook extends OAuth2
      * @param array $params
      * @return OAuthToken long-live client-specific access token.
      */
-    public function fetchClientAccessToken($authCode, array $params = [])
+    public function fetchClientAccessToken($authCode, array $params = []): OAuthToken
     {
         $params = array_merge(
             [

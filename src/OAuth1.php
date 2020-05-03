@@ -37,33 +37,33 @@ abstract class OAuth1 extends BaseOAuth
     /**
      * @var string OAuth consumer key.
      */
-    public $consumerKey;
+    protected string $consumerKey;
     /**
      * @var string OAuth consumer secret.
      */
-    public $consumerSecret;
+    protected string $consumerSecret;
     /**
      * @var string OAuth request token URL.
      */
-    public $requestTokenUrl;
+    protected string $requestTokenUrl;
     /**
      * @var string request token HTTP method.
      */
-    public $requestTokenMethod = 'GET';
+    protected string $requestTokenMethod = 'GET';
     /**
      * @var string OAuth access token URL.
      */
-    public $accessTokenUrl;
+    protected string $accessTokenUrl;
     /**
      * @var string access token HTTP method.
      */
-    public $accessTokenMethod = 'GET';
+    protected string $accessTokenMethod = 'GET';
     /**
      * @var array|null list of the request methods, which require adding 'Authorization' header.
      * By default only POST requests will have 'Authorization' header.
      * You may set this option to `null` in order to make all requests to use 'Authorization' header.
      */
-    public $authorizationHeaderMethods = ['POST'];
+    protected array $authorizationHeaderMethods = ['POST'];
 
 
     /**
@@ -260,7 +260,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set [[accessToken]] will be used.
      * @return RequestInterface
      */
-    public function signRequest(RequestInterface $request, $token = null): RequestInterface
+    public function signRequest(RequestInterface $request, ?OAuthToken $token = null): RequestInterface
     {
         $params = RequestUtil::getParams($request);
 

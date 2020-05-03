@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -25,7 +26,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @var array authenticated user attributes.
      */
-    private $userAttributes;
+    protected array $userAttributes;
     /**
      * @var array map used to normalize user attributes fetched from external auth service
      * in format: normalizedAttributeName => sourceSpecification
@@ -46,22 +47,22 @@ abstract class BaseClient implements ClientInterface
      *  ],
      * ```
      */
-    private $normalizeUserAttributeMap;
+    protected array $normalizeUserAttributeMap;
     /**
      * @var array view options in format: optionName => optionValue
      */
-    private $viewOptions;
+    protected array $viewOptions;
 
-    private $httpClient;
+    protected PsrClientInterface $httpClient;
 
-    private $requestFactory;
+    protected RequestFactoryInterface $requestFactory;
 
     /**
      * @var StateStorageInterface state storage to be used.
      */
-    private $stateStorage;
+    protected $stateStorage;
 
-    public function __construct(\Psr\Http\Client\ClientInterface $httpClient, RequestFactoryInterface $requestFactory)
+    public function __construct(PsrClientInterface $httpClient, RequestFactoryInterface $requestFactory)
     {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
@@ -70,14 +71,16 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * @param array $userAttributes list of user attributes
+     * @throws InvalidConfigException
      */
-    public function setUserAttributes($userAttributes)
+    public function setUserAttributes(array $userAttributes)
     {
         $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
     }
 
     /**
      * @return array list of user attributes
+     * @throws InvalidConfigException
      */
     public function getUserAttributes(): array
     {
@@ -91,7 +94,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @param array $normalizeUserAttributeMap normalize user attribute map.
      */
-    public function setNormalizeUserAttributeMap($normalizeUserAttributeMap)
+    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap)
     {
         $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
     }
@@ -111,7 +114,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @param array $viewOptions view options in format: optionName => optionValue
      */
-    public function setViewOptions($viewOptions)
+    public function setViewOptions(array $viewOptions)
     {
         $this->viewOptions = $viewOptions;
     }
@@ -140,14 +143,14 @@ abstract class BaseClient implements ClientInterface
      * Initializes authenticated user attributes.
      * @return array auth user attributes.
      */
-    abstract protected function initUserAttributes();
+    abstract protected function initUserAttributes(): array;
 
     /**
      * Returns the default [[normalizeUserAttributeMap]] value.
      * Particular client may override this method in order to provide specific default map.
      * @return array normalize attribute map.
      */
-    protected function defaultNormalizeUserAttributeMap()
+    protected function defaultNormalizeUserAttributeMap(): array
     {
         return [];
     }
@@ -157,7 +160,7 @@ abstract class BaseClient implements ClientInterface
      * Particular client may override this method in order to provide specific default view options.
      * @return array list of default [[viewOptions]]
      */
-    protected function defaultViewOptions()
+    protected function defaultViewOptions(): array
     {
         return [];
     }
@@ -168,7 +171,7 @@ abstract class BaseClient implements ClientInterface
      * @return array normalized attributes.
      * @throws InvalidConfigException on incorrect normalize attribute map.
      */
-    protected function normalizeUserAttributes($attributes)
+    protected function normalizeUserAttributes(array $attributes): array
     {
         foreach ($this->getNormalizeUserAttributeMap() as $normalizedName => $actualName) {
             if (is_scalar($actualName)) {
@@ -215,7 +218,7 @@ abstract class BaseClient implements ClientInterface
      * @param mixed $value state value
      * @return $this the object itself
      */
-    protected function setState($key, $value)
+    protected function setState(string $key, $value)
     {
         $this->stateStorage->set($this->getStateKeyPrefix() . $key, $value);
         return $this;
@@ -226,7 +229,7 @@ abstract class BaseClient implements ClientInterface
      * @param string $key state key.
      * @return mixed state value.
      */
-    protected function getState($key)
+    protected function getState(string $key)
     {
         return $this->stateStorage->get($this->getStateKeyPrefix() . $key);
     }
@@ -236,7 +239,7 @@ abstract class BaseClient implements ClientInterface
      * @param string $key state key.
      * @return bool success.
      */
-    protected function removeState($key)
+    protected function removeState(string $key)
     {
         return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }

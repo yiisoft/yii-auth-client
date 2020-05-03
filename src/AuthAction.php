@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
+use Psr\Http\Message\ResponseInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -40,9 +41,6 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  *
  * @see Collection
  * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
- *
- * @property string $cancelUrl Cancel URL.
- * @property string $successUrl Successful URL.
  */
 class AuthAction extends Action
 {
@@ -98,11 +96,11 @@ class AuthAction extends Action
     /**
      * @var string the redirect url after successful authorization.
      */
-    private $_successUrl;
+    private $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
-    private $_cancelUrl;
+    private $cancelUrl;
 
 
     /**
@@ -110,7 +108,7 @@ class AuthAction extends Action
      */
     public function setSuccessUrl($url)
     {
-        $this->_successUrl = $url;
+        $this->successUrl = $url;
     }
 
     /**
@@ -118,11 +116,11 @@ class AuthAction extends Action
      */
     public function getSuccessUrl()
     {
-        if (empty($this->_successUrl)) {
-            $this->_successUrl = $this->defaultSuccessUrl();
+        if (empty($this->successUrl)) {
+            $this->successUrl = $this->defaultSuccessUrl();
         }
 
-        return $this->_successUrl;
+        return $this->successUrl;
     }
 
     /**
@@ -130,7 +128,7 @@ class AuthAction extends Action
      */
     public function setCancelUrl($url)
     {
-        $this->_cancelUrl = $url;
+        $this->cancelUrl = $url;
     }
 
     /**
@@ -138,11 +136,11 @@ class AuthAction extends Action
      */
     public function getCancelUrl()
     {
-        if (empty($this->_cancelUrl)) {
-            $this->_cancelUrl = $this->defaultCancelUrl();
+        if (empty($this->cancelUrl)) {
+            $this->cancelUrl = $this->defaultCancelUrl();
         }
 
-        return $this->_cancelUrl;
+        return $this->cancelUrl;
     }
 
     /**
@@ -357,10 +355,10 @@ class AuthAction extends Action
     /**
      * Performs OAuth2 auth flow.
      * @param OAuth2 $client auth client instance.
-     * @return Response action response.
+     * @return ResponseInterface action response.
      * @throws Exception on failure.
      */
-    protected function authOAuth2($client)
+    protected function authOAuth2(OAuth2 $client): ResponseInterface
     {
         $request = $this->app->getRequest();
 

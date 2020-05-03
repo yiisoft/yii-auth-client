@@ -154,7 +154,7 @@ class OpenIdConnect extends OAuth2
     /**
      * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
      */
-    public function getValidateAuthNonce()
+    public function getValidateAuthNonce(): bool
     {
         if ($this->validateAuthNonce === null) {
             $this->validateAuthNonce = $this->validateJws && in_array(
@@ -168,7 +168,7 @@ class OpenIdConnect extends OAuth2
     /**
      * @param bool $validateAuthNonce whether to use and validate auth 'nonce' parameter in authentication flow.
      */
-    public function setValidateAuthNonce($validateAuthNonce)
+    public function setValidateAuthNonce($validateAuthNonce): void
     {
         $this->validateAuthNonce = $validateAuthNonce;
     }
@@ -176,7 +176,7 @@ class OpenIdConnect extends OAuth2
     /**
      * @return array OpenID provider configuration parameters.
      */
-    public function getConfigParams()
+    public function getConfigParams(): array
     {
         if ($this->configParams === null) {
             $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
@@ -204,9 +204,9 @@ class OpenIdConnect extends OAuth2
     /**
      * Discovers OpenID Provider configuration parameters.
      * @return array OpenID Provider configuration parameters.
-     * @throws InvalidResponseException on failure.
+     * @throws InvalidConfigException
      */
-    private function discoverConfig()
+    private function discoverConfig(): array
     {
         if ($this->issuerUrl === null) {
             throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
@@ -218,7 +218,7 @@ class OpenIdConnect extends OAuth2
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    public function buildAuthUrl(array $params = [])
+    public function buildAuthUrl(array $params = []): string
     {
         if ($this->authUrl === null) {
             $this->authUrl = $this->getConfigParam('authorization_endpoint');
@@ -226,7 +226,7 @@ class OpenIdConnect extends OAuth2
         return parent::buildAuthUrl($params);
     }
 
-    public function fetchAccessToken($authCode, array $params = [])
+    public function fetchAccessToken($authCode, array $params = []): OAuthToken
     {
         if ($this->tokenUrl === null) {
             $this->tokenUrl = $this->getConfigParam('token_endpoint');

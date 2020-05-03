@@ -32,19 +32,19 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * ]
  * ```
  *
- * @see https://developer.linkedin.com/docs/oauth2
- * @see https://www.linkedin.com/secure/developer
- * @see https://developer.linkedin.com/docs/rest-api
+ * @link https://developer.linkedin.com/docs/oauth2
+ * @link https://www.linkedin.com/secure/developer
+ * @link https://developer.linkedin.com/docs/rest-api
  */
 final class LinkedIn extends OAuth2
 {
-    public $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
-    public $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
-    public $endpoint = 'https://api.linkedin.com/v1';
+    protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
+    protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
+    protected string $endpoint = 'https://api.linkedin.com/v1';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    public $attributeNames = [
+    private $attributeNames = [
         'id',
         'email-address',
         'first-name',
@@ -57,7 +57,7 @@ final class LinkedIn extends OAuth2
         return 'r_basicprofile r_emailaddress';
     }
 
-    protected function defaultNormalizeUserAttributeMap()
+    protected function defaultNormalizeUserAttributeMap(): array
     {
         return [
             'email' => 'email-address',
@@ -66,7 +66,7 @@ final class LinkedIn extends OAuth2
         ];
     }
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return $this->api('people/~:(' . implode(',', $this->attributeNames) . ')', 'GET');
     }

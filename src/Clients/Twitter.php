@@ -41,12 +41,12 @@ use Yiisoft\Yii\AuthClient\OAuth1;
  */
 final class Twitter extends OAuth1
 {
-    public $authUrl = 'https://api.twitter.com/oauth/authenticate';
-    public $requestTokenUrl = 'https://api.twitter.com/oauth/request_token';
-    public $requestTokenMethod = 'POST';
-    public $accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
-    public $accessTokenMethod = 'POST';
-    public $endpoint = 'https://api.twitter.com/1.1';
+    protected string $authUrl = 'https://api.twitter.com/oauth/authenticate';
+    protected string $requestTokenUrl = 'https://api.twitter.com/oauth/request_token';
+    protected string $requestTokenMethod = 'POST';
+    protected string $accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
+    protected string $accessTokenMethod = 'POST';
+    protected string $endpoint = 'https://api.twitter.com/1.1';
     /**
      * @var array list of extra parameters, which should be used, while requesting user attributes from Twitter API.
      * For example:
@@ -57,12 +57,12 @@ final class Twitter extends OAuth1
      * ]
      * ```
      *
-     * @see https://dev.twitter.com/rest/reference/get/account/verify_credentials
+     * @link https://dev.twitter.com/rest/reference/get/account/verify_credentials
      */
-    public $attributeParams = [];
+    public array $attributeParams = [];
 
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return $this->api('account/verify_credentials.json', 'GET', $this->attributeParams);
     }

@@ -33,15 +33,15 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * @var string OAuth client ID.
      */
-    public $clientId;
+    protected string $clientId;
     /**
      * @var string OAuth client secret.
      */
-    public $clientSecret;
+    protected string $clientSecret;
     /**
      * @var string token request URL endpoint.
      */
-    public $tokenUrl;
+    protected string $tokenUrl;
     /**
      * @var bool whether to use and validate auth 'state' parameter in authentication flow.
      * If enabled - the opaque value will be generated and applied to auth URL to maintain
@@ -49,7 +49,7 @@ abstract class OAuth2 extends BaseOAuth
      * when redirecting the user-agent back to the client.
      * The option is used for preventing cross-site request forgery.
      */
-    public $validateAuthState = true;
+    protected bool $validateAuthState = true;
 
 
     /**
@@ -57,7 +57,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $params additional auth GET params.
      * @return string authorization URL.
      */
-    public function buildAuthUrl(array $params = [])
+    public function buildAuthUrl(array $params = []): string
     {
         $defaultParams = [
             'client_id' => $this->clientId,
@@ -85,7 +85,7 @@ abstract class OAuth2 extends BaseOAuth
      * @return OAuthToken access token.
      * @throws HttpException on invalid auth state in case [[enableStateValidation]] is enabled.
      */
-    public function fetchAccessToken($authCode, array $params = [])
+    public function fetchAccessToken($authCode, array $params = []): OAuthToken
     {
         if ($this->validateAuthState) {
             $authState = $this->getState('authState');

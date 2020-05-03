@@ -36,9 +36,9 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 class Google extends OAuth2
 {
-    public $authUrl = 'https://accounts.google.com/o/oauth2/auth';
-    public $tokenUrl = 'https://accounts.google.com/o/oauth2/token';
-    public $endpoint = 'https://www.googleapis.com/plus/v1';
+    protected string $authUrl = 'https://accounts.google.com/o/oauth2/auth';
+    protected string $tokenUrl = 'https://accounts.google.com/o/oauth2/token';
+    protected string $endpoint = 'https://www.googleapis.com/plus/v1';
 
     protected function getDefaultScope(): string
     {

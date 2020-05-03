@@ -14,36 +14,33 @@ use function is_int;
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
  *
  * > **Note:** This class requires PHP "OpenSSL" extension({@link http://php.net/manual/en/book.openssl.php}).
- *
- * @property string $privateCertificate Private key certificate content.
- * @property string $publicCertificate Public key certificate content.
  */
 final class RsaSha extends BaseMethod
 {
     /**
      * @var string path to the file, which holds private key certificate.
      */
-    public $privateCertificateFile;
+    private string $privateCertificateFile;
     /**
      * @var string path to the file, which holds public key certificate.
      */
-    public $publicCertificateFile;
+    private string $publicCertificateFile;
     /**
      * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
      * @link http://php.net/manual/en/openssl.signature-algos.php
      */
-    public $algorithm;
+    private $algorithm;
 
     /**
      * @var string OpenSSL private key certificate content.
      * This value can be fetched from file specified by [[privateCertificateFile]].
      */
-    protected $privateCertificate;
+    private string $privateCertificate;
     /**
      * @var string OpenSSL public key certificate content.
      * This value can be fetched from file specified by [[publicCertificateFile]].
      */
-    protected $publicCertificate;
+    private string $publicCertificate;
 
 
     public function __construct($algorithm = null)
@@ -58,7 +55,7 @@ final class RsaSha extends BaseMethod
     /**
      * @param string $publicCertificate public key certificate content.
      */
-    public function setPublicCertificate($publicCertificate)
+    public function setPublicCertificate($publicCertificate): void
     {
         $this->publicCertificate = $publicCertificate;
     }
@@ -66,7 +63,7 @@ final class RsaSha extends BaseMethod
     /**
      * @return string public key certificate content.
      */
-    public function getPublicCertificate()
+    public function getPublicCertificate(): string
     {
         if ($this->publicCertificate === null) {
             $this->publicCertificate = $this->initPublicCertificate();
@@ -78,7 +75,7 @@ final class RsaSha extends BaseMethod
     /**
      * @param string $privateCertificate private key certificate content.
      */
-    public function setPrivateCertificate($privateCertificate)
+    public function setPrivateCertificate($privateCertificate): void
     {
         $this->privateCertificate = $privateCertificate;
     }
@@ -126,7 +123,7 @@ final class RsaSha extends BaseMethod
      * @return string public certificate content.
      * @throws InvalidConfigException on failure.
      */
-    protected function initPublicCertificate()
+    protected function initPublicCertificate(): string
     {
         if (!empty($this->publicCertificateFile)) {
             if (!file_exists($this->publicCertificateFile)) {
@@ -145,7 +142,7 @@ final class RsaSha extends BaseMethod
      * @return string private certificate content.
      * @throws InvalidConfigException on failure.
      */
-    protected function initPrivateCertificate()
+    protected function initPrivateCertificate(): string
     {
         if (!empty($this->privateCertificateFile)) {
             if (!file_exists($this->privateCertificateFile)) {

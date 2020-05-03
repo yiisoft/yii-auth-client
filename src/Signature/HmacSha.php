@@ -17,9 +17,9 @@ final class HmacSha extends BaseMethod
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
-     * @see http://php.net/manual/ru/function.hash-algos.php
+     * @link http://php.net/manual/ru/function.hash-algos.php
      */
-    private $algorithm;
+    private string $algorithm;
 
     public function __construct(string $algorithm)
     {

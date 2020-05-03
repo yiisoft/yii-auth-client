@@ -23,12 +23,12 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  */
 final class TwitterOAuth2 extends OAuth2
 {
-    public $authUrl = 'https://api.twitter.com/oauth2/authenticate';
-    public $tokenUrl = 'https://api.twitter.com/oauth2/token';
-    public $endpoint = 'https://api.twitter.com/1.1';
+    protected string $authUrl = 'https://api.twitter.com/oauth2/authenticate';
+    protected string $tokenUrl = 'https://api.twitter.com/oauth2/token';
+    protected string $endpoint = 'https://api.twitter.com/1.1';
 
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return $this->api('account/verify_credentials.json', 'GET');
     }

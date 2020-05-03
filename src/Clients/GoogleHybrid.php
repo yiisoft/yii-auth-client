@@ -51,11 +51,11 @@ use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
  *
  * @see Google
  * @see \Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton
- * @see https://developers.google.com/+/web/signin
+ * @link https://developers.google.com/+/web/signin
  */
 final class GoogleHybrid extends Google
 {
-    public $validateAuthState = false;
+    protected bool $validateAuthState = false;
 
 
     protected function defaultReturnUrl()
@@ -63,7 +63,7 @@ final class GoogleHybrid extends Google
         return 'postmessage';
     }
 
-    protected function defaultViewOptions()
+    protected function defaultViewOptions(): array
     {
         return [
             'widget' => [

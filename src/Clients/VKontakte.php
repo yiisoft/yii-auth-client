@@ -34,18 +34,18 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * ]
  * ```
  *
- * @see http://vk.com/editapp?act=create
- * @see http://vk.com/developers.php?oid=-1&p=users.get
+ * @link http://vk.com/editapp?act=create
+ * @link http://vk.com/developers.php?oid=-1&p=users.get
  */
 final class VKontakte extends OAuth2
 {
-    public $authUrl = 'https://oauth.vk.com/authorize';
-    public $tokenUrl = 'https://oauth.vk.com/access_token';
-    public $endpoint = 'https://api.vk.com/method';
+    protected string $authUrl = 'https://oauth.vk.com/authorize';
+    protected string $tokenUrl = 'https://oauth.vk.com/access_token';
+    protected string $endpoint = 'https://api.vk.com/method';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    public $attributeNames = [
+    public array $attributeNames = [
         'uid',
         'first_name',
         'last_name',
@@ -65,7 +65,7 @@ final class VKontakte extends OAuth2
     public $apiVersion = '3.0';
 
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         $response = $this->api(
             'users.get.json',
@@ -106,7 +106,7 @@ final class VKontakte extends OAuth2
         );
     }
 
-    protected function defaultNormalizeUserAttributeMap()
+    protected function defaultNormalizeUserAttributeMap(): array
     {
         return [
             'id' => 'uid'

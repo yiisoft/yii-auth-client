@@ -36,9 +36,9 @@ use function in_array;
  */
 final class GitHub extends OAuth2
 {
-    public $authUrl = 'https://github.com/login/oauth/authorize';
-    public $tokenUrl = 'https://github.com/login/oauth/access_token';
-    public $endpoint = 'https://api.github.com';
+    protected string $authUrl = 'https://github.com/login/oauth/authorize';
+    protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
+    protected string $endpoint = 'https://api.github.com';
 
     protected function getDefaultScope(): string
     {

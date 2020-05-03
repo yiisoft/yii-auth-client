@@ -8,6 +8,7 @@ use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 use function is_array;
 use function is_object;
@@ -16,12 +17,6 @@ use function is_object;
  * BaseOAuth is a base class for the OAuth clients.
  *
  * @see http://oauth.net/
- *
- * @property OAuthToken $accessToken Auth token instance. Note that the type of this property differs in
- * getter and setter. See [[getAccessToken()]] and [[setAccessToken()]] for details.
- * @property string $returnUrl Return URL.
- * @property signature\BaseMethod $signatureMethod Signature method instance. Note that the type of this
- * property differs in getter and setter. See [[getSignatureMethod()]] and [[setSignatureMethod()]] for details.
  */
 abstract class BaseOAuth extends BaseClient
 {
@@ -30,7 +25,7 @@ abstract class BaseOAuth extends BaseClient
      * This field will be used as [[\yii\httpclient\Client::baseUrl]] value of [[httpClient]].
      * Note: changing this property will take no effect after [[httpClient]] is instantiated.
      */
-    private string $endpoint;
+    protected string $endpoint;
     /**
      * @var string authorize URL.
      */
@@ -38,29 +33,32 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @var string string auth request scope.
      */
-    private $scope;
+    protected string $scope;
     /**
      * @var bool whether to automatically perform 'refresh access token' request on expired access token.
      */
-    private bool $autoRefreshAccessToken = true;
+    protected bool $autoRefreshAccessToken = true;
 
     /**
      * @var string URL, which user will be redirected after authentication at the OAuth provider web site.
      * Note: this should be absolute URL (with http:// or https:// leading).
      * By default current URL will be used.
      */
-    private $returnUrl;
+    protected string $returnUrl;
     /**
      * @var OAuthToken|array access token instance or its array configuration.
      */
-    private $accessToken;
+    protected array $accessToken;
     /**
-     * @var signature\BaseMethod|array signature method instance or its array configuration.
+     * @var array|BaseMethod signature method instance or its array configuration.
      */
-    private $signatureMethod = [];
+    protected array $signatureMethod = [];
 
     /**
      * BaseOAuth constructor.
+     * @param string|null $endpoint
+     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
      */
     public function __construct(
         ?string $endpoint,
@@ -71,10 +69,30 @@ abstract class BaseOAuth extends BaseClient
         parent::__construct($httpClient, $requestFactory);
     }
 
+    public function getEndpoint(): string
+    {
+        return $this->endpoint;
+    }
+
+    public function setEndpoint(string $endpoint): void
+    {
+        $this->endpoint = $endpoint;
+    }
+
+    public function getAuthUrl(): string
+    {
+        return $this->authUrl;
+    }
+
+    public function setAuthUrl(string $authUrl): void
+    {
+        $this->authUrl = $authUrl;
+    }
+
     /**
      * @param string $returnUrl return URL
      */
-    public function setReturnUrl($returnUrl)
+    public function setReturnUrl($returnUrl): void
     {
         $this->returnUrl = $returnUrl;
     }
@@ -82,7 +100,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @return string return URL.
      */
-    public function getReturnUrl()
+    public function getReturnUrl(): string
     {
         if ($this->returnUrl === null) {
             $this->returnUrl = $this->defaultReturnUrl();
@@ -94,7 +112,7 @@ abstract class BaseOAuth extends BaseClient
      * Sets access token to be used.
      * @param array|OAuthToken $token access token or its configuration.
      */
-    public function setAccessToken($token)
+    public function setAccessToken($token): void
     {
         if (!is_object($token) && $token !== null) {
             $token = $this->createToken($token);
@@ -117,33 +135,43 @@ abstract class BaseOAuth extends BaseClient
 
     /**
      * Set signature method to be used.
-     * @param array|signature\BaseMethod $signatureMethod signature method instance or its array configuration.
+     * @param array|BaseMethod $signatureMethod signature method instance or its array configuration.
      * @throws InvalidArgumentException on wrong argument.
      */
     public function setSignatureMethod($signatureMethod)
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
-                '"' . get_class(
-                    $this
-                ) . '::signatureMethod" should be instance of "\yii\autclient\signature\BaseMethod" or its array configuration. "' . gettype(
-                    $signatureMethod
-                ) . '" has been given.'
+                '"' . get_class($this) . '::signatureMethod"'
+                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\BaseMethod" or its array configuration. "'
+                . gettype($signatureMethod) . '" has been given.'
             );
         }
         $this->signatureMethod = $signatureMethod;
     }
 
     /**
-     * @return signature\BaseMethod signature method instance.
+     * @return BaseMethod signature method instance.
      */
-    public function getSignatureMethod()
+    public function getSignatureMethod(): BaseMethod
     {
         if (!is_object($this->signatureMethod)) {
             $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
         }
 
         return $this->signatureMethod;
+    }
+
+    public function withAutoRefreshAccessToken(): self
+    {
+        $this->autoRefreshAccessToken = true;
+        return $this;
+    }
+
+    public function withoutAutoRefreshAccessToken(): self
+    {
+        $this->autoRefreshAccessToken = false;
+        return $this;
     }
 
     /**
@@ -215,7 +243,7 @@ abstract class BaseOAuth extends BaseClient
      * Restores access token.
      * @return OAuthToken auth token.
      */
-    protected function restoreAccessToken()
+    protected function restoreAccessToken(): OAuthToken
     {
         $token = $this->getState('token');
         if (is_object($token)) {

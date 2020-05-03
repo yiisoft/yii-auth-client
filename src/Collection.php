@@ -31,13 +31,11 @@ use InvalidArgumentException;
  *     ...
  * ]
  * ```
- *
- * @property ClientInterface[] $clients List of auth clients indexed by their names. This property is read-only.
  */
 class Collection
 {
     /**
-     * @var array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var ClientInterface|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients = [];
 
