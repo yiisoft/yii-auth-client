@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
@@ -19,7 +21,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * @see Twitter
  * @see https://dev.twitter.com/
  */
-class TwitterOAuth2 extends OAuth2
+final class TwitterOAuth2 extends OAuth2
 {
     public $authUrl = 'https://api.twitter.com/oauth2/authenticate';
     public $tokenUrl = 'https://api.twitter.com/oauth2/token';

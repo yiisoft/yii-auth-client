@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
@@ -35,7 +37,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see http://vk.com/editapp?act=create
  * @see http://vk.com/developers.php?oid=-1&p=users.get
  */
-class VKontakte extends OAuth2
+final class VKontakte extends OAuth2
 {
     public $authUrl = 'https://oauth.vk.com/authorize';
     public $tokenUrl = 'https://oauth.vk.com/access_token';

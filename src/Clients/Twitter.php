@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Yiisoft\Yii\AuthClient\OAuth1;
@@ -37,7 +39,7 @@ use Yiisoft\Yii\AuthClient\OAuth1;
  * @see https://apps.twitter.com/
  * @see https://dev.twitter.com/
  */
-class Twitter extends OAuth1
+final class Twitter extends OAuth1
 {
     public $authUrl = 'https://api.twitter.com/oauth/authenticate';
     public $requestTokenUrl = 'https://api.twitter.com/oauth/request_token';

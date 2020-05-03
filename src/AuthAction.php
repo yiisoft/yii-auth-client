@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
+use Exception;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -355,7 +358,7 @@ class AuthAction extends Action
      * Performs OAuth2 auth flow.
      * @param OAuth2 $client auth client instance.
      * @return Response action response.
-     * @throws \Exception on failure.
+     * @throws Exception on failure.
      */
     protected function authOAuth2($client)
     {

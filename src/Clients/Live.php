@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -30,7 +32,7 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  * @see https://account.live.com/developers/applications
  * @see http://msdn.microsoft.com/en-us/library/live/hh243647.aspx
  */
-class Live extends OAuth2
+final class Live extends OAuth2
 {
     public $authUrl = 'https://login.live.com/oauth20_authorize.srf';
     public $tokenUrl = 'https://login.live.com/oauth20_token.srf';

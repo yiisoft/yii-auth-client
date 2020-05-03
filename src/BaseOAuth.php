@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
+use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -22,41 +25,39 @@ use function is_object;
  */
 abstract class BaseOAuth extends BaseClient
 {
-
     /**
      * @var string API base URL.
      * This field will be used as [[\yii\httpclient\Client::baseUrl]] value of [[httpClient]].
      * Note: changing this property will take no effect after [[httpClient]] is instantiated.
      */
-    private $endpoint;
+    private string $endpoint;
     /**
      * @var string authorize URL.
      */
-    public $authUrl;
+    protected string $authUrl;
     /**
-     * @var string auth request scope.
+     * @var string string auth request scope.
      */
     private $scope;
     /**
      * @var bool whether to automatically perform 'refresh access token' request on expired access token.
-     * @since 2.0.6
      */
-    public $autoRefreshAccessToken = true;
+    private bool $autoRefreshAccessToken = true;
 
     /**
      * @var string URL, which user will be redirected after authentication at the OAuth provider web site.
      * Note: this should be absolute URL (with http:// or https:// leading).
      * By default current URL will be used.
      */
-    private $_returnUrl;
+    private $returnUrl;
     /**
      * @var OAuthToken|array access token instance or its array configuration.
      */
-    private $_accessToken;
+    private $accessToken;
     /**
      * @var signature\BaseMethod|array signature method instance or its array configuration.
      */
-    private $_signatureMethod = [];
+    private $signatureMethod = [];
 
     /**
      * BaseOAuth constructor.
@@ -75,7 +76,7 @@ abstract class BaseOAuth extends BaseClient
      */
     public function setReturnUrl($returnUrl)
     {
-        $this->_returnUrl = $returnUrl;
+        $this->returnUrl = $returnUrl;
     }
 
     /**
@@ -83,10 +84,10 @@ abstract class BaseOAuth extends BaseClient
      */
     public function getReturnUrl()
     {
-        if ($this->_returnUrl === null) {
-            $this->_returnUrl = $this->defaultReturnUrl();
+        if ($this->returnUrl === null) {
+            $this->returnUrl = $this->defaultReturnUrl();
         }
-        return $this->_returnUrl;
+        return $this->returnUrl;
     }
 
     /**
@@ -98,7 +99,7 @@ abstract class BaseOAuth extends BaseClient
         if (!is_object($token) && $token !== null) {
             $token = $this->createToken($token);
         }
-        $this->_accessToken = $token;
+        $this->accessToken = $token;
         $this->saveAccessToken($token);
     }
 
@@ -107,11 +108,11 @@ abstract class BaseOAuth extends BaseClient
      */
     public function getAccessToken()
     {
-        if (!is_object($this->_accessToken)) {
-            $this->_accessToken = $this->restoreAccessToken();
+        if (!is_object($this->accessToken)) {
+            $this->accessToken = $this->restoreAccessToken();
         }
 
-        return $this->_accessToken;
+        return $this->accessToken;
     }
 
     /**
@@ -130,7 +131,7 @@ abstract class BaseOAuth extends BaseClient
                 ) . '" has been given.'
             );
         }
-        $this->_signatureMethod = $signatureMethod;
+        $this->signatureMethod = $signatureMethod;
     }
 
     /**
@@ -138,11 +139,11 @@ abstract class BaseOAuth extends BaseClient
      */
     public function getSignatureMethod()
     {
-        if (!is_object($this->_signatureMethod)) {
-            $this->_signatureMethod = $this->createSignatureMethod($this->_signatureMethod);
+        if (!is_object($this->signatureMethod)) {
+            $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
         }
 
-        return $this->_signatureMethod;
+        return $this->signatureMethod;
     }
 
     /**
@@ -244,7 +245,7 @@ abstract class BaseOAuth extends BaseClient
     {
         $accessToken = $this->getAccessToken();
         if (!is_object($accessToken) || !$accessToken->getIsValid()) {
-            throw new \Exception('Invalid access token.');
+            throw new Exception('Invalid access token.');
         }
 
         return $this->applyAccessTokenToRequest($request, $accessToken);

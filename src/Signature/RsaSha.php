@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Signature;
 
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
@@ -16,7 +18,7 @@ use function is_int;
  * @property string $privateCertificate Private key certificate content.
  * @property string $publicCertificate Public key certificate content.
  */
-class RsaSha extends BaseMethod
+final class RsaSha extends BaseMethod
 {
     /**
      * @var string path to the file, which holds private key certificate.
@@ -36,7 +38,7 @@ class RsaSha extends BaseMethod
      * @var string OpenSSL private key certificate content.
      * This value can be fetched from file specified by [[privateCertificateFile]].
      */
-    protected $_privateCertificate;
+    protected $privateCertificate;
     /**
      * @var string OpenSSL public key certificate content.
      * This value can be fetched from file specified by [[publicCertificateFile]].
@@ -78,7 +80,7 @@ class RsaSha extends BaseMethod
      */
     public function setPrivateCertificate($privateCertificate)
     {
-        $this->_privateCertificate = $privateCertificate;
+        $this->privateCertificate = $privateCertificate;
     }
 
     /**
@@ -86,11 +88,11 @@ class RsaSha extends BaseMethod
      */
     public function getPrivateCertificate(): string
     {
-        if ($this->_privateCertificate === null) {
-            $this->_privateCertificate = $this->initPrivateCertificate();
+        if ($this->privateCertificate === null) {
+            $this->privateCertificate = $this->initPrivateCertificate();
         }
 
-        return $this->_privateCertificate;
+        return $this->privateCertificate;
     }
 
     public function getName(): string

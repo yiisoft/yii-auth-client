@@ -1,7 +1,8 @@
 <?php
 
-namespace Yiisoft\Yii\AuthClient;
+declare(strict_types=1);
 
+namespace Yiisoft\Yii\AuthClient;
 
 /**
  * Token represents OAuth token.

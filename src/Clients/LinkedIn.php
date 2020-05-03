@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
@@ -34,7 +36,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see https://www.linkedin.com/secure/developer
  * @see https://developer.linkedin.com/docs/rest-api
  */
-class LinkedIn extends OAuth2
+final class LinkedIn extends OAuth2
 {
     public $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     public $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';

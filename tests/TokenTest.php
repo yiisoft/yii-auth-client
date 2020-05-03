@@ -61,7 +61,7 @@ class TokenTest extends TestCase
     }
 
     /**
-     * Data provider for {@link testAutoFetchExpireDuration}.
+     * Data provider for {@see testAutoFetchExpireDuration}.
      * @return array test data.
      */
     public function autoFetchExpireDurationDataProvider()

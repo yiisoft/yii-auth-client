@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
@@ -33,7 +35,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @link https://developers.facebook.com/apps
  * @link http://developers.facebook.com/docs/reference/api
  */
-class Facebook extends OAuth2
+final class Facebook extends OAuth2
 {
     public $authUrl = 'https://www.facebook.com/dialog/oauth';
     public $tokenUrl = 'https://graph.facebook.com/oauth/access_token';

@@ -1,10 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
-use Exception;
-use Jose\Factory\JWKFactory;
-use Jose\Loader;
+use Jose\Component\Checker\AlgorithmChecker;
+use Jose\Component\Checker\HeaderCheckerManager;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWKSet;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\JWSLoader;
+use Jose\Component\Signature\JWSTokenSupport;
+use Jose\Component\Signature\JWSVerifier;
+use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -115,6 +124,14 @@ class OpenIdConnect extends OAuth2
 
     private $name;
     private $title;
+    /**
+     * @var JWSLoader JSON Web Signature
+     */
+    private $jwsLoader;
+    /**
+     * @var JWKSet Key Set
+     */
+    private $jwkSet;
 
     /**
      * OpenIdConnect constructor.
@@ -321,6 +338,60 @@ class OpenIdConnect extends OAuth2
     }
 
     /**
+     * Return JwkSet, returning related data.
+     * @return JWKSet object represents a key set.
+     */
+    protected function getJwkSet()
+    {
+        if ($this->jwkSet === null) {
+            $cache = $this->getCache();
+            $cacheKey = $this->configParamsCacheKeyPrefix . 'jwkSet';
+            if ($cache === null || ($jwkSet = $cache->get($cacheKey)) === false) {
+                $request = $this->createRequest()
+                    ->setMethod('GET')
+                    ->setUrl($this->getConfigParam('jwks_uri'));
+                $response = $this->sendRequest($request);
+                $jwkSet = JWKFactory::createFromValues($response);
+            }
+
+            $this->jwkSet = $jwkSet;
+
+            if ($cache !== null) {
+                $cache->set($cacheKey, $jwkSet);
+            }
+        }
+        return $this->jwkSet;
+    }
+
+    /**
+     * Return JWSLoader that validate the JWS token.
+     * @return JWSLoader to do token validation.
+     * @throws InvalidConfigException on invalid algorithm provide in configuration.
+     */
+    protected function getJwsLoader()
+    {
+        if ($this->jwsLoader === null) {
+            $algorithms = [];
+            foreach ($this->allowedJwsAlgorithms as $algorithm) {
+                $class = '\Jose\Component\Signature\Algorithm\\' . $algorithm;
+                if (!class_exists($class)) {
+                    throw new InvalidConfigException("Alogrithm class $class doesn't exist");
+                }
+                $algorithms[] = new $class();
+            }
+            $this->jwsLoader = new JWSLoader(
+                new JWSSerializerManager([new CompactSerializer()]),
+                new JWSVerifier(new AlgorithmManager($algorithms)),
+                new HeaderCheckerManager(
+                    [new AlgorithmChecker($this->allowedJwsAlgorithms)],
+                    [new JWSTokenSupport()]
+                )
+            );
+        }
+        return $this->jwsLoader;
+    }
+
+    /**
      * Decrypts/validates JWS, returning related data.
      * @param string $jws raw JWS input.
      * @return array JWS underlying data.
@@ -329,10 +400,11 @@ class OpenIdConnect extends OAuth2
     protected function loadJws($jws)
     {
         try {
-            $jwkSet = JWKFactory::createFromJKU($this->getConfigParam('jwks_uri'));
-            $loader = new Loader();
-            return $loader->loadAndVerifySignatureUsingKeySet($jws, $jwkSet, $this->allowedJwsAlgorithms)->getPayload();
-        } catch (Exception $e) {
+            $jwsLoader = $this->getJwsLoader();
+            $signature = null;
+            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
+            return Json::decode($jwsVerified->getPayload());
+        } catch (\Exception $e) {
             $message = YII_DEBUG ? 'Unable to verify JWS: ' . $e->getMessage() : 'Invalid JWS';
             throw new HttpException(400, $message, $e->getCode(), $e);
         }
@@ -343,7 +415,7 @@ class OpenIdConnect extends OAuth2
      * @param array $claims claims data.
      * @throws HttpException on invalid claims.
      */
-    private function validateClaims(array $claims)
+    protected function validateClaims(array $claims)
     {
         if (!isset($claims['iss']) || (strcmp(rtrim($claims['iss'], '/'), rtrim($this->issuerUrl, '/')) !== 0)) {
             throw new HttpException(400, 'Invalid "iss"');

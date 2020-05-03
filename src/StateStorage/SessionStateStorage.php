@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
 use Yiisoft\Yii\Web\Session\SessionInterface;

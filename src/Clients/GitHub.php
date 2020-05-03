@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -32,7 +34,7 @@ use function in_array;
  * @see http://developer.github.com/v3/oauth/
  * @see https://github.com/settings/applications/new
  */
-class GitHub extends OAuth2
+final class GitHub extends OAuth2
 {
     public $authUrl = 'https://github.com/login/oauth/authorize';
     public $tokenUrl = 'https://github.com/login/oauth/access_token';

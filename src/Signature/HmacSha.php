@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Signature;
 
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
@@ -11,7 +13,7 @@ use function function_exists;
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
  */
-class HmacSha extends BaseMethod
+final class HmacSha extends BaseMethod
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.

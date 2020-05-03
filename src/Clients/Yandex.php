@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Psr\Http\Message\RequestInterface;
@@ -33,7 +35,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see https://oauth.yandex.ru/client/new
  * @see http://api.yandex.ru/login/doc/dg/reference/response.xml
  */
-class Yandex extends OAuth2
+final class Yandex extends OAuth2
 {
     public $authUrl = 'https://oauth.yandex.ru/authorize';
     public $tokenUrl = 'https://oauth.yandex.ru/token';

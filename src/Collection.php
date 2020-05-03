@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
@@ -37,7 +39,7 @@ class Collection
     /**
      * @var array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    private $clients = [];
+    private array $clients = [];
 
     /**
      * @param array $clients list of auth clients indexed by their names

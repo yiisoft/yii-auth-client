@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Clients;
 
 use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
@@ -51,7 +53,7 @@ use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
  * @see \Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton
  * @see https://developers.google.com/+/web/signin
  */
-class GoogleHybrid extends Google
+final class GoogleHybrid extends Google
 {
     public $validateAuthState = false;
 
