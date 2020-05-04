@@ -84,14 +84,14 @@ class OpenIdConnectTest extends TestCase
 
 
         $clientId = 'test_client_id';
-        $authClient->clientId = $clientId;
+        $authClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
         $authClient->setReturnUrl($returnUrl);
 
         $builtAuthUrl = $authClient->buildAuthUrl();
 
-        $this->assertNotEmpty($authClient->authUrl);
-        $this->assertContains($clientId, $builtAuthUrl, 'No client id present!');
-        $this->assertContains(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
+        $this->assertNotEmpty($authClient->getAuthUrl());
+        $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
+        $this->assertStringContainsString(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
     }
 }

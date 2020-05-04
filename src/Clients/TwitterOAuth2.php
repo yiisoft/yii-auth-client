@@ -19,14 +19,13 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * this workflow.
  *
  * @see Twitter
- * @see https://dev.twitter.com/
+ * @link https://dev.twitter.com/
  */
 final class TwitterOAuth2 extends OAuth2
 {
     protected string $authUrl = 'https://api.twitter.com/oauth2/authenticate';
     protected string $tokenUrl = 'https://api.twitter.com/oauth2/token';
     protected string $endpoint = 'https://api.twitter.com/1.1';
-
 
     protected function initUserAttributes(): array
     {

@@ -18,7 +18,6 @@ class InvalidResponseException extends Exception
      */
     public ResponseInterface $response;
 
-
     /**
      * Constructor.
      * @param ResponseInterface $response HTTP response instance

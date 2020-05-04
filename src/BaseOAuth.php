@@ -287,16 +287,17 @@ abstract class BaseOAuth extends BaseClient
      * @param array|string $data request data or content.
      * @param array $headers additional request headers.
      * @return array API response data.
+     * @throws Exception
      * @see createApiRequest()
      */
     public function api($apiSubUrl, $method = 'GET', $data = [], $headers = [])
     {
-        $request = $this->createApiRequest($method, $apiSubUrl)
-            ->addHeaders($headers);
+        $request = $this->createApiRequest($method, $apiSubUrl);
+        $request = RequestUtil::addHeaders($request, $headers);
 
         if (!empty($data)) {
             if (is_array($data)) {
-                $request->setParams($data);
+                $request = RequestUtil::addParams($request, $data);
             } else {
                 $request->getBody()->write($data);
             }

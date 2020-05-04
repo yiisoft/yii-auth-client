@@ -16,24 +16,6 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * In order to use VKontakte OAuth you must register your application at <http://vk.com/editapp?act=create>.
  *
- * Example application configuration:
- *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'vkontakte' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\VKontakte::class,
- *                 'clientId' => 'vkontakte_client_id',
- *                 'clientSecret' => 'vkontakte_client_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
- *
  * @link http://vk.com/editapp?act=create
  * @link http://vk.com/developers.php?oid=-1&p=users.get
  */
@@ -45,7 +27,7 @@ final class VKontakte extends OAuth2
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    public array $attributeNames = [
+    private array $attributeNames = [
         'uid',
         'first_name',
         'last_name',
@@ -62,7 +44,7 @@ final class VKontakte extends OAuth2
      * @var string the API version to send in the API request.
      * @see https://vk.com/dev/versions
      */
-    public $apiVersion = '3.0';
+    private string $apiVersion = '3.0';
 
 
     protected function initUserAttributes(): array

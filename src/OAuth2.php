@@ -136,7 +136,8 @@ abstract class OAuth2 extends BaseOAuth
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
-        $request->addParams(
+        return RequestUtil::addParams(
+            $request,
             [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
@@ -358,5 +359,49 @@ abstract class OAuth2 extends BaseOAuth
         $this->setAccessToken($token);
 
         return $token;
+    }
+
+    public function getClientId(): string
+    {
+        return $this->clientId;
+    }
+
+    public function setClientId(string $clientId): void
+    {
+        $this->clientId = $clientId;
+    }
+
+    public function getClientSecret(): string
+    {
+        return $this->clientSecret;
+    }
+
+    public function setClientSecret(string $clientSecret): void
+    {
+        $this->clientSecret = $clientSecret;
+    }
+
+    public function getTokenUrl(): string
+    {
+        return $this->tokenUrl;
+    }
+
+    public function setTokenUrl(string $tokenUrl): void
+    {
+        $this->tokenUrl = $tokenUrl;
+    }
+
+    public function withValidateAuthState(): self
+    {
+        $new = clone $this;
+        $new->validateAuthState = true;
+        return $new;
+    }
+
+    public function withoutValidateAuthState(): self
+    {
+        $new = clone $this;
+        $new->validateAuthState = false;
+        return $new;
     }
 }

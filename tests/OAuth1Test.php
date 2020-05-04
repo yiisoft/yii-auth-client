@@ -3,13 +3,13 @@
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
-use yii\tests\TestCase;
 
 class OAuth1Test extends TestCase
 {
@@ -44,7 +44,7 @@ class OAuth1Test extends TestCase
 
         $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
-        /* @var $oauthSignatureMethod BaseMethod|\PHPUnit_Framework_MockObject_MockObject */
+        /* @var $oauthSignatureMethod BaseMethod|\PHPUnit\Framework\MockObject\MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
             ->setMethods(['getName', 'generateSignature'])
             ->getMock();
@@ -97,17 +97,17 @@ class OAuth1Test extends TestCase
         $request = $oauthClient->signRequest($request);
         $this->assertEmpty($request->getHeaderLine('Authorization'));
 
-        $oauthClient->authorizationHeaderMethods = ['GET'];
+        $oauthClient->setAuthorizationHeaderMethods(['GET']);
         $request = $oauthClient->createRequest('GET', 'http://example.com/');
         $request = $oauthClient->signRequest($request);
         $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
-        $oauthClient->authorizationHeaderMethods = null;
+        $oauthClient->setAuthorizationHeaderMethods(null);
         $request = $oauthClient->createRequest('GET', 'http://example.com/');
         $request = $oauthClient->signRequest($request);
         $this->assertNotEmpty($request->getHeaderLine('Authorization'));
 
-        $oauthClient->authorizationHeaderMethods = [];
+        $oauthClient->setAuthorizationHeaderMethods([]);
         $request = $oauthClient->createRequest('POST', 'http://example.com/');
         $request = $oauthClient->signRequest($request);
         $this->assertEmpty($request->getHeaderLine('Authorization'));
@@ -165,7 +165,7 @@ class OAuth1Test extends TestCase
     {
         $oauthClient = $this->createClient();
         $authUrl = 'http://test.auth.url';
-        $oauthClient->authUrl = $authUrl;
+        $oauthClient->setAuthUrl($authUrl);
 
         $requestTokenToken = 'test_request_token';
         $requestToken = new OAuthToken();
@@ -173,7 +173,7 @@ class OAuth1Test extends TestCase
 
         $builtAuthUrl = $oauthClient->buildAuthUrl($requestToken);
 
-        $this->assertContains($authUrl, $builtAuthUrl, 'No auth URL present!');
-        $this->assertContains($requestTokenToken, $builtAuthUrl, 'No token present!');
+        $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
+        $this->assertStringContainsString($requestTokenToken, $builtAuthUrl, 'No token present!');
     }
 }

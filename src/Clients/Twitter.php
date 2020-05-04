@@ -11,33 +11,12 @@ use Yiisoft\Yii\AuthClient\OAuth1;
  *
  * In order to use Twitter OAuth you must register your application at <https://dev.twitter.com/apps/new>.
  *
- * Example application configuration:
- *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'twitter' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Twitter::class,
- *                 'attributeParams' => [
- *                     'include_email' => 'true'
- *                 ],
- *                 'consumerKey' => 'twitter_consumer_key',
- *                 'consumerSecret' => 'twitter_consumer_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
- *
  * > Note: some auth workflows provided by Twitter, such as [application-only authentication](https://dev.twitter.com/oauth/application-only),
  *   uses OAuth 2 protocol and thus are impossible to be used with this class. You should use [[TwitterOAuth2]] for these.
  *
  * @see TwitterOAuth2
- * @see https://apps.twitter.com/
- * @see https://dev.twitter.com/
+ * @link https://apps.twitter.com/
+ * @link https://dev.twitter.com/
  */
 final class Twitter extends OAuth1
 {
@@ -59,8 +38,7 @@ final class Twitter extends OAuth1
      *
      * @link https://dev.twitter.com/rest/reference/get/account/verify_credentials
      */
-    public array $attributeParams = [];
-
+    private array $attributeParams = [];
 
     protected function initUserAttributes(): array
     {

@@ -33,16 +33,16 @@ class OAuth2Test extends TestCase
     {
         $oauthClient = $this->createClient();
         $authUrl = 'http://test.auth.url';
-        $oauthClient->authUrl = $authUrl;
+        $oauthClient->setAuthUrl($authUrl);
         $clientId = 'test_client_id';
-        $oauthClient->clientId = $clientId;
+        $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
 
         $builtAuthUrl = $oauthClient->buildAuthUrl();
 
-        $this->assertContains($authUrl, $builtAuthUrl, 'No auth URL present!');
-        $this->assertContains($clientId, $builtAuthUrl, 'No client id present!');
-        $this->assertContains(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
+        $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
+        $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
+        $this->assertStringContainsString(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
     }
 }

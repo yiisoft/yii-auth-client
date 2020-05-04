@@ -14,24 +14,6 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * In order to use linkedIn OAuth you must register your application at <https://www.linkedin.com/secure/developer>.
  *
- * Example application configuration:
- *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'linkedin' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\LinkedIn::class,
- *                 'clientId' => 'linkedin_client_id',
- *                 'clientSecret' => 'linkedin_client_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
- *
  * @link https://developer.linkedin.com/docs/oauth2
  * @link https://www.linkedin.com/secure/developer
  * @link https://developer.linkedin.com/docs/rest-api

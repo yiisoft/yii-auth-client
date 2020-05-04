@@ -45,7 +45,7 @@ final class GitHub extends OAuth2
         return 'user';
     }
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         $attributes = $this->api('user', 'GET');
 

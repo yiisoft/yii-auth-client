@@ -11,24 +11,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  *
  * In order to use Microsoft Live OAuth you must register your application at <https://account.live.com/developers/applications>
  *
- * Example application configuration:
- *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'live' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Live::class,
- *                 'clientId' => 'live_client_id',
- *                 'clientSecret' => 'live_client_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
- *
  * @see https://account.live.com/developers/applications
  * @see http://msdn.microsoft.com/en-us/library/live/hh243647.aspx
  */

@@ -53,8 +53,6 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
  *
- * @property array $baseAuthUrl Base auth URL configuration. This property is read-only.
- * @property ClientInterface[] $clients Auth providers. This property is read-only.
  */
 class AuthChoice extends Widget
 {
@@ -62,10 +60,10 @@ class AuthChoice extends Widget
      * @var string name of the auth client collection application component.
      * This component will be used to fetch services value if it is not set.
      */
-    public $clientCollection = 'authClientCollection';
+    public string $clientCollection = 'authClientCollection';
     /**
      * @var string name of the GET param , which should be used to passed auth client id to URL
-     * defined by [[baseAuthUrl]].
+     * defined by {@see baseAuthUrl}.
      */
     public $clientIdGetParamName = 'authclient';
     /**
@@ -85,16 +83,16 @@ class AuthChoice extends Widget
      * @var bool indicates if widget content, should be rendered automatically.
      * Note: this value automatically set to 'false' at the first call of [[createClientUrl()]]
      */
-    public $autoRender = true;
+    public bool $autoRender = true;
 
     /**
      * @var array configuration for the external clients base authentication URL.
      */
-    private $_baseAuthUrl;
+    private array $baseAuthUrl;
     /**
      * @var ClientInterface[] auth providers list.
      */
-    private $_clients;
+    private array $clients;
 
 
     /**
@@ -102,7 +100,7 @@ class AuthChoice extends Widget
      */
     public function setClients(array $clients)
     {
-        $this->_clients = $clients;
+        $this->clients = $clients;
     }
 
     /**
@@ -110,11 +108,11 @@ class AuthChoice extends Widget
      */
     public function getClients()
     {
-        if ($this->_clients === null) {
-            $this->_clients = $this->defaultClients();
+        if ($this->clients === null) {
+            $this->clients = $this->defaultClients();
         }
 
-        return $this->_clients;
+        return $this->clients;
     }
 
     /**
@@ -122,7 +120,7 @@ class AuthChoice extends Widget
      */
     public function setBaseAuthUrl(array $baseAuthUrl)
     {
-        $this->_baseAuthUrl = $baseAuthUrl;
+        $this->baseAuthUrl = $baseAuthUrl;
     }
 
     /**
@@ -130,11 +128,11 @@ class AuthChoice extends Widget
      */
     public function getBaseAuthUrl()
     {
-        if (!is_array($this->_baseAuthUrl)) {
-            $this->_baseAuthUrl = $this->defaultBaseAuthUrl();
+        if (!is_array($this->baseAuthUrl)) {
+            $this->baseAuthUrl = $this->defaultBaseAuthUrl();
         }
 
-        return $this->_baseAuthUrl;
+        return $this->baseAuthUrl;
     }
 
     /**
@@ -202,15 +200,15 @@ class AuthChoice extends Widget
         }
 
         $widgetConfig = $viewOptions['widget'];
-        if (!isset($widgetConfig['class'])) {
+        if (!isset($widgetConfig['__class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
         /* @var $widgetClass Widget */
-        $widgetClass = $widgetConfig['class'];
+        $widgetClass = $widgetConfig['__class'];
         if (!(is_subclass_of($widgetClass, AuthChoiceItem::class))) {
             throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
         }
-        unset($widgetConfig['class']);
+        unset($widgetConfig['__class']);
         $widgetConfig['client'] = $client;
         $widgetConfig['authChoice'] = $this;
         return $widgetClass::widget($widgetConfig);
@@ -233,6 +231,8 @@ class AuthChoice extends Widget
     /**
      * Renders the main content, which includes all external services links.
      * @return string generated HTML.
+     * @throws InvalidConfigException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
     protected function renderMainContent()
     {

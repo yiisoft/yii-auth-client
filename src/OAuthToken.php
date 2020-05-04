@@ -141,9 +141,9 @@ class OAuthToken
 
     /**
      * Returns the token expiration duration.
-     * @return int token expiration duration.
+     * @return int|null token expiration duration.
      */
-    public function getExpireDuration(): int
+    public function getExpireDuration(): ?int
     {
         return $this->getParam($this->getExpireDurationParamKey());
     }
@@ -188,5 +188,10 @@ class OAuthToken
         $token = $this->getToken();
 
         return (!empty($token) && !$this->getIsExpired());
+    }
+
+    public function getCreateTimestamp(): int
+    {
+        return $this->createTimestamp;
     }
 }

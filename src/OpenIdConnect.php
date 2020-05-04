@@ -20,34 +20,12 @@ use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 
 use function in_array;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
- *
- * Application configuration example:
- *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'google' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\OpenIdConnect::class,
- *                 'issuerUrl' => 'https://accounts.google.com',
- *                 'clientId' => 'google_client_id',
- *                 'clientSecret' => 'google_client_secret',
- *                 'name' => 'google',
- *                 'title' => 'Google OpenID Connect',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
  *
  * This class requires `spomky-labs/jose` library to be installed for JWS verification. This can be done via composer:
  *
@@ -58,29 +36,29 @@ use function in_array;
  * Note: if you are using well-trusted OpenIdConnect provider, you may disable [[validateJws]], making installation of
  * `spomky-labs/jose` library redundant, however it is not recommended as it violates the protocol specification.
  *
- * @see http://openid.net/connect/
+ * @link http://openid.net/connect/
  * @see OAuth2
  */
 class OpenIdConnect extends OAuth2
 {
-    public $scope = 'openid';
+    protected string $scope = 'openid';
     /**
      * @var string OpenID Issuer (provider) base URL, e.g. `https://example.com`.
      */
-    private $issuerUrl;
+    private string $issuerUrl;
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
-     * Note: this functionality requires `spomky-labs/jose` composer package to be installed.
+     * Note: this functionality requires `web-token/*` composer package to be installed.
      * You can disable this option in case of usage of trusted OpenIDConnect provider, however this violates
      * the protocol rules, so you are doing it on your own risk.
      */
-    public $validateJws = true;
+    private bool $validateJws = true;
     /**
      * @var array JWS algorithms, which are allowed to be used.
      * These are used by `spomky-labs/jose` library for JWS validation/decryption.
      * Make sure `spomky-labs/jose` supports the particular algorithm before adding it here.
      */
-    public $allowedJwsAlgorithms = [
+    private array $allowedJwsAlgorithms = [
         'HS256',
         'HS384',
         'HS512',
@@ -99,39 +77,28 @@ class OpenIdConnect extends OAuth2
      * Actual cache key will be formed addition [[id]] value to it.
      * @see cache
      */
-    public $configParamsCacheKeyPrefix = 'config-params-';
+    private string $configParamsCacheKeyPrefix = 'config-params-';
 
     /**
      * @var bool|null whether to use and validate auth 'nonce' parameter in authentication flow.
      * The option is used for preventing replay attacks.
      */
-    private $validateAuthNonce;
+    private ?bool $validateAuthNonce;
     /**
      * @var array OpenID provider configuration parameters.
      */
-    private $configParams;
-    /**
-     * @var CacheInterface the cache object or the ID of the cache application component that
-     * is used for caching. This can be one of the following:
-     *
-     * - an application component ID (e.g. `cache`)
-     * - a configuration array
-     * - a [[\yii\caching\Cache]] object
-     *
-     * When this is not set, it means caching is not enabled.
-     */
-    private $cache;
-
-    private $name;
-    private $title;
+    private array $configParams;
+    private CacheInterface $cache;
+    private string $name;
+    private string $title;
     /**
      * @var JWSLoader JSON Web Signature
      */
-    private $jwsLoader;
+    private JWSLoader $jwsLoader;
     /**
      * @var JWKSet Key Set
      */
-    private $jwkSet;
+    private JWKSet $jwkSet;
 
     /**
      * OpenIdConnect constructor.
@@ -249,7 +216,7 @@ class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return $this->api($this->getConfigParam('userinfo_endpoint'), 'GET');
     }
@@ -264,7 +231,8 @@ class OpenIdConnect extends OAuth2
                 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)
             );
         } elseif (in_array('client_secret_post', $supportedAuthMethods, true)) {
-            $request->addParams(
+            $request = RequestUtil::addParams(
+                $request,
                 [
                     'client_id' => $this->clientId,
                     'client_secret' => $this->clientSecret,
@@ -290,7 +258,8 @@ class OpenIdConnect extends OAuth2
 
             $assertion = $signatureBaseString . '.' . $signature;
 
-            $request->addParams(
+            $request = RequestUtil::addParams(
+                $request,
                 [
                     'assertion' => $assertion,
                 ]
@@ -303,6 +272,7 @@ class OpenIdConnect extends OAuth2
                 )
             );
         }
+        return $request;
     }
 
     protected function defaultReturnUrl()
@@ -344,7 +314,7 @@ class OpenIdConnect extends OAuth2
     protected function getJwkSet()
     {
         if ($this->jwkSet === null) {
-            $cache = $this->getCache();
+            $cache = $this->cache;
             $cacheKey = $this->configParamsCacheKeyPrefix . 'jwkSet';
             if ($cache === null || ($jwkSet = $cache->get($cacheKey)) === false) {
                 $request = $this->createRequest()

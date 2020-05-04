@@ -63,7 +63,7 @@ abstract class OAuth1 extends BaseOAuth
      * By default only POST requests will have 'Authorization' header.
      * You may set this option to `null` in order to make all requests to use 'Authorization' header.
      */
-    protected array $authorizationHeaderMethods = ['POST'];
+    protected ?array $authorizationHeaderMethods = ['POST'];
 
 
     /**
@@ -389,5 +389,75 @@ abstract class OAuth1 extends BaseOAuth
         }
 
         return ['Authorization' => $header];
+    }
+
+    public function getConsumerKey(): string
+    {
+        return $this->consumerKey;
+    }
+
+    public function setConsumerKey(string $consumerKey): void
+    {
+        $this->consumerKey = $consumerKey;
+    }
+
+    public function getConsumerSecret(): string
+    {
+        return $this->consumerSecret;
+    }
+
+    public function setConsumerSecret(string $consumerSecret)
+    {
+        $this->consumerSecret = $consumerSecret;
+    }
+
+    public function getRequestTokenUrl(): string
+    {
+        return $this->requestTokenUrl;
+    }
+
+    public function setRequestTokenUrl(string $requestTokenUrl): void
+    {
+        $this->requestTokenUrl = $requestTokenUrl;
+    }
+
+    public function getRequestTokenMethod(): string
+    {
+        return $this->requestTokenMethod;
+    }
+
+    public function setRequestTokenMethod(string $requestTokenMethod): void
+    {
+        $this->requestTokenMethod = $requestTokenMethod;
+    }
+
+    public function getAccessTokenUrl(): string
+    {
+        return $this->accessTokenUrl;
+    }
+
+    public function setAccessTokenUrl(string $accessTokenUrl): void
+    {
+        $this->accessTokenUrl = $accessTokenUrl;
+    }
+
+    public function getAccessTokenMethod(): string
+    {
+        return $this->accessTokenMethod;
+    }
+
+    public function setAccessTokenMethod(string $accessTokenMethod): void
+    {
+        $this->accessTokenMethod = $accessTokenMethod;
+    }
+
+    public function getAuthorizationHeaderMethods(): ?array
+    {
+        return $this->authorizationHeaderMethods;
+    }
+
+    public function setAuthorizationHeaderMethods(?array $authorizationHeaderMethods = null)
+    {
+        $this->authorizationHeaderMethods = $authorizationHeaderMethods;
     }
 }

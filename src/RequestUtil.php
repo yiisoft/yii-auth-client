@@ -62,4 +62,12 @@ final class RequestUtil
         $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
         return $request->withUri($uri);
     }
+
+    public static function addHeaders(RequestInterface $request, array $headers): RequestInterface
+    {
+        foreach ($headers as $header => $value) {
+            $request = $request->withHeader($header, $value);
+        }
+        return $request;
+    }
 }

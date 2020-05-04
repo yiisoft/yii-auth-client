@@ -43,7 +43,7 @@ final class Facebook extends OAuth2
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    protected array $attributeNames = [
+    private array $attributeNames = [
         'name',
         'email',
     ];

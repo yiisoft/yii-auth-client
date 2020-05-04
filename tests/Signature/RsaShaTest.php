@@ -124,7 +124,7 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
         $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
 
         $certificateFileName = __FILE__;
-        $signatureMethod->privateCertificateFile = $certificateFileName;
+        $signatureMethod->setPrivateCertificate($certificateFileName);
         $this->assertEquals(file_get_contents($certificateFileName), $signatureMethod->getPrivateCertificate(), 'Unable to fetch private certificate from file!');
     }
 
@@ -133,7 +133,7 @@ IyvuagHJR379p4dePwJBAMCkYSATGdhYbeDfySWUro5K0QAvBNj8FuNJQ4rqUxz8
         $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
 
         $certificateFileName = __FILE__;
-        $signatureMethod->publicCertificateFile = $certificateFileName;
+        $signatureMethod->setPublicCertificate($certificateFileName);
         $this->assertEquals(file_get_contents($certificateFileName), $signatureMethod->getPublicCertificate(), 'Unable to fetch public certificate from file!');
     }
 }
