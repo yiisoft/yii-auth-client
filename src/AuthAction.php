@@ -6,6 +6,9 @@ namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -42,7 +45,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  * @see Collection
  * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
  */
-class AuthAction extends Action
+final class AuthAction implements MiddlewareInterface
 {
     /**
      * @var string name of the auth client collection application component.
@@ -144,7 +147,7 @@ class AuthAction extends Action
     }
 
     /**
-     * Creates default [[successUrl]] value.
+     * Creates default {@see successUrl} value.
      * @return string success URL value.
      */
     protected function defaultSuccessUrl(): string
@@ -153,7 +156,7 @@ class AuthAction extends Action
     }
 
     /**
-     * Creates default [[cancelUrl]] value.
+     * Creates default {@see cancelUrl} value.
      * @return string cancel URL value.
      */
     protected function defaultCancelUrl(): string
@@ -161,12 +164,9 @@ class AuthAction extends Action
         return Url::to($this->app->getUser()->loginUrl);
     }
 
-    /**
-     * Runs the action.
-     */
-    public function run()
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
+        $clientId = $request->getAttribute($this->clientIdGetParamName);
         if (!empty($clientId)) {
             /* @var $collection Collection */
             $collection = $this->app->get($this->clientCollection);
@@ -186,6 +186,7 @@ class AuthAction extends Action
      * @param mixed $client auth client instance.
      * @return ResponseInterface response instance.
      * @throws NotSupportedException on invalid client.
+     * @throws InvalidConfigException
      */
     protected function auth($client): ResponseInterface
     {
@@ -223,7 +224,7 @@ class AuthAction extends Action
     }
 
     /**
-     * This method is invoked in case of authentication cancelation.
+     * This method is invoked in case of authentication cancellation.
      * @param ClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
      */
@@ -266,7 +267,7 @@ class AuthAction extends Action
     }
 
     /**
-     * Redirect to the URL. If URL is null, [[successUrl]] will be used.
+     * Redirect to the URL. If URL is null, {@see successUrl} will be used.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
      */
@@ -279,7 +280,7 @@ class AuthAction extends Action
     }
 
     /**
-     * Redirect to the [[cancelUrl]] or simply close the popup window.
+     * Redirect to the {@see cancelUrl} or simply close the popup window.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
      */
@@ -293,12 +294,11 @@ class AuthAction extends Action
 
     /**
      * Performs OpenID auth flow.
-     * @param ClientInterface $client auth client instance.
+     * @param OpenIdConnect $client auth client instance.
      * @return ResponseInterface action response.
-     * @throws Exception on failure.
-     * @throws HttpException on failure.
+     * @throws InvalidConfigException
      */
-    protected function authOpenId(ClientInterface $client): ResponseInterface
+    protected function authOpenId(OpenIdConnect $client): ResponseInterface
     {
         $request = $this->app->getRequest();
         $mode = $request->get('openid_mode', $request->post('openid_mode'));

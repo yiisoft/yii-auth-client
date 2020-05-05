@@ -8,6 +8,7 @@ use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 use function is_array;
@@ -16,14 +17,14 @@ use function is_object;
 /**
  * BaseOAuth is a base class for the OAuth clients.
  *
- * @see http://oauth.net/
+ * @link http://oauth.net/
  */
 abstract class BaseOAuth extends BaseClient
 {
     /**
      * @var string API base URL.
-     * This field will be used as [[\yii\httpclient\Client::baseUrl]] value of [[httpClient]].
-     * Note: changing this property will take no effect after [[httpClient]] is instantiated.
+     * This field will be used as {@see UriInterface::getPath()}} value of {@see httpClient}.
+     * Note: changing this property will take no effect after {@see httpClient} is instantiated.
      */
     protected string $endpoint;
     /**
@@ -124,7 +125,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @return OAuthToken auth token instance.
      */
-    public function getAccessToken()
+    public function getAccessToken(): OAuthToken
     {
         if (!is_object($this->accessToken)) {
             $this->accessToken = $this->restoreAccessToken();
@@ -138,7 +139,7 @@ abstract class BaseOAuth extends BaseClient
      * @param array|BaseMethod $signatureMethod signature method instance or its array configuration.
      * @throws InvalidArgumentException on wrong argument.
      */
-    public function setSignatureMethod($signatureMethod)
+    public function setSignatureMethod($signatureMethod): void
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
@@ -178,7 +179,7 @@ abstract class BaseOAuth extends BaseClient
      * Composes default [[returnUrl]] value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl()
+    protected function defaultReturnUrl(): string
     {
         return Yii::getApp()->getRequest()->getAbsoluteUrl();
     }
@@ -186,9 +187,9 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Creates signature method instance from its configuration.
      * @param array $signatureMethodConfig signature method configuration.
-     * @return signature\BaseMethod signature method instance.
+     * @return BaseMethod signature method instance.
      */
-    protected function createSignatureMethod(array $signatureMethodConfig)
+    protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
             $signatureMethodConfig['__class'] = Signature\HmacSha::class;
@@ -202,7 +203,7 @@ abstract class BaseOAuth extends BaseClient
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
-    protected function createToken(array $tokenConfig = [])
+    protected function createToken(array $tokenConfig = []): OAuthToken
     {
         if (!array_key_exists('__class', $tokenConfig)) {
             $tokenConfig['__class'] = OAuthToken::class;
@@ -216,7 +217,7 @@ abstract class BaseOAuth extends BaseClient
      * @param array $params GET params.
      * @return string composed URL.
      */
-    protected function composeUrl($url, array $params = [])
+    protected function composeUrl($url, array $params = []): string
     {
         if (!empty($params)) {
             if (strpos($url, '?') === false) {
@@ -234,7 +235,7 @@ abstract class BaseOAuth extends BaseClient
      * @param OAuthToken|null $token auth token to be saved.
      * @return $this the object itself.
      */
-    protected function saveAccessToken($token)
+    protected function saveAccessToken($token): self
     {
         return $this->setState('token', $token);
     }
@@ -268,8 +269,7 @@ abstract class BaseOAuth extends BaseClient
         return $request;
     }
 
-
-    public function beforeApiRequestSend(RequestInterface $request)
+    public function beforeApiRequestSend(RequestInterface $request): RequestInterface
     {
         $accessToken = $this->getAccessToken();
         if (!is_object($accessToken) || !$accessToken->getIsValid()) {
@@ -290,7 +290,7 @@ abstract class BaseOAuth extends BaseClient
      * @throws Exception
      * @see createApiRequest()
      */
-    public function api($apiSubUrl, $method = 'GET', $data = [], $headers = [])
+    public function api($apiSubUrl, $method = 'GET', $data = [], $headers = []): array
     {
         $request = $this->createApiRequest($method, $apiSubUrl);
         $request = RequestUtil::addHeaders($request, $headers);
@@ -322,7 +322,7 @@ abstract class BaseOAuth extends BaseClient
      * @param OAuthToken $token expired auth token.
      * @return OAuthToken new auth token.
      */
-    abstract public function refreshAccessToken(OAuthToken $token);
+    abstract public function refreshAccessToken(OAuthToken $token): OAuthToken;
 
     /**
      * Applies access token to the HTTP request instance.

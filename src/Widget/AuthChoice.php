@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Widgets;
+namespace Yiisoft\Yii\AuthClient\Widget;
 
 use Yiisoft\Html\Html;
 use Yiisoft\Json\Json;
@@ -10,11 +10,13 @@ use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\ClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Widgets\AuthChoiceAsset;
+use Yiisoft\Yii\AuthClient\Widgets\AuthChoiceStyleAsset;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
  * It opens a popup window for the client authentication process.
- * By default this widget relies on presence of [[\Yiisoft\Yii\AuthClient\Collection]] among application components
+ * By default this widget relies on presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
  * to get auth clients information.
  *
  * Example:
@@ -25,13 +27,13 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * ]); ?>
  * ```
  *
- * You can customize the widget appearance by using [[begin()]] and [[end()]] syntax
- * along with using method [[clientLink()]] or [[createClientUrl()]].
+ * You can customize the widget appearance by using {@see begin()} and {@see end()} syntax
+ * along with using method {@see clientLink()} or {@see createClientUrl()}.
  * For example:
  *
  * ```php
  * <?php
- * use Yiisoft\Yii\AuthClient\Widgets\AuthChoice;
+ * use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
  * ?>
  * <?php $authAuthChoice = AuthChoice::begin([
  *     'baseAuthUrl' => ['site/auth']
@@ -44,12 +46,12 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * <?php AuthChoice::end(); ?>
  * ```
  *
- * This widget supports following keys for [[ClientInterface::getViewOptions()]] result:
+ * This widget supports following keys for {@see ClientInterface::getViewOptions()} result:
  *
  *  - popupWidth: int, width of the popup window in pixels.
  *  - popupHeight: int, height of the popup window in pixels.
  *  - widget: array, configuration for the widget, which should be used to render a client link;
- *    such widget should be a subclass of [[AuthChoiceItem]].
+ *    such widget should be a subclass of {@see AuthChoiceItem}.
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
  *
@@ -65,23 +67,23 @@ class AuthChoice extends Widget
      * @var string name of the GET param , which should be used to passed auth client id to URL
      * defined by {@see baseAuthUrl}.
      */
-    public $clientIdGetParamName = 'authclient';
+    public string $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
      * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    public $options = [];
+    public array $options = [];
     /**
      * @var array additional options to be passed to the underlying JS plugin.
      */
-    public $clientOptions = [];
+    public array $clientOptions = [];
     /**
      * @var bool indicates if popup window should be used instead of direct links.
      */
-    public $popupMode = true;
+    public bool $popupMode = true;
     /**
      * @var bool indicates if widget content, should be rendered automatically.
-     * Note: this value automatically set to 'false' at the first call of [[createClientUrl()]]
+     * Note: this value automatically set to 'false' at the first call of {@see createClientUrl()}
      */
     public bool $autoRender = true;
 
@@ -98,7 +100,7 @@ class AuthChoice extends Widget
     /**
      * @param ClientInterface[] $clients auth providers
      */
-    public function setClients(array $clients)
+    public function setClients(array $clients): void
     {
         $this->clients = $clients;
     }
@@ -106,7 +108,7 @@ class AuthChoice extends Widget
     /**
      * @return ClientInterface[] auth providers
      */
-    public function getClients()
+    public function getClients(): array
     {
         if ($this->clients === null) {
             $this->clients = $this->defaultClients();
@@ -118,7 +120,7 @@ class AuthChoice extends Widget
     /**
      * @param array $baseAuthUrl base auth URL configuration.
      */
-    public function setBaseAuthUrl(array $baseAuthUrl)
+    public function setBaseAuthUrl(array $baseAuthUrl): void
     {
         $this->baseAuthUrl = $baseAuthUrl;
     }
@@ -126,7 +128,7 @@ class AuthChoice extends Widget
     /**
      * @return array base auth URL configuration.
      */
-    public function getBaseAuthUrl()
+    public function getBaseAuthUrl(): array
     {
         if (!is_array($this->baseAuthUrl)) {
             $this->baseAuthUrl = $this->defaultBaseAuthUrl();
@@ -139,7 +141,7 @@ class AuthChoice extends Widget
      * Returns default auth clients list.
      * @return ClientInterface[] auth clients list.
      */
-    protected function defaultClients()
+    protected function defaultClients(): array
     {
         /* @var $collection Collection */
         $collection = Yii::getApp()->get($this->clientCollection);
@@ -151,7 +153,7 @@ class AuthChoice extends Widget
      * Composes default base auth URL configuration.
      * @return array base auth URL configuration.
      */
-    protected function defaultBaseAuthUrl()
+    protected function defaultBaseAuthUrl(): array
     {
         $baseAuthUrl = [
             Yii::getApp()->controller->getRoute()
@@ -172,7 +174,7 @@ class AuthChoice extends Widget
      * @throws InvalidConfigException on wrong configuration.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    public function clientLink($client, $text = null, array $htmlOptions = [])
+    public function clientLink($client, $text = null, array $htmlOptions = []): Widget
     {
         $viewOptions = $client->getViewOptions();
 
@@ -219,7 +221,7 @@ class AuthChoice extends Widget
      * @param ClientInterface $client external auth client instance.
      * @return string auth URL.
      */
-    public function createClientUrl($client)
+    public function createClientUrl($client): string
     {
         $this->autoRender = false;
         $url = $this->getBaseAuthUrl();
@@ -234,7 +236,7 @@ class AuthChoice extends Widget
      * @throws InvalidConfigException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    protected function renderMainContent()
+    protected function renderMainContent(): string
     {
         $items = [];
         foreach ($this->getClients() as $externalService) {

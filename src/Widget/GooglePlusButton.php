@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Widgets;
+namespace Yiisoft\Yii\AuthClient\Widget;
 
 use Yiisoft\Html\Html;
 use Yiisoft\View\WebView;
@@ -24,7 +24,7 @@ class GooglePlusButton extends AuthChoiceItem
     /**
      * @var array button tag HTML options, which will be merged with the default ones.
      */
-    public $buttonHtmlOptions = [];
+    public array $buttonHtmlOptions = [];
 
     /**
      * @var string|array name of the JavaScript function, which should be used as sign-in callback.
@@ -152,7 +152,7 @@ JS;
             [
                 'class' => 'g-signin',
                 'data-callback' => $this->getCallback(),
-                'data-clientid' => $this->client->clientId,
+                'data-clientid' => $this->client->getClientId(),
                 'data-cookiepolicy' => 'single_host_origin',
                 'data-requestvisibleactions' => null,
                 'data-scope' => $this->client->scope,

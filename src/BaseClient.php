@@ -73,7 +73,7 @@ abstract class BaseClient implements ClientInterface
      * @param array $userAttributes list of user attributes
      * @throws InvalidConfigException
      */
-    public function setUserAttributes(array $userAttributes)
+    public function setUserAttributes(array $userAttributes): void
     {
         $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
     }
@@ -94,7 +94,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @param array $normalizeUserAttributeMap normalize user attribute map.
      */
-    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap)
+    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap): void
     {
         $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
     }
@@ -102,7 +102,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @return array normalize user attribute map.
      */
-    public function getNormalizeUserAttributeMap()
+    public function getNormalizeUserAttributeMap(): array
     {
         if ($this->normalizeUserAttributeMap === null) {
             $this->normalizeUserAttributeMap = $this->defaultNormalizeUserAttributeMap();
@@ -114,7 +114,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @param array $viewOptions view options in format: optionName => optionValue
      */
-    public function setViewOptions(array $viewOptions)
+    public function setViewOptions(array $viewOptions): void
     {
         $this->viewOptions = $viewOptions;
     }
@@ -218,7 +218,7 @@ abstract class BaseClient implements ClientInterface
      * @param mixed $value state value
      * @return $this the object itself
      */
-    protected function setState(string $key, $value)
+    protected function setState(string $key, $value): self
     {
         $this->stateStorage->set($this->getStateKeyPrefix() . $key, $value);
         return $this;
@@ -239,7 +239,7 @@ abstract class BaseClient implements ClientInterface
      * @param string $key state key.
      * @return bool success.
      */
-    protected function removeState(string $key)
+    protected function removeState(string $key): bool
     {
         return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }
@@ -248,7 +248,7 @@ abstract class BaseClient implements ClientInterface
      * Returns session key prefix, which is used to store internal states.
      * @return string session key prefix.
      */
-    protected function getStateKeyPrefix()
+    protected function getStateKeyPrefix(): string
     {
         return get_class($this) . '_' . $this->getName() . '_';
     }
