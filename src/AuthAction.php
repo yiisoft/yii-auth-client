@@ -46,17 +46,17 @@ class AuthAction extends Action
 {
     /**
      * @var string name of the auth client collection application component.
-     * It should point to [[Collection]] instance.
+     * It should point to {@see Collection} instance.
      */
-    public $clientCollection = 'authClientCollection';
+    private string $clientCollection = 'authClientCollection';
     /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
      */
-    public $clientIdGetParamName = 'authclient';
+    private string $clientIdGetParamName = 'authclient';
     /**
      * @var callable PHP callback, which should be triggered in case of successful authentication.
-     * This callback should accept [[ClientInterface]] instance as an argument.
+     * This callback should accept {@see ClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -67,13 +67,13 @@ class AuthAction extends Action
      * }
      * ```
      *
-     * If this callback returns [[Response]] instance, it will be used as action response,
-     * otherwise redirection to [[successUrl]] will be performed.
+     * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see successUrl} will be performed.
      */
-    public $successCallback;
+    private $successCallback;
     /**
-     * @var callable PHP callback, which should be triggered in case of authentication cancelation.
-     * This callback should accept [[ClientInterface]] instance as an argument.
+     * @var callable PHP callback, which should be triggered in case of authentication cancellation.
+     * This callback should accept {@see ClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -83,24 +83,24 @@ class AuthAction extends Action
      * }
      * ```
      *
-     * If this callback returns [[Response]] instance, it will be used as action response,
-     * otherwise redirection to [[cancelUrl]] will be performed.
+     * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see cancelUrl} will be performed.
      */
-    public $cancelCallback;
+    private $cancelCallback;
     /**
      * @var string name or alias of the view file, which should be rendered in order to perform redirection.
      * If not set - default one will be used.
      */
-    public $redirectView;
+    private string $redirectView;
 
     /**
      * @var string the redirect url after successful authorization.
      */
-    private $successUrl;
+    private string $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
-    private $cancelUrl;
+    private string $cancelUrl;
 
 
     /**
@@ -184,7 +184,7 @@ class AuthAction extends Action
     /**
      * Perform authentication for the given client.
      * @param mixed $client auth client instance.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      * @throws NotSupportedException on invalid client.
      */
     protected function auth($client)
@@ -203,7 +203,7 @@ class AuthAction extends Action
     /**
      * This method is invoked in case of successful authentication via auth client.
      * @param ClientInterface $client auth client instance.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      * @throws InvalidConfigException on invalid success callback.
      */
     protected function authSuccess($client)
@@ -215,7 +215,7 @@ class AuthAction extends Action
         }
 
         $response = call_user_func($this->successCallback, $client);
-        if ($response instanceof Response) {
+        if ($response instanceof ResponseInterface) {
             return $response;
         }
 
@@ -225,13 +225,13 @@ class AuthAction extends Action
     /**
      * This method is invoked in case of authentication cancelation.
      * @param ClientInterface $client auth client instance.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      */
     protected function authCancel($client)
     {
         if ($this->cancelCallback !== null) {
             $response = call_user_func($this->cancelCallback, $client);
-            if ($response instanceof Response) {
+            if ($response instanceof ResponseInterface) {
                 return $response;
             }
         }
@@ -243,7 +243,7 @@ class AuthAction extends Action
      * Redirect to the given URL or simply close the popup window.
      * @param mixed $url URL to redirect, could be a string or array config to generate a valid URL.
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      */
     public function redirect($url, $enforceRedirect = true)
     {
@@ -268,7 +268,7 @@ class AuthAction extends Action
     /**
      * Redirect to the URL. If URL is null, [[successUrl]] will be used.
      * @param string $url URL to redirect.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      */
     public function redirectSuccess($url = null)
     {
@@ -281,7 +281,7 @@ class AuthAction extends Action
     /**
      * Redirect to the [[cancelUrl]] or simply close the popup window.
      * @param string $url URL to redirect.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
      */
     public function redirectCancel($url = null)
     {
@@ -294,7 +294,7 @@ class AuthAction extends Action
     /**
      * Performs OpenID auth flow.
      * @param ClientInterface $client auth client instance.
-     * @return Response action response.
+     * @return ResponseInterface action response.
      * @throws Exception on failure.
      * @throws HttpException on failure.
      */
@@ -327,7 +327,7 @@ class AuthAction extends Action
     /**
      * Performs OAuth1 auth flow.
      * @param OAuth1 $client auth client instance.
-     * @return Response action response.
+     * @return ResponseInterface action response.
      */
     protected function authOAuth1($client)
     {
