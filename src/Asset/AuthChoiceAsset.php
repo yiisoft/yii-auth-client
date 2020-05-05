@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Widgets;
+namespace Yiisoft\Yii\AuthClient\Asset;
 
 use Yiisoft\Assets\AssetBundle;
 use Yiisoft\Yii\JQuery\YiiAsset;
