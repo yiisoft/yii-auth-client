@@ -16,7 +16,7 @@ class DummyStateStorage implements StateStorageInterface
         return null;
     }
 
-    public function remove($key)
+    public function remove($key): bool
     {
         return true;
     }

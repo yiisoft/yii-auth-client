@@ -26,7 +26,7 @@ final class LinkedIn extends OAuth2
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
-    private $attributeNames = [
+    private array $attributeNames = [
         'id',
         'email-address',
         'first-name',

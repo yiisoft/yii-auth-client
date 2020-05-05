@@ -45,7 +45,7 @@ class SessionStateStorage implements StateStorageInterface
         return null;
     }
 
-    public function remove($key)
+    public function remove($key): bool
     {
         if ($this->session !== null) {
             $this->session->remove($key);
