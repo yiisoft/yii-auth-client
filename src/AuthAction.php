@@ -106,7 +106,7 @@ class AuthAction extends Action
     /**
      * @param string $url successful URL.
      */
-    public function setSuccessUrl($url)
+    public function setSuccessUrl($url): void
     {
         $this->successUrl = $url;
     }
@@ -114,7 +114,7 @@ class AuthAction extends Action
     /**
      * @return string successful URL.
      */
-    public function getSuccessUrl()
+    public function getSuccessUrl(): string
     {
         if (empty($this->successUrl)) {
             $this->successUrl = $this->defaultSuccessUrl();
@@ -126,7 +126,7 @@ class AuthAction extends Action
     /**
      * @param string $url cancel URL.
      */
-    public function setCancelUrl($url)
+    public function setCancelUrl($url): void
     {
         $this->cancelUrl = $url;
     }
@@ -134,7 +134,7 @@ class AuthAction extends Action
     /**
      * @return string cancel URL.
      */
-    public function getCancelUrl()
+    public function getCancelUrl(): string
     {
         if (empty($this->cancelUrl)) {
             $this->cancelUrl = $this->defaultCancelUrl();
@@ -147,7 +147,7 @@ class AuthAction extends Action
      * Creates default [[successUrl]] value.
      * @return string success URL value.
      */
-    protected function defaultSuccessUrl()
+    protected function defaultSuccessUrl(): string
     {
         return $this->app->getUser()->getReturnUrl();
     }
@@ -156,7 +156,7 @@ class AuthAction extends Action
      * Creates default [[cancelUrl]] value.
      * @return string cancel URL value.
      */
-    protected function defaultCancelUrl()
+    protected function defaultCancelUrl(): string
     {
         return Url::to($this->app->getUser()->loginUrl);
     }
@@ -187,7 +187,7 @@ class AuthAction extends Action
      * @return ResponseInterface response instance.
      * @throws NotSupportedException on invalid client.
      */
-    protected function auth($client)
+    protected function auth($client): ResponseInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client);
@@ -206,7 +206,7 @@ class AuthAction extends Action
      * @return ResponseInterface response instance.
      * @throws InvalidConfigException on invalid success callback.
      */
-    protected function authSuccess($client)
+    protected function authSuccess($client): ResponseInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(
@@ -227,7 +227,7 @@ class AuthAction extends Action
      * @param ClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
      */
-    protected function authCancel($client)
+    protected function authCancel($client): ResponseInterface
     {
         if ($this->cancelCallback !== null) {
             $response = call_user_func($this->cancelCallback, $client);
@@ -245,7 +245,7 @@ class AuthAction extends Action
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
      * @return ResponseInterface response instance.
      */
-    public function redirect($url, $enforceRedirect = true)
+    public function redirect($url, $enforceRedirect = true): ResponseInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
@@ -270,7 +270,7 @@ class AuthAction extends Action
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
      */
-    public function redirectSuccess($url = null)
+    public function redirectSuccess(?string $url = null): ResponseInterface
     {
         if ($url === null) {
             $url = $this->getSuccessUrl();
@@ -283,7 +283,7 @@ class AuthAction extends Action
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
      */
-    public function redirectCancel($url = null)
+    public function redirectCancel(?string $url = null): ResponseInterface
     {
         if ($url === null) {
             $url = $this->getCancelUrl();
@@ -298,7 +298,7 @@ class AuthAction extends Action
      * @throws Exception on failure.
      * @throws HttpException on failure.
      */
-    protected function authOpenId($client)
+    protected function authOpenId(ClientInterface $client): ResponseInterface
     {
         $request = $this->app->getRequest();
         $mode = $request->get('openid_mode', $request->post('openid_mode'));
@@ -329,7 +329,7 @@ class AuthAction extends Action
      * @param OAuth1 $client auth client instance.
      * @return ResponseInterface action response.
      */
-    protected function authOAuth1($client)
+    protected function authOAuth1(OAuth1 $client): ResponseInterface
     {
         $request = $this->app->getRequest();
 
