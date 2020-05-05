@@ -150,7 +150,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param OAuthToken $token expired auth token.
      * @return OAuthToken new auth token.
      */
-    public function refreshAccessToken(OAuthToken $token)
+    public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
             'grant_type' => 'refresh_token'
@@ -176,7 +176,7 @@ abstract class OAuth2 extends BaseOAuth
      * Composes default [[returnUrl]] value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl()
+    protected function defaultReturnUrl():string
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params['code']);
@@ -204,7 +204,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
-    protected function createToken(array $tokenConfig = [])
+    protected function createToken(array $tokenConfig = []):OAuthToken
     {
         $tokenConfig['tokenParamKey'] = 'access_token';
 

@@ -43,7 +43,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  * This action handles the redirection and closing of popup window correctly.
  *
  * @see Collection
- * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
+ * @see \Yiisoft\Yii\AuthClient\Widget\AuthChoice
  */
 final class AuthAction implements MiddlewareInterface
 {

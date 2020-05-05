@@ -12,21 +12,16 @@ use InvalidArgumentException;
  * Example application configuration:
  *
  * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'setClients()' => [
- *             'google' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
- *                 'clientId' => 'google_client_id',
- *                 'clientSecret' => 'google_client_secret',
- *              ],
- *             'facebook' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
- *                 'clientId' => 'facebook_client_id',
- *                 'clientSecret' => 'facebook_client_secret',
- *             ],
- *         ],
+ * 'authClients' => [
+ *     'google' => [
+ *         '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
+ *         'setClientId()' => ['google_client_id'],
+ *         'setClientSecret' => ['google_client_secret'],
+ *      ],
+ *     'facebook' => [
+ *         '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
+ *         'setClientId' => ['facebook_client_id'],
+ *         'setClientSecret' => ['facebook_client_secret'],
  *     ]
  *     ...
  * ]
@@ -37,7 +32,12 @@ class Collection
     /**
      * @var ClientInterface|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    private array $clients = [];
+    private iterable $clients = [];
+
+    public function __construct(iterable $clients)
+    {
+        $this->clients = $clients;
+    }
 
     /**
      * @param array $clients list of auth clients indexed by their names
