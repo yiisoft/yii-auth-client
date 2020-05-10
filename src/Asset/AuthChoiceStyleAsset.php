@@ -7,7 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Asset;
 use Yiisoft\Assets\AssetBundle;
 
 /**
- * AuthChoiceAsset is an asset bundle for [[AuthChoice]] widget.
+ * AuthChoiceAsset is an asset bundle for {@see AuthChoice} widget.
  */
 class AuthChoiceStyleAsset extends AssetBundle
 {

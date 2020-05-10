@@ -9,7 +9,6 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function get_class;
@@ -60,13 +59,13 @@ abstract class BaseClient implements ClientInterface
     /**
      * @var StateStorageInterface state storage to be used.
      */
-    protected $stateStorage;
+    private StateStorageInterface $stateStorage;
 
-    public function __construct(PsrClientInterface $httpClient, RequestFactoryInterface $requestFactory)
+    public function __construct(PsrClientInterface $httpClient, RequestFactoryInterface $requestFactory, StateStorageInterface $stateStorage)
     {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
-        $this->stateStorage = new DummyStateStorage();
+        $this->stateStorage = $stateStorage;
     }
 
     /**
@@ -132,21 +131,13 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param StateStorageInterface $stateStorage stage storage to be used.
-     */
-    public function setStateStorage(StateStorageInterface $stateStorage): void
-    {
-        $this->stateStorage = $stateStorage;
-    }
-
-    /**
      * Initializes authenticated user attributes.
      * @return array auth user attributes.
      */
     abstract protected function initUserAttributes(): array;
 
     /**
-     * Returns the default [[normalizeUserAttributeMap]] value.
+     * Returns the default {@see normalizeUserAttributeMap} value.
      * Particular client may override this method in order to provide specific default map.
      * @return array normalize attribute map.
      */
@@ -156,9 +147,9 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * Returns the default [[viewOptions]] value.
+     * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
-     * @return array list of default [[viewOptions]]
+     * @return array list of default {@see viewOptions}
      */
     protected function defaultViewOptions(): array
     {
@@ -166,7 +157,7 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * Normalize given user attributes according to [[normalizeUserAttributeMap]].
+     * Normalize given user attributes according to {@see normalizeUserAttributeMap}.
      * @param array $attributes raw attributes.
      * @return array normalized attributes.
      * @throws InvalidConfigException on incorrect normalize attribute map.

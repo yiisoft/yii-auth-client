@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -20,9 +20,9 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class LinkedIn extends OAuth2
 {
-    protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
-    protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
-    protected string $endpoint = 'https://api.linkedin.com/v1';
+    private string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
+    private string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
+    private string $endpoint = 'https://api.linkedin.com/v1';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -23,9 +23,9 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  */
 final class TwitterOAuth2 extends OAuth2
 {
-    protected string $authUrl = 'https://api.twitter.com/oauth2/authenticate';
-    protected string $tokenUrl = 'https://api.twitter.com/oauth2/token';
-    protected string $endpoint = 'https://api.twitter.com/1.1';
+    private string $authUrl = 'https://api.twitter.com/oauth2/authenticate';
+    private string $tokenUrl = 'https://api.twitter.com/oauth2/token';
+    private string $endpoint = 'https://api.twitter.com/1.1';
 
     protected function initUserAttributes(): array
     {

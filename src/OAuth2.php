@@ -280,18 +280,19 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Authenticates user directly using JSON Web Token (JWT).
-     * @see https://tools.ietf.org/html/rfc7515
+     * @link https://tools.ietf.org/html/rfc7515
      * @param string $username
      * @param BaseMethod|array $signature signature method or its array configuration.
-     * If empty - [[signatureMethod]] will be used.
+     * If empty - {@see signatureMethod} will be used.
      * @param array $options additional options. Valid options are:
      *
      * - header: array, additional JWS header parameters.
      * - payload: array, additional JWS payload (message or claim-set) parameters.
-     * - signatureKey: string, signature key to be used, if not set - [[clientSecret]] will be used.
+     * - signatureKey: string, signature key to be used, if not set - {@see clientSecret} will be used.
      *
      * @param array $params additional request params.
      * @return OAuthToken access token.
+     * @throws \JsonException
      */
     public function authenticateUserJwt($username, $signature = null, $options = [], $params = [])
     {

@@ -9,7 +9,9 @@ use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
 use function is_object;
@@ -64,10 +66,11 @@ abstract class BaseOAuth extends BaseClient
     public function __construct(
         ?string $endpoint,
         \Psr\Http\Client\ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage
     ) {
         $this->endpoint = rtrim($endpoint, '/');
-        parent::__construct($httpClient, $requestFactory);
+        parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
     public function getEndpoint(): string
@@ -259,14 +262,15 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Creates an HTTP request for the API call.
      * The created request will be automatically processed adding access token parameters and signature
-     * before sending. You may use [[createRequest()]] to gain full control over request composition and execution.
+     * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
+     * @param string $method
+     * @param string $uri
      * @return RequestInterface HTTP request instance.
      * @see createRequest()
      */
     public function createApiRequest(string $method, string $uri): RequestInterface
     {
-        $request = $this->createRequest($method, $this->endpoint . $uri);
-        return $request;
+        return $this->createRequest($method, $this->endpoint . $uri);
     }
 
     public function beforeApiRequestSend(RequestInterface $request): RequestInterface

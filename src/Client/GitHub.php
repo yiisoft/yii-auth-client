@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 
@@ -31,14 +31,14 @@ use function in_array;
  * ]
  * ```
  *
- * @see http://developer.github.com/v3/oauth/
- * @see https://github.com/settings/applications/new
+ * @link http://developer.github.com/v3/oauth/
+ * @link https://github.com/settings/applications/new
  */
 final class GitHub extends OAuth2
 {
-    protected string $authUrl = 'https://github.com/login/oauth/authorize';
-    protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
-    protected string $endpoint = 'https://api.github.com';
+    private string $authUrl = 'https://github.com/login/oauth/authorize';
+    private string $tokenUrl = 'https://github.com/login/oauth/access_token';
+    private string $endpoint = 'https://api.github.com';
 
     protected function getDefaultScope(): string
     {

@@ -15,7 +15,6 @@ use Psr\Http\Message\RequestInterface;
  *
  * ```php
  * use Yiisoft\Yii\AuthClient\OAuth1;
- * use yii\helpers\Yii;
  *
  * // assuming class MyAuthClient extends OAuth1
  * $oauthClient = new MyAuthClient();
@@ -202,7 +201,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param OAuthToken $token expired auth token.
      * @return OAuthToken new auth token.
      */
-    public function refreshAccessToken(OAuthToken $token)
+    public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         // @todo
         return null;
@@ -212,7 +211,7 @@ abstract class OAuth1 extends BaseOAuth
      * Composes default [[returnUrl]] value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl()
+    protected function defaultReturnUrl(): string
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params['oauth_token']);
@@ -225,7 +224,7 @@ abstract class OAuth1 extends BaseOAuth
      * Generates nonce value.
      * @return string nonce value.
      */
-    protected function generateNonce()
+    protected function generateNonce(): string
     {
         return md5(microtime() . mt_rand());
     }
@@ -234,7 +233,7 @@ abstract class OAuth1 extends BaseOAuth
      * Generates timestamp.
      * @return int timestamp.
      */
-    protected function generateTimestamp()
+    protected function generateTimestamp(): int
     {
         return time();
     }
@@ -243,15 +242,13 @@ abstract class OAuth1 extends BaseOAuth
      * Generate common request params like version, timestamp etc.
      * @return array common request params.
      */
-    protected function generateCommonRequestParams()
+    protected function generateCommonRequestParams(): array
     {
-        $params = [
+        return [
             'oauth_version' => self::PROTOCOL_VERSION,
             'oauth_nonce' => $this->generateNonce(),
             'oauth_timestamp' => $this->generateTimestamp(),
         ];
-
-        return $params;
     }
 
     /**

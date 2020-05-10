@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -37,9 +37,9 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class Facebook extends OAuth2
 {
-    protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
-    protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
-    protected string $endpoint = 'https://graph.facebook.com';
+    private string $authUrl = 'https://www.facebook.com/dialog/oauth';
+    private string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
+    private string $endpoint = 'https://graph.facebook.com';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
@@ -47,7 +47,7 @@ final class Facebook extends OAuth2
         'name',
         'email',
     ];
-    protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
+    private bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
      * @see exchangeToken()

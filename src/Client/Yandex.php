@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -19,9 +19,9 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class Yandex extends OAuth2
 {
-    protected string $authUrl = 'https://oauth.yandex.ru/authorize';
-    protected string $tokenUrl = 'https://oauth.yandex.ru/token';
-    protected string $endpoint = 'https://login.yandex.ru';
+    private string $authUrl = 'https://oauth.yandex.ru/authorize';
+    private string $tokenUrl = 'https://oauth.yandex.ru/token';
+    private string $endpoint = 'https://login.yandex.ru';
 
     protected function initUserAttributes(): array
     {

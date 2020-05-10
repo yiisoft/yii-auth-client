@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use RuntimeException;
@@ -21,9 +21,9 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class VKontakte extends OAuth2
 {
-    protected string $authUrl = 'https://oauth.vk.com/authorize';
-    protected string $tokenUrl = 'https://oauth.vk.com/access_token';
-    protected string $endpoint = 'https://api.vk.com/method';
+    private string $authUrl = 'https://oauth.vk.com/authorize';
+    private string $tokenUrl = 'https://oauth.vk.com/access_token';
+    private string $endpoint = 'https://api.vk.com/method';
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
@@ -45,7 +45,6 @@ final class VKontakte extends OAuth2
      * @see https://vk.com/dev/versions
      */
     private string $apiVersion = '3.0';
-
 
     protected function initUserAttributes(): array
     {

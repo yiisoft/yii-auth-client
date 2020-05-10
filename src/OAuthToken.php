@@ -10,11 +10,11 @@ namespace Yiisoft\Yii\AuthClient;
 class OAuthToken
 {
     /**
-     * @var string key in [[params]] array, which stores token key.
+     * @var string key in {@see params} array, which stores token key.
      */
     private string $tokenParamKey = 'oauth_token';
     /**
-     * @var string key in [[params]] array, which stores token secret key.
+     * @var string key in {@see params} array, which stores token secret key.
      */
     private string $tokenSecretParamKey = 'oauth_token_secret';
     /**
@@ -23,7 +23,7 @@ class OAuthToken
     private int $createTimestamp;
 
     /**
-     * @var string key in [[params]] array, which stores token expiration duration.
+     * @var string key in {@see params} array, which stores token expiration duration.
      * If not set will attempt to fetch its value automatically.
      */
     private string $expireDurationParamKey;

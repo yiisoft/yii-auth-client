@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+namespace Yiisoft\Yii\AuthClient\Client;
 
-use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
+use Yiisoft\Yii\AuthClient\Widget\GooglePlusButton;
 
 /**
  * GoogleHybrid is an enhanced version of the [[Google]], which uses Google+ hybrid sign-in flow,
@@ -17,15 +17,14 @@ use Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton;
  * [[Yiisoft\Yii\AuthClient\Widgets\AuthChoice]] it will appear automatically. Otherwise you need to add it into your page manually.
  *
  * @see Google
- * @see \Yiisoft\Yii\AuthClient\Widgets\GooglePlusButton
+ * @see \Yiisoft\Yii\AuthClient\Widget\GooglePlusButton
  * @link https://developers.google.com/+/web/signin
  */
 final class GoogleHybrid extends Google
 {
-    protected bool $validateAuthState = false;
+    private bool $validateAuthState = false;
 
-
-    protected function defaultReturnUrl()
+    protected function defaultReturnUrl(): string
     {
         return 'postmessage';
     }

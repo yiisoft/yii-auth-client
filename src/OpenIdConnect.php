@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use HttpException;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Core\AlgorithmManager;
@@ -19,8 +20,10 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Json\Json;
+use Yiisoft\Security\Random;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function in_array;
 
@@ -33,7 +36,7 @@ use function in_array;
  * composer require --prefer-dist "spomky-labs/jose:~5.0.6"
  * ```
  *
- * Note: if you are using well-trusted OpenIdConnect provider, you may disable [[validateJws]], making installation of
+ * Note: if you are using well-trusted OpenIdConnect provider, you may disable {@see validateJws}, making installation of
  * `spomky-labs/jose` library redundant, however it is not recommended as it violates the protocol specification.
  *
  * @link http://openid.net/connect/
@@ -72,9 +75,10 @@ class OpenIdConnect extends OAuth2
         'PS384',
         'PS512'
     ];
+
     /**
-     * @var string the prefix for the key used to store [[configParams]] data in cache.
-     * Actual cache key will be formed addition [[id]] value to it.
+     * @var string the prefix for the key used to store {@see configParams} data in cache.
+     * Actual cache key will be formed addition {@see id} value to it.
      * @see cache
      */
     private string $configParamsCacheKeyPrefix = 'config-params-';
@@ -84,6 +88,7 @@ class OpenIdConnect extends OAuth2
      * The option is used for preventing replay attacks.
      */
     private ?bool $validateAuthNonce;
+
     /**
      * @var array OpenID provider configuration parameters.
      */
@@ -91,6 +96,7 @@ class OpenIdConnect extends OAuth2
     private CacheInterface $cache;
     private string $name;
     private string $title;
+
     /**
      * @var JWSLoader JSON Web Signature
      */
@@ -102,7 +108,13 @@ class OpenIdConnect extends OAuth2
 
     /**
      * OpenIdConnect constructor.
+     * @param string|null $endpoint
+     * @param $name
+     * @param $title
+     * @param ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
      * @param CacheInterface $cache
+     * @param StateStorageInterface $stateStorage
      */
     public function __construct(
         ?string $endpoint,
@@ -110,16 +122,19 @@ class OpenIdConnect extends OAuth2
         $title,
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        CacheInterface $cache
+        CacheInterface $cache,
+        StateStorageInterface $stateStorage
     ) {
         $this->name = $name;
         $this->title = $title;
         $this->cache = $cache;
-        parent::__construct($endpoint, $httpClient, $requestFactory);
+        parent::__construct($endpoint, $httpClient, $requestFactory, $stateStorage);
     }
 
     /**
      * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
+     * @throws InvalidConfigException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getValidateAuthNonce(): bool
     {
@@ -142,6 +157,8 @@ class OpenIdConnect extends OAuth2
 
     /**
      * @return array OpenID provider configuration parameters.
+     * @throws InvalidConfigException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getConfigParams(): array
     {
@@ -161,6 +178,8 @@ class OpenIdConnect extends OAuth2
      * Returns particular configuration parameter value.
      * @param string $name configuration parameter name.
      * @return mixed configuration parameter value.
+     * @throws InvalidConfigException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getConfigParam($name)
     {
@@ -208,7 +227,7 @@ class OpenIdConnect extends OAuth2
         return parent::fetchAccessToken($authCode, $params);
     }
 
-    public function refreshAccessToken(OAuthToken $token)
+    public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         if ($this->tokenUrl === null) {
             $this->tokenUrl = $this->getConfigParam('token_endpoint');
@@ -275,7 +294,7 @@ class OpenIdConnect extends OAuth2
         return $request;
     }
 
-    protected function defaultReturnUrl()
+    protected function defaultReturnUrl(): string
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
         // OAuth2 specifics :
@@ -287,7 +306,7 @@ class OpenIdConnect extends OAuth2
         return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 
-    protected function createToken(array $tokenConfig = [])
+    protected function createToken(array $tokenConfig = []): OAuthToken
     {
         if ($this->validateJws) {
             $jwsData = $this->loadJws($tokenConfig['params']['id_token']);
@@ -310,6 +329,8 @@ class OpenIdConnect extends OAuth2
     /**
      * Return JwkSet, returning related data.
      * @return JWKSet object represents a key set.
+     * @throws InvalidConfigException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     protected function getJwkSet()
     {
@@ -317,9 +338,7 @@ class OpenIdConnect extends OAuth2
             $cache = $this->cache;
             $cacheKey = $this->configParamsCacheKeyPrefix . 'jwkSet';
             if ($cache === null || ($jwkSet = $cache->get($cacheKey)) === false) {
-                $request = $this->createRequest()
-                    ->setMethod('GET')
-                    ->setUrl($this->getConfigParam('jwks_uri'));
+                $request = $this->createRequest('GET', $this->getConfigParam('jwks_uri'));
                 $response = $this->sendRequest($request);
                 $jwkSet = JWKFactory::createFromValues($response);
             }
@@ -366,6 +385,7 @@ class OpenIdConnect extends OAuth2
      * @param string $jws raw JWS input.
      * @return array JWS underlying data.
      * @throws HttpException on invalid JWS signature.
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     protected function loadJws($jws)
     {
@@ -398,10 +418,11 @@ class OpenIdConnect extends OAuth2
     /**
      * Generates the auth nonce value.
      * @return string auth nonce value.
+     * @throws \Exception
      */
     protected function generateAuthNonce()
     {
-        return Yii::getApp()->security->generateRandomString();
+        return Random::string();
     }
 
     /**
