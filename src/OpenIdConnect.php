@@ -18,6 +18,7 @@ use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Security\Random;
@@ -212,7 +213,7 @@ class OpenIdConnect extends OAuth2
         return parent::buildAuthUrl($params);
     }
 
-    public function fetchAccessToken($authCode, array $params = []): OAuthToken
+    public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
     {
         if ($this->tokenUrl === null) {
             $this->tokenUrl = $this->getConfigParam('token_endpoint');
@@ -224,7 +225,7 @@ class OpenIdConnect extends OAuth2
             $params['nonce'] = $nonce;
         }
 
-        return parent::fetchAccessToken($authCode, $params);
+        return parent::fetchAccessToken($request, $authCode, $params);
     }
 
     public function refreshAccessToken(OAuthToken $token): OAuthToken

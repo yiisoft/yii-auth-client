@@ -138,7 +138,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * @return string successful URL.
      */
-    public function getSuccessUrl(): string
+    private function getSuccessUrl(): string
     {
         if (empty($this->successUrl)) {
             $this->successUrl = $this->defaultSuccessUrl();
@@ -161,7 +161,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * @return string cancel URL.
      */
-    public function getCancelUrl(): string
+    private function getCancelUrl(): string
     {
         if (empty($this->cancelUrl)) {
             $this->cancelUrl = $this->defaultCancelUrl();
@@ -174,7 +174,7 @@ final class AuthAction implements MiddlewareInterface
      * Creates default {@see successUrl} value.
      * @return string success URL value.
      */
-    protected function defaultSuccessUrl(): string
+    private function defaultSuccessUrl(): string
     {
         return $this->app->getUser()->getReturnUrl();
     }
@@ -183,7 +183,7 @@ final class AuthAction implements MiddlewareInterface
      * Creates default {@see cancelUrl} value.
      * @return string cancel URL value.
      */
-    protected function defaultCancelUrl(): string
+    private function defaultCancelUrl(): string
     {
         return Url::to($this->app->getUser()->loginUrl);
     }
@@ -250,6 +250,8 @@ final class AuthAction implements MiddlewareInterface
      * This method is invoked in case of authentication cancellation.
      * @param ClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
+     * @throws \Throwable
+     * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
     private function authCancel($client): ResponseInterface
     {
@@ -295,6 +297,8 @@ final class AuthAction implements MiddlewareInterface
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
+     * @throws \Throwable
+     * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
     private function redirectSuccess(?string $url = null): ResponseInterface
     {
@@ -308,6 +312,8 @@ final class AuthAction implements MiddlewareInterface
      * Redirect to the {@see cancelUrl} or simply close the popup window.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
+     * @throws \Throwable
+     * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
     private function redirectCancel(?string $url = null): ResponseInterface
     {
@@ -327,7 +333,8 @@ final class AuthAction implements MiddlewareInterface
     private function authOpenId(OpenIdConnect $client, ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
-        $mode = $request->getQueryParams()['openid_mode'] ?? $request->getParsedBody()['openid_mode'] ?? null;
+        $bodyParams = $request->getParsedBody();
+        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
 
         if (empty($mode)) {
             return $this->responseFactory
@@ -369,9 +376,9 @@ final class AuthAction implements MiddlewareInterface
             return $this->authCancel($client);
         }
 
-        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token']) !== null) {
+        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token'] ?? null) !== null) {
             // Upgrade to access token.
-            $client->fetchAccessToken($oauthToken);
+            $client->fetchAccessToken($request, $oauthToken);
             return $this->authSuccess($client);
         }
 
@@ -410,7 +417,7 @@ final class AuthAction implements MiddlewareInterface
 
         // Get the access_token and save them to the session.
         if (isset($queryParams['code']) && ($code = $queryParams['code']) !== null) {
-            $token = $client->fetchAccessToken($code);
+            $token = $client->fetchAccessToken($request, $code);
             if (!empty($token)) {
                 return $this->authSuccess($client);
             }

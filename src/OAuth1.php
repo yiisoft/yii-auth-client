@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use HttpException;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * OAuth1 serves as a client for the OAuth 1/1.0a flow.
@@ -27,7 +27,7 @@ use Psr\Http\Message\RequestInterface;
  * ```
  *
  * @see https://oauth.net/1/
- * https://tools.ietf.org/html/rfc5849
+ * @see https://tools.ietf.org/html/rfc5849
  */
 abstract class OAuth1 extends BaseOAuth
 {
@@ -119,29 +119,29 @@ abstract class OAuth1 extends BaseOAuth
         }
         $params['oauth_token'] = $requestToken->getToken();
 
-        return $this->composeUrl($this->authUrl, $params);
+        return RequestUtil::composeUrl($this->authUrl, $params);
     }
 
     /**
      * Fetches OAuth access token.
+     * @param ServerRequestInterface $incomingRequest
      * @param string $oauthToken OAuth token returned with redirection back to client.
      * @param OAuthToken $requestToken OAuth request token.
      * @param string $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
      * @return OAuthToken OAuth access token.
-     * @throws InvalidArgumentException on failure.
-     * @throws HttpException in case oauth token miss-matches request token.
      */
     public function fetchAccessToken(
-        $oauthToken = null,
+        ServerRequestInterface $incomingRequest,
+        string $oauthToken = null,
         OAuthToken $requestToken = null,
-        $oauthVerifier = null,
+        string $oauthVerifier = null,
         array $params = []
     ) {
-        $incomingRequest = Yii::getApp()->getRequest();
-
+        $queryParams = $incomingRequest->getQueryParams();
+        $bodyParams = $incomingRequest->getParsedBody();
         if ($oauthToken === null) {
-            $oauthToken = $incomingRequest->get('oauth_token', $incomingRequest->post('oauth_token', $oauthToken));
+            $oauthToken = $queryParams['oauth_token'] ?? $bodyParams['oauth_token'] ?? null;
         }
 
         if (!is_object($requestToken)) {
@@ -152,7 +152,7 @@ abstract class OAuth1 extends BaseOAuth
         }
 
         if (strcmp($requestToken->getToken(), $oauthToken) !== 0) {
-            throw new HttpException(400, 'Invalid auth state parameter.');
+            throw new InvalidArgumentException('Invalid auth state parameter.');
         }
 
         $this->removeState('requestToken');
@@ -162,15 +162,16 @@ abstract class OAuth1 extends BaseOAuth
             'oauth_token' => $requestToken->getToken()
         ];
         if ($oauthVerifier === null) {
-            $oauthVerifier = $incomingRequest->get('oauth_verifier', $incomingRequest->post('oauth_verifier'));
+            $oauthVerifier = $queryParams['oauth_verifier'] ?? $bodyParams['oauth_verifier'];
         }
+
         if (!empty($oauthVerifier)) {
             $defaultParams['oauth_verifier'] = $oauthVerifier;
         }
 
         $request = $this->createRequest(
             $this->accessTokenMethod,
-            $this->composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params))
+            RequestUtil::composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params))
         );
 
         $request = $this->signRequest($request, $requestToken);

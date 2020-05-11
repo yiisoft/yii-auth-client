@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
+use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -56,20 +57,25 @@ abstract class BaseOAuth extends BaseClient
      * @var array|BaseMethod signature method instance or its array configuration.
      */
     protected array $signatureMethod = [];
+    private FactoryInterface $factory;
 
     /**
      * BaseOAuth constructor.
      * @param string|null $endpoint
      * @param \Psr\Http\Client\ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
+     * @param StateStorageInterface $stateStorage
+     * @param FactoryInterface $factory
      */
     public function __construct(
         ?string $endpoint,
         \Psr\Http\Client\ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        StateStorageInterface $stateStorage
+        StateStorageInterface $stateStorage,
+        FactoryInterface $factory
     ) {
         $this->endpoint = rtrim($endpoint, '/');
+        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
@@ -168,14 +174,16 @@ abstract class BaseOAuth extends BaseClient
 
     public function withAutoRefreshAccessToken(): self
     {
-        $this->autoRefreshAccessToken = true;
-        return $this;
+        $new = clone $this;
+        $new->autoRefreshAccessToken = true;
+        return $new;
     }
 
     public function withoutAutoRefreshAccessToken(): self
     {
-        $this->autoRefreshAccessToken = false;
-        return $this;
+        $new = clone $this;
+        $new->autoRefreshAccessToken = false;
+        return $new;
     }
 
     /**
@@ -190,7 +198,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Creates signature method instance from its configuration.
      * @param array $signatureMethodConfig signature method configuration.
-     * @return BaseMethod signature method instance.
+     * @return object|BaseMethod signature method instance.
      */
     protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
     {
@@ -198,39 +206,20 @@ abstract class BaseOAuth extends BaseClient
             $signatureMethodConfig['__class'] = Signature\HmacSha::class;
             $signatureMethodConfig['__construct()'] = ['sha1'];
         }
-        return Yii::createObject($signatureMethodConfig);
+        return $this->factory->create($signatureMethodConfig);
     }
 
     /**
      * Creates token from its configuration.
      * @param array $tokenConfig token configuration.
-     * @return OAuthToken token instance.
+     * @return object|OAuthToken
      */
-    protected function createToken(array $tokenConfig = []): OAuthToken
+    protected function createToken(array $tokenConfig = [])
     {
         if (!array_key_exists('__class', $tokenConfig)) {
             $tokenConfig['__class'] = OAuthToken::class;
         }
-        return Yii::createObject($tokenConfig);
-    }
-
-    /**
-     * Composes URL from base URL and GET params.
-     * @param string $url base URL.
-     * @param array $params GET params.
-     * @return string composed URL.
-     */
-    protected function composeUrl($url, array $params = []): string
-    {
-        if (!empty($params)) {
-            if (strpos($url, '?') === false) {
-                $url .= '?';
-            } else {
-                $url .= '&';
-            }
-            $url .= http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        }
-        return $url;
+        return $this->factory->create($tokenConfig);
     }
 
     /**

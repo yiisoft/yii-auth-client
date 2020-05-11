@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -93,9 +94,9 @@ final class Facebook extends OAuth2
         ];
     }
 
-    public function fetchAccessToken($authCode, array $params = []): OAuthToken
+    public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
     {
-        $token = parent::fetchAccessToken($authCode, $params);
+        $token = parent::fetchAccessToken($request, $authCode, $params);
         if ($this->autoExchangeAccessToken) {
             $token = $this->exchangeAccessToken($token);
         }

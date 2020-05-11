@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Yiisoft\Yii\Web\Session\SessionInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
@@ -30,6 +34,7 @@ use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
  */
 abstract class OAuth2 extends BaseOAuth
 {
+    private SessionInterface $session;
     /**
      * @var string OAuth client ID.
      */
@@ -51,6 +56,16 @@ abstract class OAuth2 extends BaseOAuth
      */
     protected bool $validateAuthState = true;
 
+    public function __construct(
+        ?string $endpoint,
+        \Psr\Http\Client\ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage,
+        SessionInterface $session
+    ) {
+        parent::__construct($endpoint, $httpClient, $requestFactory, $stateStorage);
+        $this->session = $session;
+    }
 
     /**
      * Composes user authorization URL.
@@ -75,24 +90,25 @@ abstract class OAuth2 extends BaseOAuth
             $defaultParams['state'] = $authState;
         }
 
-        return $this->composeUrl($this->authUrl, array_merge($defaultParams, $params));
+        return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
     }
 
     /**
      * Fetches access token from authorization code.
+     * @param ServerRequestInterface $incomingRequest
      * @param string $authCode authorization code, usually comes at GET parameter 'code'.
      * @param array $params additional request params.
      * @return OAuthToken access token.
-     * @throws HttpException on invalid auth state in case [[enableStateValidation]] is enabled.
      */
-    public function fetchAccessToken($authCode, array $params = []): OAuthToken
+    public function fetchAccessToken(ServerRequestInterface $incomingRequest, $authCode, array $params = []): OAuthToken
     {
         if ($this->validateAuthState) {
             $authState = $this->getState('authState');
-            $incomingRequest = Yii::getApp()->getRequest();
-            $incomingState = $incomingRequest->get('state', $incomingRequest->post('state'));
-            if (!isset($incomingState) || empty($authState) || strcmp($incomingState, $authState) !== 0) {
-                throw new HttpException(400, 'Invalid auth state parameter.');
+            $queryParams = $incomingRequest->getQueryParams();
+            $bodyParams = $incomingRequest->getParsedBody();
+            $incomingState = $queryParams['state'] ?? $bodyParams['state'] ?? null;
+            if ($incomingState !== null || empty($authState) || strcmp($incomingState, $authState) !== 0) {
+                throw new \InvalidArgumentException('Invalid auth state parameter.');
             }
             $this->removeState('authState');
         }
@@ -103,11 +119,8 @@ abstract class OAuth2 extends BaseOAuth
             'redirect_uri' => $this->getReturnUrl(),
         ];
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams(array_merge($defaultParams, $params));
-
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
@@ -129,7 +142,7 @@ abstract class OAuth2 extends BaseOAuth
     }
 
     /**
-     * Applies client credentials (e.g. [[clientId]] and [[clientSecret]]) to the HTTP request instance.
+     * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      * @param RequestInterface $request HTTP request instance.
      * @return RequestInterface
@@ -157,10 +170,8 @@ abstract class OAuth2 extends BaseOAuth
         ];
         $params = array_merge($token->getParams(), $params);
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams($params);
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams($request, $params);
 
         $request = $this->applyClientCredentialsToRequest($request);
 
@@ -176,7 +187,7 @@ abstract class OAuth2 extends BaseOAuth
      * Composes default [[returnUrl]] value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl():string
+    protected function defaultReturnUrl(): string
     {
         $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params['code']);
@@ -193,8 +204,8 @@ abstract class OAuth2 extends BaseOAuth
     protected function generateAuthState()
     {
         $baseString = get_class($this) . '-' . time();
-        if (Yii::getApp()->has('session')) {
-            $baseString .= '-' . Yii::getApp()->session->getId();
+        if ($this->session->isActive()) {
+            $baseString .= '-' . $this->session->getId();
         }
         return hash('sha256', uniqid($baseString, true));
     }
@@ -204,7 +215,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
-    protected function createToken(array $tokenConfig = []):OAuthToken
+    protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $tokenConfig['tokenParamKey'] = 'access_token';
 
@@ -218,7 +229,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $params additional request params.
      * @return OAuthToken access token.
      */
-    public function authenticateClient($params = [])
+    public function authenticateClient($params = []): OAuthToken
     {
         $defaultParams = [
             'grant_type' => 'client_credentials',
@@ -228,10 +239,11 @@ abstract class OAuth2 extends BaseOAuth
             $defaultParams['scope'] = $this->getScope();
         }
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams(array_merge($defaultParams, $params));
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams(
+            $request,
+            array_merge($defaultParams, $params)
+        );
 
         $request = $this->applyClientCredentialsToRequest($request);
 
@@ -251,7 +263,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $params additional request params.
      * @return OAuthToken access token.
      */
-    public function authenticateUser($username, $password, $params = [])
+    public function authenticateUser($username, $password, $params = []): OAuthToken
     {
         $defaultParams = [
             'grant_type' => 'password',
@@ -263,10 +275,11 @@ abstract class OAuth2 extends BaseOAuth
             $defaultParams['scope'] = $this->getScope();
         }
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams(array_merge($defaultParams, $params));
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams(
+            $request,
+            array_merge($defaultParams, $params)
+        );
 
         $request = $this->applyClientCredentialsToRequest($request);
 
@@ -294,7 +307,7 @@ abstract class OAuth2 extends BaseOAuth
      * @return OAuthToken access token.
      * @throws \JsonException
      */
-    public function authenticateUserJwt($username, $signature = null, $options = [], $params = [])
+    public function authenticateUserJwt($username, $signature = null, $options = [], $params = []): OAuthToken
     {
         if (empty($signature)) {
             $signatureMethod = $this->getSignatureMethod();
@@ -304,8 +317,8 @@ abstract class OAuth2 extends BaseOAuth
             $signatureMethod = $this->createSignatureMethod($signature);
         }
 
-        $header = isset($options['header']) ? $options['header'] : [];
-        $payload = isset($options['payload']) ? $options['payload'] : [];
+        $header = $options['header'] ?? [];
+        $payload = $options['payload'] ?? [];
 
         $header = array_merge(
             [
@@ -336,23 +349,22 @@ abstract class OAuth2 extends BaseOAuth
         }
 
         $signatureBaseString = base64_encode(Json::encode($header)) . '.' . base64_encode(Json::encode($payload));
-        $signatureKey = isset($options['signatureKey']) ? $options['signatureKey'] : $this->clientSecret;
+        $signatureKey = $options['signatureKey'] ?? $this->clientSecret;
         $signature = $signatureMethod->generateSignature($signatureBaseString, $signatureKey);
 
         $assertion = $signatureBaseString . '.' . $signature;
 
-        $request = $this->createRequest()
-            ->setMethod('POST')
-            ->setUrl($this->tokenUrl)
-            ->setParams(
-                array_merge(
-                    [
-                        'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                        'assertion' => $assertion,
-                    ],
-                    $params
-                )
-            );
+        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = RequestUtil::addParams(
+            $request,
+            array_merge(
+                [
+                    'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    'assertion' => $assertion,
+                ],
+                $params
+            )
+        );
 
         $response = $this->sendRequest($request);
 
