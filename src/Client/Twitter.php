@@ -12,7 +12,7 @@ use Yiisoft\Yii\AuthClient\OAuth1;
  * In order to use Twitter OAuth you must register your application at <https://dev.twitter.com/apps/new>.
  *
  * > Note: some auth workflows provided by Twitter, such as [application-only authentication](https://dev.twitter.com/oauth/application-only),
- *   uses OAuth 2 protocol and thus are impossible to be used with this class. You should use [[TwitterOAuth2]] for these.
+ *   uses OAuth 2 protocol and thus are impossible to be used with this class. You should use {@see TwitterOAuth2} for these.
  *
  * @see TwitterOAuth2
  * @link https://apps.twitter.com/

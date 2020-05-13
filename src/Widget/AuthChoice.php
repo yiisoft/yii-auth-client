@@ -7,11 +7,11 @@ namespace Yiisoft\Yii\AuthClient\Widget;
 use Yiisoft\Html\Html;
 use Yiisoft\Json\Json;
 use Yiisoft\Widget\Widget;
+use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
+use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
 use Yiisoft\Yii\AuthClient\ClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\Widgets\AuthChoiceAsset;
-use Yiisoft\Yii\AuthClient\Widgets\AuthChoiceStyleAsset;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -56,36 +56,36 @@ use Yiisoft\Yii\AuthClient\Widgets\AuthChoiceStyleAsset;
  * @see \Yiisoft\Yii\AuthClient\AuthAction
  *
  */
-class AuthChoice extends Widget
+final class AuthChoice extends Widget
 {
     /**
      * @var string name of the auth client collection application component.
      * This component will be used to fetch services value if it is not set.
      */
-    public string $clientCollection = 'authClientCollection';
+    private string $clientCollection = 'authClientCollection';
     /**
      * @var string name of the GET param , which should be used to passed auth client id to URL
      * defined by {@see baseAuthUrl}.
      */
-    public string $clientIdGetParamName = 'authclient';
+    private string $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
      * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    public array $options = [];
+    private array $options = [];
     /**
      * @var array additional options to be passed to the underlying JS plugin.
      */
-    public array $clientOptions = [];
+    private array $clientOptions = [];
     /**
      * @var bool indicates if popup window should be used instead of direct links.
      */
-    public bool $popupMode = true;
+    private bool $popupMode = true;
     /**
      * @var bool indicates if widget content, should be rendered automatically.
      * Note: this value automatically set to 'false' at the first call of {@see createClientUrl()}
      */
-    public bool $autoRender = true;
+    private bool $autoRender = true;
 
     /**
      * @var array configuration for the external clients base authentication URL.
@@ -95,7 +95,6 @@ class AuthChoice extends Widget
      * @var ClientInterface[] auth providers list.
      */
     private array $clients;
-
 
     /**
      * @param ClientInterface[] $clients auth providers

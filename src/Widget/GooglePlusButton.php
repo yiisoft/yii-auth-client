@@ -6,7 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Widget;
 
 use Yiisoft\Html\Html;
 use Yiisoft\View\WebView;
-use Yiisoft\Yii\AuthClient\Clients\GoogleHybrid;
+use Yiisoft\Yii\AuthClient\Client\GoogleHybrid;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
 /**
@@ -17,7 +17,7 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * @link https://developers.google.com/+/web/signin/
  *
  * @property string $callback Callback JavaScript function name. Note that the type of this property differs
- * in getter and setter. See [[getCallback()]] and [[setCallback()]] for details.
+ * in getter and setter. See {@see getCallback()} and {@see setCallback()} for details.
  */
 class GooglePlusButton extends AuthChoiceItem
 {

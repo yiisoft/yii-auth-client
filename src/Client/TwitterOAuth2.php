@@ -13,9 +13,9 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * Note, that at the time these docs are written, Twitter does not provide full support for OAuth 2 protocol.
  * It is supported only for [application-only authentication](https://dev.twitter.com/oauth/application-only) workflow.
- * Thus only [[authenticateClient()]] method of this class has a practical usage.
+ * Thus only {@see authenticateClient()} method of this class has a practical usage.
  *
- * Any authentication attempt on behalf of the end-user will fail for this client. You should use [[Twitter]] class for
+ * Any authentication attempt on behalf of the end-user will fail for this client. You should use {@see Twitter} class for
  * this workflow.
  *
  * @see Twitter

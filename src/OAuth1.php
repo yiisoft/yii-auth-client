@@ -205,7 +205,7 @@ abstract class OAuth1 extends BaseOAuth
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         // @todo
-        return null;
+        return $token;
     }
 
     /**
