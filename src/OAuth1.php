@@ -209,7 +209,7 @@ abstract class OAuth1 extends BaseOAuth
     }
 
     /**
-     * Composes default [[returnUrl]] value.
+     * Composes default {@see returnUrl} value.
      * @return string return URL.
      */
     protected function defaultReturnUrl(): string
@@ -253,9 +253,9 @@ abstract class OAuth1 extends BaseOAuth
     }
 
     /**
-     * Sign given request with [[signatureMethod]].
+     * Sign given request with {@see signatureMethod}.
      * @param RequestInterface $request request instance.
-     * @param OAuthToken|null $token OAuth token to be used for signature, if not set [[accessToken]] will be used.
+     * @param OAuthToken|null $token OAuth token to be used for signature, if not set {@see accessToken} will be used.
      * @return RequestInterface
      */
     public function signRequest(RequestInterface $request, ?OAuthToken $token = null): RequestInterface
@@ -310,7 +310,7 @@ abstract class OAuth1 extends BaseOAuth
     }
 
     /**
-     * Creates signature base string, which will be signed by [[signatureMethod]].
+     * Creates signature base string, which will be signed by {@see signatureMethod}.
      * @param string $method request method.
      * @param string $url request URL.
      * @param array $params request params.

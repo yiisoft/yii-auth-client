@@ -33,12 +33,12 @@ final class RsaSha extends BaseMethod
 
     /**
      * @var string OpenSSL private key certificate content.
-     * This value can be fetched from file specified by [[privateCertificateFile]].
+     * This value can be fetched from file specified by {@see privateCertificateFile}.
      */
     private string $privateCertificate;
     /**
      * @var string OpenSSL public key certificate content.
-     * This value can be fetched from file specified by [[publicCertificateFile]].
+     * This value can be fetched from file specified by {@see publicCertificateFile}.
      */
     private string $publicCertificate;
 
@@ -118,8 +118,8 @@ final class RsaSha extends BaseMethod
     }
 
     /**
-     * Creates initial value for [[publicCertificate]].
-     * This method will attempt to fetch the certificate value from [[publicCertificateFile]] file.
+     * Creates initial value for {@see publicCertificate}.
+     * This method will attempt to fetch the certificate value from {@see publicCertificateFile} file.
      * @return string public certificate content.
      * @throws InvalidConfigException on failure.
      */
@@ -137,8 +137,8 @@ final class RsaSha extends BaseMethod
     }
 
     /**
-     * Creates initial value for [[privateCertificate]].
-     * This method will attempt to fetch the certificate value from [[privateCertificateFile]] file.
+     * Creates initial value for {@see privateCertificate}.
+     * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
      * @return string private certificate content.
      * @throws InvalidConfigException on failure.
      */

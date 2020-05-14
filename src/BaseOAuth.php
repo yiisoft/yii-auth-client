@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
 use InvalidArgumentException;
+use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
@@ -62,14 +63,14 @@ abstract class BaseOAuth extends BaseClient
     /**
      * BaseOAuth constructor.
      * @param string|null $endpoint
-     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param PsrClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
      * @param FactoryInterface $factory
      */
     public function __construct(
         ?string $endpoint,
-        \Psr\Http\Client\ClientInterface $httpClient,
+        PsrClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         FactoryInterface $factory
@@ -161,7 +162,7 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * @return BaseMethod signature method instance.
+     * @return array|BaseMethod signature method instance.
      */
     public function getSignatureMethod(): BaseMethod
     {
@@ -187,7 +188,7 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * Composes default [[returnUrl]] value.
+     * Composes default {@see returnUrl} value.
      * @return string return URL.
      */
     protected function defaultReturnUrl(): string
@@ -274,8 +275,8 @@ abstract class BaseOAuth extends BaseClient
 
     /**
      * Performs request to the OAuth API returning response data.
-     * You may use [[createApiRequest()]] method instead, gaining more control over request execution.
-     * @param string $apiSubUrl API sub URL, which will be append to [[apiBaseUrl]], or absolute API URL.
+     * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
+     * @param string $apiSubUrl API sub URL, which will be append to {@see apiBaseUrl}, or absolute API URL.
      * @param string $method request method.
      * @param array|string $data request data or content.
      * @param array $headers additional request headers.

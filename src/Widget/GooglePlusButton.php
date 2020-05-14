@@ -11,7 +11,7 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
 /**
  * GooglePlusButton renders Google+ sign-in button.
- * This widget is designed to interact with [[GoogleHybrid]].
+ * This widget is designed to interact with {@see GoogleHybrid}.
  *
  * @see GoogleHybrid
  * @link https://developers.google.com/+/web/signin/

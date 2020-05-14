@@ -100,8 +100,11 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $params additional request params.
      * @return OAuthToken access token.
      */
-    public function fetchAccessToken(ServerRequestInterface $incomingRequest, $authCode, array $params = []): OAuthToken
-    {
+    public function fetchAccessToken(
+        ServerRequestInterface $incomingRequest,
+        string $authCode,
+        array $params = []
+    ): OAuthToken {
         if ($this->validateAuthState) {
             $authState = $this->getState('authState');
             $queryParams = $incomingRequest->getQueryParams();
@@ -184,7 +187,7 @@ abstract class OAuth2 extends BaseOAuth
     }
 
     /**
-     * Composes default [[returnUrl]] value.
+     * Composes default {@see returnUrl} value.
      * @return string return URL.
      */
     protected function defaultReturnUrl(): string
@@ -201,7 +204,7 @@ abstract class OAuth2 extends BaseOAuth
      * Generates the auth state value.
      * @return string auth state value.
      */
-    protected function generateAuthState()
+    protected function generateAuthState(): string
     {
         $baseString = get_class($this) . '-' . time();
         if ($this->session->isActive()) {
@@ -263,7 +266,7 @@ abstract class OAuth2 extends BaseOAuth
      * @param array $params additional request params.
      * @return OAuthToken access token.
      */
-    public function authenticateUser($username, $password, $params = []): OAuthToken
+    public function authenticateUser(string $username, string $password, array $params = []): OAuthToken
     {
         $defaultParams = [
             'grant_type' => 'password',
@@ -307,8 +310,12 @@ abstract class OAuth2 extends BaseOAuth
      * @return OAuthToken access token.
      * @throws \JsonException
      */
-    public function authenticateUserJwt($username, $signature = null, $options = [], $params = []): OAuthToken
-    {
+    public function authenticateUserJwt(
+        string $username,
+        $signature = null,
+        array $options = [],
+        array $params = []
+    ): OAuthToken {
         if (empty($signature)) {
             $signatureMethod = $this->getSignatureMethod();
         } elseif (is_object($signature)) {

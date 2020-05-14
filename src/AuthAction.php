@@ -18,7 +18,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * AuthAction performs authentication via different auth clients.
- * It supports [[OpenId]], [[OAuth1]] and [[OAuth2]] client types.
+ * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
  *
  * Usage:
  *
@@ -136,18 +136,6 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
-     * @return string successful URL.
-     */
-    private function getSuccessUrl(): string
-    {
-        if (empty($this->successUrl)) {
-            $this->successUrl = $this->defaultSuccessUrl();
-        }
-
-        return $this->successUrl;
-    }
-
-    /**
      * @param string $url cancel URL.
      * @return AuthAction
      */
@@ -156,36 +144,6 @@ final class AuthAction implements MiddlewareInterface
         $new = clone $this;
         $new->cancelUrl = $url;
         return $new;
-    }
-
-    /**
-     * @return string cancel URL.
-     */
-    private function getCancelUrl(): string
-    {
-        if (empty($this->cancelUrl)) {
-            $this->cancelUrl = $this->defaultCancelUrl();
-        }
-
-        return $this->cancelUrl;
-    }
-
-    /**
-     * Creates default {@see successUrl} value.
-     * @return string success URL value.
-     */
-    private function defaultSuccessUrl(): string
-    {
-        return $this->app->getUser()->getReturnUrl();
-    }
-
-    /**
-     * Creates default {@see cancelUrl} value.
-     * @return string cancel URL value.
-     */
-    private function defaultCancelUrl(): string
-    {
-        return Url::to($this->app->getUser()->loginUrl);
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -253,7 +211,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws \Throwable
      * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
-    private function authCancel($client): ResponseInterface
+    private function authCancel(ClientInterface $client): ResponseInterface
     {
         if ($this->cancelCallback !== null) {
             $response = call_user_func($this->cancelCallback, $client);
@@ -273,7 +231,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws \Throwable
      * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
-    private function redirect($url, $enforceRedirect = true): ResponseInterface
+    private function redirect($url, bool $enforceRedirect = true): ResponseInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
@@ -303,7 +261,7 @@ final class AuthAction implements MiddlewareInterface
     private function redirectSuccess(?string $url = null): ResponseInterface
     {
         if ($url === null) {
-            $url = $this->getSuccessUrl();
+            $url = $this->successUrl;
         }
         return $this->redirect($url);
     }
@@ -318,7 +276,7 @@ final class AuthAction implements MiddlewareInterface
     private function redirectCancel(?string $url = null): ResponseInterface
     {
         if ($url === null) {
-            $url = $this->getCancelUrl();
+            $url = $this->cancelUrl;
         }
         return $this->redirect($url, false);
     }

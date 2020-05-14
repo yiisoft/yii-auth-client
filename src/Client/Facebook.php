@@ -135,7 +135,7 @@ final class Facebook extends OAuth2
      * to avoid triggering Facebook's automated spam systems.
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAccessToken()
-     * @param OAuthToken|null $token access token, if not set [[accessToken]] will be used.
+     * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
      * @return string client auth code.
      */

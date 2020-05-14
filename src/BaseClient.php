@@ -61,8 +61,11 @@ abstract class BaseClient implements ClientInterface
      */
     private StateStorageInterface $stateStorage;
 
-    public function __construct(PsrClientInterface $httpClient, RequestFactoryInterface $requestFactory, StateStorageInterface $stateStorage)
-    {
+    public function __construct(
+        PsrClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage
+    ) {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
         $this->stateStorage = $stateStorage;
