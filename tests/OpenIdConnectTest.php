@@ -8,9 +8,13 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\SimpleCache\CacheInterface;
-use Yiisoft\Yii\AuthClient\OpenIdConnect;
 use Yiisoft\Cache\ArrayCache;
 use Yiisoft\Cache\NullCache;
+use Yiisoft\Yii\AuthClient\OpenIdConnect;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Yiisoft\Yii\Web\Session\SessionInterface;
 
 class OpenIdConnectTest extends TestCase
 {
@@ -34,9 +38,30 @@ class OpenIdConnectTest extends TestCase
         return new ArrayCache();
     }
 
-    private function getOpenIdConnect(CacheInterface $cache, $name = 'google', $issuerUrl = 'https://accounts.google.com')
+    private function getStateStorage(): StateStorageInterface
     {
-        $authClient = new OpenIdConnect(null, $name, 'Google', $this->getHttpClient(), $this->getRequestFactory(), $cache);
+        return new SessionStateStorage(new Session());
+    }
+
+    private function getSession(): SessionInterface
+    {
+        return new Session();
+    }
+
+    private function getOpenIdConnect(
+        CacheInterface $cache,
+        $name = 'google',
+        $issuerUrl = 'https://accounts.google.com'
+    ) {
+        $authClient = new OpenIdConnect(
+            $name,
+            'Google',
+            $this->getHttpClient(),
+            $this->getRequestFactory(),
+            $cache,
+            $this->getStateStorage(),
+            $this->getSession()
+        );
         $authClient->setIssuerUrl($issuerUrl);
         return $authClient;
     }

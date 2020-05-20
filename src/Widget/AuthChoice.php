@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Widget;
 
 use Yiisoft\Html\Html;
 use Yiisoft\Json\Json;
+use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
@@ -59,10 +60,9 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 final class AuthChoice extends Widget
 {
     /**
-     * @var string name of the auth client collection application component.
-     * This component will be used to fetch services value if it is not set.
+     * @var Collection auth clients collection.
      */
-    private string $clientCollection = 'authClientCollection';
+    private Collection $clientCollection;
     /**
      * @var string name of the GET param , which should be used to passed auth client id to URL
      * defined by {@see baseAuthUrl}.
@@ -95,6 +95,13 @@ final class AuthChoice extends Widget
      * @var ClientInterface[] auth providers list.
      */
     private array $clients;
+    private UrlGeneratorInterface $urlGenerator;
+
+    public function __construct(Collection $clientCollection, UrlGeneratorInterface $urlGenerator)
+    {
+        $this->clientCollection = $clientCollection;
+        $this->urlGenerator = $urlGenerator;
+    }
 
     /**
      * @param ClientInterface[] $clients auth providers
@@ -142,10 +149,7 @@ final class AuthChoice extends Widget
      */
     protected function defaultClients(): array
     {
-        /* @var $collection Collection */
-        $collection = Yii::getApp()->get($this->clientCollection);
-
-        return $collection->getClients();
+        return $this->clientCollection->getClients();
     }
 
     /**

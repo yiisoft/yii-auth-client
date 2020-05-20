@@ -2,6 +2,8 @@
 
 /* @var $this WebView */
 
+/* @var $appName string */
+
 /* @var $url string */
 
 /* @var $enforceRedirect bool */
@@ -30,8 +32,8 @@ use Yiisoft\View\WebView;
     </script>
 </head>
 <body>
-<h2 id="title" style="display:none;">Redirecting back to the &quot;<?= $this->app->name ?>&quot;...</h2>
-<h3 id="link"><a href="<?= $url ?>">Click here to return to the &quot;<?= $this->app->name ?>&quot;.</a></h3>
+<h2 id="title" style="display:none;">Redirecting back to the &quot;<?= $appName ?? 'app' ?>&quot;...</h2>
+<h3 id="link"><a href="<?= $url ?>">Click here to return to the &quot;<?= $appName ?? 'app' ?>&quot;.</a></h3>
 <script type="text/javascript">
     document.getElementById('title').style.display = '';
     document.getElementById('link').style.display = 'none';

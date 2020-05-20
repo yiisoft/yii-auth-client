@@ -169,7 +169,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws NotSupportedException on invalid client.
      */
-    private function auth($client, ServerRequestInterface $request): ResponseInterface
+    private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
@@ -213,11 +213,15 @@ final class AuthAction implements MiddlewareInterface
      */
     private function authCancel(ClientInterface $client): ResponseInterface
     {
-        if ($this->cancelCallback !== null) {
-            $response = call_user_func($this->cancelCallback, $client);
-            if ($response instanceof ResponseInterface) {
-                return $response;
-            }
+        if (!is_callable($this->cancelCallback)) {
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+            );
+        }
+
+        $response = call_user_func($this->cancelCallback, $client);
+        if ($response instanceof ResponseInterface) {
+            return $response;
         }
 
         return $this->redirectCancel();
@@ -225,13 +229,13 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Redirect to the given URL or simply close the popup window.
-     * @param mixed $url URL to redirect, could be a string or array config to generate a valid URL.
+     * @param string $url URL to redirect, could be a string or array config to generate a valid URL.
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
      * @return ResponseInterface response instance.
      * @throws \Throwable
      * @throws \Yiisoft\View\Exception\ViewNotFoundException
      */
-    private function redirect($url, bool $enforceRedirect = true): ResponseInterface
+    private function redirect(string $url, bool $enforceRedirect = true): ResponseInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {

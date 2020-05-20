@@ -51,7 +51,7 @@ use function in_array;
  */
 final class OpenIdConnect extends OAuth2
 {
-    private string $scope = 'openid';
+    protected string $scope = 'openid';
     /**
      * @var string OpenID Issuer (provider) base URL, e.g. `https://example.com`.
      */
@@ -126,7 +126,6 @@ final class OpenIdConnect extends OAuth2
      * @param SessionInterface $session
      */
     public function __construct(
-        ?string $endpoint,
         $name,
         $title,
         ClientInterface $httpClient,
@@ -138,7 +137,7 @@ final class OpenIdConnect extends OAuth2
         $this->name = $name;
         $this->title = $title;
         $this->cache = $cache;
-        parent::__construct($endpoint, $httpClient, $requestFactory, $stateStorage, $session);
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $session);
     }
 
     /**

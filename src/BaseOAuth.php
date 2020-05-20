@@ -69,14 +69,10 @@ abstract class BaseOAuth extends BaseClient
      * @param FactoryInterface $factory
      */
     public function __construct(
-        ?string $endpoint,
         PsrClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        StateStorageInterface $stateStorage,
-        FactoryInterface $factory
+        StateStorageInterface $stateStorage
     ) {
-        $this->endpoint = rtrim($endpoint, '/');
-        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 

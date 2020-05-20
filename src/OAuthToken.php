@@ -35,6 +35,7 @@ class OAuthToken
 
     public function __construct()
     {
+        $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
         $this->createTimestamp = time();
     }
 
@@ -51,10 +52,6 @@ class OAuthToken
      */
     public function getExpireDurationParamKey(): string
     {
-        if ($this->expireDurationParamKey === null) {
-            $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
-        }
-
         return $this->expireDurationParamKey;
     }
 

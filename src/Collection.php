@@ -32,9 +32,9 @@ class Collection
     /**
      * @var ClientInterface|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    private iterable $clients = [];
+    private iterable $clients;
 
-    public function __construct(iterable $clients)
+    public function __construct(iterable $clients = [])
     {
         $this->clients = $clients;
     }
@@ -67,7 +67,7 @@ class Collection
      */
     public function getClient(string $name): ClientInterface
     {
-        if (!array_key_exists($name, $this->clients)) {
+        if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 

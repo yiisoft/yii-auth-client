@@ -7,22 +7,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 
 class TokenTest extends TestCase
 {
-    public function testCreate()
-    {
-        $config = [
-            'tokenParamKey' => 'test_token_param_key',
-            'tokenSecretParamKey' => 'test_token_secret_param_key',
-        ];
-        $oauthToken = $this->factory->create(array_merge($config, [
-            '__class' => OAuthToken::class,
-        ]));
-        $this->assertTrue(is_object($oauthToken), 'Unable to create access token!');
-        foreach ($config as $name => $value) {
-            $this->assertEquals($value, $oauthToken->$name, 'Unable to setup attributes by constructor!');
-        }
-        $this->assertTrue($oauthToken->createTimestamp > 0, 'Unable to fill create timestamp!');
-    }
-
     public function testSetupParams()
     {
         $oauthToken = new OAuthToken();

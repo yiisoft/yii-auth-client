@@ -1,3 +1,8 @@
 <?php
+/** @var array $params */
 
-return [];
+use Yiisoft\Factory\FactoryInterface;
+
+return [
+    FactoryInterface::class => new Yiisoft\Factory\Factory()
+];

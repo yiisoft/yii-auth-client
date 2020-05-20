@@ -57,13 +57,12 @@ abstract class OAuth2 extends BaseOAuth
     protected bool $validateAuthState = true;
 
     public function __construct(
-        ?string $endpoint,
         \Psr\Http\Client\ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         SessionInterface $session
     ) {
-        parent::__construct($endpoint, $httpClient, $requestFactory, $stateStorage);
+        parent::__construct($httpClient, $requestFactory, $stateStorage);
         $this->session = $session;
     }
 
@@ -78,7 +77,7 @@ abstract class OAuth2 extends BaseOAuth
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->getReturnUrl(),
-            'xoauth_displayname' => Yii::getApp()->name,
+            //'xoauth_displayname' => Yii::getApp()->name,
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
@@ -228,11 +227,11 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * Authenticate OAuth client directly at the provider without third party (user) involved,
      * using 'client_credentials' grant type.
-     * @see http://tools.ietf.org/html/rfc6749#section-4.4
+     * @link http://tools.ietf.org/html/rfc6749#section-4.4
      * @param array $params additional request params.
      * @return OAuthToken access token.
      */
-    public function authenticateClient($params = []): OAuthToken
+    public function authenticateClient(array $params = []): OAuthToken
     {
         $defaultParams = [
             'grant_type' => 'client_credentials',
@@ -260,7 +259,7 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Authenticates user directly by 'username/password' pair, using 'password' grant type.
-     * @see https://tools.ietf.org/html/rfc6749#section-4.3
+     * @link https://tools.ietf.org/html/rfc6749#section-4.3
      * @param string $username user name.
      * @param string $password user password.
      * @param array $params additional request params.

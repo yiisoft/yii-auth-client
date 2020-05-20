@@ -3,7 +3,7 @@
 namespace Yiisoft\Yii\AuthClient\Tests\Clients;
 
 use PHPUnit\Framework\TestCase;
-use Yiisoft\Yii\AuthClient\Clients\Google;
+use Yiisoft\Yii\AuthClient\Client\Google;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
