@@ -128,51 +128,6 @@ class BaseOAuthTest extends TestCase
     }
 
     /**
-     * Data provider for {@see testComposeUrl()}.
-     * @return array test data.
-     */
-    public function composeUrlDataProvider()
-    {
-        return [
-            [
-                'http://test.url',
-                [
-                    'param1' => 'value1',
-                    'param2' => 'value2',
-                ],
-                'http://test.url?param1=value1&param2=value2',
-            ],
-            [
-                'http://test.url?with=some',
-                [
-                    'param1' => 'value1',
-                    'param2' => 'value2',
-                ],
-                'http://test.url?with=some&param1=value1&param2=value2',
-            ],
-            [
-                'http://test.url',
-                [],
-                'http://test.url',
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider composeUrlDataProvider
-     *
-     * @param string $url request URL.
-     * @param array $params request params
-     * @param string $expectedUrl expected composed URL.
-     */
-    public function testComposeUrl($url, array $params, $expectedUrl)
-    {
-        $oauthClient = $this->createClient();
-        $composedUrl = $this->invokeMethod($oauthClient, 'composeUrl', [$url, $params]);
-        $this->assertEquals($expectedUrl, $composedUrl);
-    }
-
-    /**
      * @depends testSetupAccessToken
      */
     public function testApiUrl()

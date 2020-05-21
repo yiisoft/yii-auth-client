@@ -62,11 +62,9 @@ abstract class BaseOAuth extends BaseClient
 
     /**
      * BaseOAuth constructor.
-     * @param string|null $endpoint
      * @param PsrClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
-     * @param FactoryInterface $factory
      */
     public function __construct(
         PsrClientInterface $httpClient,

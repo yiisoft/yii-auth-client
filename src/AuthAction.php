@@ -188,7 +188,7 @@ final class AuthAction implements MiddlewareInterface
      * @return ResponseInterface response instance.
      * @throws InvalidConfigException on invalid success callback.
      */
-    private function authSuccess($client): ResponseInterface
+    private function authSuccess(ClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(

@@ -38,7 +38,7 @@ class OAuth1Test extends TestCase
     // Tests :
 
     /**
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testSignRequest()
     {
@@ -48,7 +48,7 @@ class OAuth1Test extends TestCase
 
         /* @var $oauthSignatureMethod BaseMethod|\PHPUnit\Framework\MockObject\MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
-            ->setMethods(['getName', 'generateSignature'])
+            ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
             ->method('getName')
@@ -56,6 +56,8 @@ class OAuth1Test extends TestCase
         $oauthSignatureMethod->expects($this->any())
             ->method('generateSignature')
             ->will($this->returnArgument(0));
+        $oauthSignatureMethod->method('setConsumerKey')->with('test_key');
+        $oauthSignatureMethod->method('setConsumerSecret')->with('test_secret');
 
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
 
@@ -68,14 +70,16 @@ class OAuth1Test extends TestCase
         $parts = [
             'GET',
             'https://example.com',
-            http_build_query([
-                'a' => 'another',
-                'oauth_nonce' => $signedParams['oauth_nonce'],
-                'oauth_signature_method' => $signedParams['oauth_signature_method'],
-                'oauth_timestamp' => $signedParams['oauth_timestamp'],
-                'oauth_version' => $signedParams['oauth_version'],
-                's' => 'some',
-            ])
+            http_build_query(
+                [
+                    'a' => 'another',
+                    'oauth_nonce' => $signedParams['oauth_nonce'],
+                    'oauth_signature_method' => $signedParams['oauth_signature_method'],
+                    'oauth_timestamp' => $signedParams['oauth_timestamp'],
+                    'oauth_version' => $signedParams['oauth_version'],
+                    's' => 'some',
+                ]
+            )
         ];
         $parts = array_map('rawurlencode', $parts);
         $expectedSignature = implode('&', $parts);
@@ -85,7 +89,7 @@ class OAuth1Test extends TestCase
 
     /**
      * @depends testSignRequest
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testAuthorizationHeaderMethods()
     {
