@@ -369,7 +369,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param string $realm authorization realm.
      * @return array authorization header in format: [name => content].
      */
-    protected function composeAuthorizationHeader(array $params, $realm = '')
+    public function composeAuthorizationHeader(array $params, $realm = '')
     {
         $header = 'OAuth';
         $headerParams = [];

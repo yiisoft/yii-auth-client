@@ -95,7 +95,7 @@ class TokenTest extends TestCase
 
         $this->assertFalse($oauthToken->getIsExpired(), 'Not expired token check fails!');
 
-        $oauthToken->setExpireDuration($oauthToken->getCreateTimestamp() - 1);
+        $oauthToken->setExpireDuration(-$expireDuration);
         $this->assertTrue($oauthToken->getIsExpired(), 'Expired token check fails!');
     }
 

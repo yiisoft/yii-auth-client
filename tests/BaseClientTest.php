@@ -8,6 +8,8 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\BaseClient;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class BaseClientTest extends TestCase
 {
@@ -25,7 +27,7 @@ class BaseClientTest extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(BaseClient::class)
-            ->setConstructorArgs([$httpClient, $this->getRequestFactory()])
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
 

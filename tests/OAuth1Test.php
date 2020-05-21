@@ -10,6 +10,8 @@ use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class OAuth1Test extends TestCase
 {
@@ -27,7 +29,7 @@ class OAuth1Test extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(OAuth1::class)
-            ->setConstructorArgs([null, $httpClient, $this->getRequestFactory()])
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
         return $oauthClient;
@@ -114,7 +116,7 @@ class OAuth1Test extends TestCase
     }
 
     /**
-     * Data provider for [[testComposeAuthorizationHeader()]].
+     * Data provider for {@see testComposeAuthorizationHeader()}.
      * @return array test data.
      */
     public function composeAuthorizationHeaderDataProvider()
@@ -157,7 +159,7 @@ class OAuth1Test extends TestCase
     public function testComposeAuthorizationHeader($realm, array $params, $expectedAuthorizationHeader)
     {
         $oauthClient = $this->createClient();
-        $authorizationHeader = $this->invokeMethod($oauthClient, 'composeAuthorizationHeader', [$params, $realm]);
+        $authorizationHeader = call_user_func_array([$oauthClient, 'composeAuthorizationHeader'], [$params, $realm]);
         $this->assertEquals($expectedAuthorizationHeader, $authorizationHeader);
     }
 

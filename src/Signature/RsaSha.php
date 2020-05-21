@@ -35,12 +35,12 @@ final class RsaSha extends BaseMethod
      * @var string OpenSSL private key certificate content.
      * This value can be fetched from file specified by {@see privateCertificateFile}.
      */
-    private string $privateCertificate;
+    private ?string $privateCertificate = null;
     /**
      * @var string OpenSSL public key certificate content.
      * This value can be fetched from file specified by {@see publicCertificateFile}.
      */
-    private string $publicCertificate;
+    private ?string $publicCertificate = null;
 
 
     public function __construct($algorithm = null)
@@ -53,11 +53,11 @@ final class RsaSha extends BaseMethod
     }
 
     /**
-     * @param string $publicCertificate public key certificate content.
+     * @param string $publicCertificateFile public key certificate file.
      */
-    public function setPublicCertificate($publicCertificate): void
+    public function setPublicCertificateFile(string $publicCertificateFile): void
     {
-        $this->publicCertificate = $publicCertificate;
+        $this->publicCertificateFile = $publicCertificateFile;
     }
 
     /**
@@ -73,11 +73,11 @@ final class RsaSha extends BaseMethod
     }
 
     /**
-     * @param string $privateCertificate private key certificate content.
+     * @param string $privateCertificateFile private key certificate file.
      */
-    public function setPrivateCertificate($privateCertificate): void
+    public function setPrivateCertificateFile(string $privateCertificateFile): void
     {
-        $this->privateCertificate = $privateCertificate;
+        $this->privateCertificateFile = $privateCertificateFile;
     }
 
     /**
@@ -125,15 +125,21 @@ final class RsaSha extends BaseMethod
      */
     protected function initPublicCertificate(): string
     {
+        $content = '';
         if (!empty($this->publicCertificateFile)) {
             if (!file_exists($this->publicCertificateFile)) {
                 throw new InvalidConfigException(
                     "Public certificate file '{$this->publicCertificateFile}' does not exist!"
                 );
             }
-            return file_get_contents($this->publicCertificateFile);
+            $fp = fopen($this->publicCertificateFile, 'r');
+
+            while (!feof($fp)) {
+                $content .= fgets($fp);
+            }
+            fclose($fp);
         }
-        return '';
+        return $content;
     }
 
     /**

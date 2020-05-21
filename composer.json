@@ -34,14 +34,14 @@
         "yiisoft/yii-web": "^3.0@dev"
     },
     "require-dev": {
+        "kriswallsmith/buzz": "^1.0",
+        "nyholm/psr7": "^1.0",
+        "phpunit/phpunit": "^9.0",
         "yiisoft/di": "^3.0@dev",
         "yiisoft/log": "^3.0@dev",
         "yiisoft/rbac": "^3.0@dev",
         "yiisoft/cache": "^3.0@dev",
-        "yiisoft/composer-config-plugin": "^1.0@dev",
-        "phpunit/phpunit": "^9.0",
-        "kriswallsmith/buzz": "^1.0",
-        "nyholm/psr7": "^1.0"
+        "yiisoft/composer-config-plugin": "^1.0@dev"
     },
     "suggest": {
         "web-token/jwt-checker": "required for JWS, JWT or JWK related flows like OpenIDConnect",

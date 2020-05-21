@@ -9,6 +9,8 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Yii\AuthClient\BaseOAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class BaseOAuthTest extends TestCase
 {
@@ -21,12 +23,12 @@ class BaseOAuthTest extends TestCase
      * Creates test OAuth client instance.
      * @return BaseOAuth oauth client.
      */
-    protected function createClient(?string $endpoint = null)
+    protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(BaseOAuth::class)
-            ->setConstructorArgs([$endpoint, $httpClient, $this->getRequestFactory()])
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(
                 [
                     'composeRequestCurlOptions',
@@ -126,7 +128,7 @@ class BaseOAuthTest extends TestCase
     }
 
     /**
-     * Data provider for [[testComposeUrl()]].
+     * Data provider for {@see testComposeUrl()}.
      * @return array test data.
      */
     public function composeUrlDataProvider()
@@ -176,7 +178,8 @@ class BaseOAuthTest extends TestCase
     public function testApiUrl()
     {
         $endpoint = 'http://api.base.url';
-        $oauthClient = $this->createClient($endpoint);
+        $oauthClient = $this->createClient();
+        $oauthClient->setEndpoint($endpoint);
 
         $accessToken = new OAuthToken();
         $accessToken->setToken('test_access_token');

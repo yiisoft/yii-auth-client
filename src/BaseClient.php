@@ -25,7 +25,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @var array authenticated user attributes.
      */
-    protected array $userAttributes;
+    protected array $userAttributes = [];
     /**
      * @var array map used to normalize user attributes fetched from external auth service
      * in format: normalizedAttributeName => sourceSpecification
@@ -46,7 +46,7 @@ abstract class BaseClient implements ClientInterface
      *  ],
      * ```
      */
-    protected array $normalizeUserAttributeMap;
+    protected array $normalizeUserAttributeMap = [];
     /**
      * @var array view options in format: optionName => optionValue
      */

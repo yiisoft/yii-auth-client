@@ -26,7 +26,7 @@ class OAuthToken
      * @var string key in {@see params} array, which stores token expiration duration.
      * If not set will attempt to fetch its value automatically.
      */
-    private string $expireDurationParamKey;
+    private ?string $expireDurationParamKey = null;
     /**
      * @var array token parameters.
      */
@@ -35,7 +35,6 @@ class OAuthToken
 
     public function __construct()
     {
-        $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
         $this->createTimestamp = time();
     }
 
@@ -52,6 +51,10 @@ class OAuthToken
      */
     public function getExpireDurationParamKey(): string
     {
+        if ($this->expireDurationParamKey === null) {
+            $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
+        }
+
         return $this->expireDurationParamKey;
     }
 
@@ -104,7 +107,7 @@ class OAuthToken
      * Returns token value.
      * @return string token value.
      */
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->getParam($this->tokenParamKey);
     }
@@ -129,9 +132,9 @@ class OAuthToken
 
     /**
      * Sets token expire duration.
-     * @param string $expireDuration token expiration duration.
+     * @param int $expireDuration token expiration duration.
      */
-    public function setExpireDuration(string $expireDuration): void
+    public function setExpireDuration(int $expireDuration): void
     {
         $this->setParam($this->getExpireDurationParamKey(), $expireDuration);
     }
@@ -169,11 +172,11 @@ class OAuthToken
     public function getIsExpired(): bool
     {
         $expirationDuration = $this->getExpireDuration();
-        if (empty($expirationDuration)) {
+        if ($expirationDuration === null) {
             return false;
         }
 
-        return (time() >= ($this->createTimestamp + $expirationDuration));
+        return time() >= ($this->createTimestamp + $expirationDuration);
     }
 
     /**

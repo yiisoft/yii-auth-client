@@ -38,7 +38,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @var string string auth request scope.
      */
-    protected string $scope;
+    protected ?string $scope = null;
     /**
      * @var bool whether to automatically perform 'refresh access token' request on expired access token.
      */
@@ -53,12 +53,12 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @var OAuthToken|array access token instance or its array configuration.
      */
-    protected array $accessToken;
+    protected $accessToken;
     /**
      * @var array|BaseMethod signature method instance or its array configuration.
      */
-    protected array $signatureMethod = [];
-    private FactoryInterface $factory;
+    protected $signatureMethod = [];
+    private ?FactoryInterface $factory = null;
 
     /**
      * BaseOAuth constructor.
