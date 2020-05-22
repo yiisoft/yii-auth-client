@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -60,9 +61,10 @@ abstract class OAuth2 extends BaseOAuth
         \Psr\Http\Client\ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        SessionInterface $session
+        SessionInterface $session,
+        FactoryInterface $factory
     ) {
-        parent::__construct($httpClient, $requestFactory, $stateStorage);
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $factory);
         $this->session = $session;
     }
 

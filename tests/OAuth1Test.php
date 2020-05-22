@@ -6,6 +6,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -29,7 +30,9 @@ class OAuth1Test extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(OAuth1::class)
-            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
+            ->setConstructorArgs(
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+            )
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
         return $oauthClient;
@@ -56,8 +59,8 @@ class OAuth1Test extends TestCase
         $oauthSignatureMethod->expects($this->any())
             ->method('generateSignature')
             ->will($this->returnArgument(0));
-        $oauthSignatureMethod->method('setConsumerKey')->with('test_key');
         $oauthSignatureMethod->method('setConsumerSecret')->with('test_secret');
+        $oauthSignatureMethod->method('setConsumerKey')->with('test_key');
 
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
 

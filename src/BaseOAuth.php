@@ -58,19 +58,22 @@ abstract class BaseOAuth extends BaseClient
      * @var array|BaseMethod signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
-    private ?FactoryInterface $factory = null;
+    private FactoryInterface $factory;
 
     /**
      * BaseOAuth constructor.
      * @param PsrClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
+     * @param FactoryInterface $factory
      */
     public function __construct(
         PsrClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        StateStorageInterface $stateStorage
+        StateStorageInterface $stateStorage,
+        FactoryInterface $factory
     ) {
+        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
@@ -129,7 +132,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @return OAuthToken auth token instance.
      */
-    public function getAccessToken(): OAuthToken
+    public function getAccessToken(): ?OAuthToken
     {
         if (!is_object($this->accessToken)) {
             $this->accessToken = $this->restoreAccessToken();
@@ -231,7 +234,7 @@ abstract class BaseOAuth extends BaseClient
      * Restores access token.
      * @return OAuthToken auth token.
      */
-    protected function restoreAccessToken(): OAuthToken
+    protected function restoreAccessToken(): ?OAuthToken
     {
         $token = $this->getState('token');
         if (is_object($token)) {

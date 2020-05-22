@@ -21,6 +21,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
+use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Security\Random;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
@@ -132,12 +133,13 @@ final class OpenIdConnect extends OAuth2
         RequestFactoryInterface $requestFactory,
         CacheInterface $cache,
         StateStorageInterface $stateStorage,
-        SessionInterface $session
+        SessionInterface $session,
+        FactoryInterface $factory
     ) {
         $this->name = $name;
         $this->title = $title;
         $this->cache = $cache;
-        parent::__construct($httpClient, $requestFactory, $stateStorage, $session);
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $session, $factory);
     }
 
     /**

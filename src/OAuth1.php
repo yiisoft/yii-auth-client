@@ -36,11 +36,11 @@ abstract class OAuth1 extends BaseOAuth
     /**
      * @var string OAuth consumer key.
      */
-    protected string $consumerKey;
+    protected string $consumerKey = '';
     /**
      * @var string OAuth consumer secret.
      */
-    protected string $consumerSecret;
+    protected string $consumerSecret = '';
     /**
      * @var string OAuth request token URL.
      */
@@ -202,7 +202,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param OAuthToken $token expired auth token.
      * @return OAuthToken new auth token.
      */
-    public function refreshAccessToken(OAuthToken $token): OAuthToken
+    public function refreshAccessToken(?OAuthToken $token = null): OAuthToken
     {
         // @todo
         return $token;
@@ -343,7 +343,7 @@ abstract class OAuth1 extends BaseOAuth
      * @param OAuthToken|null $token OAuth token to be used for signature key.
      * @return string signature key.
      */
-    protected function composeSignatureKey($token = null)
+    protected function composeSignatureKey($token = null): string
     {
         $signatureKeyParts = [
             $this->consumerSecret
@@ -380,7 +380,7 @@ abstract class OAuth1 extends BaseOAuth
             if (substr_compare($key, 'oauth', 0, 5)) {
                 continue;
             }
-            $headerParams[] = rawurlencode($key) . '="' . rawurlencode($value) . '"';
+            $headerParams[] = rawurlencode((string)$key) . '="' . rawurlencode((string)$value) . '"';
         }
         if (!empty($headerParams)) {
             $header .= ' ' . implode(', ', $headerParams);

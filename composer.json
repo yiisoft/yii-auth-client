@@ -39,7 +39,6 @@
         "phpunit/phpunit": "^9.0",
         "yiisoft/di": "^3.0@dev",
         "yiisoft/log": "^3.0@dev",
-        "yiisoft/rbac": "^3.0@dev",
         "yiisoft/cache": "^3.0@dev",
         "yiisoft/composer-config-plugin": "^1.0@dev"
     },
