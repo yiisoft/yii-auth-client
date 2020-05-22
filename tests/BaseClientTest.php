@@ -52,7 +52,11 @@ class BaseClientTest extends TestCase
             'email' => 'some/email',
         ];
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
-        $this->assertEquals($normalizeUserAttributeMap, $client->getNormalizeUserAttributeMap(), 'Unable to setup normalize user attribute map!');
+        $this->assertEquals(
+            $normalizeUserAttributeMap,
+            $client->getNormalizeUserAttributeMap(),
+            'Unable to setup normalize user attribute map!'
+        );
 
         $viewOptions = [
             'option1' => 'value1',
@@ -147,15 +151,21 @@ class BaseClientTest extends TestCase
      * @param array $rawUserAttributes
      * @param array $expectedNormalizedUserAttributes
      */
-    public function testNormalizeUserAttributes($normalizeUserAttributeMap, $rawUserAttributes, $expectedNormalizedUserAttributes)
-    {
+    public function testNormalizeUserAttributes(
+        $normalizeUserAttributeMap,
+        $rawUserAttributes,
+        $expectedNormalizedUserAttributes
+    ) {
         $client = $this->createClient();
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
 
         $client->setUserAttributes($rawUserAttributes);
         $normalizedUserAttributes = $client->getUserAttributes();
 
-        $this->assertEquals(array_merge($rawUserAttributes, $expectedNormalizedUserAttributes), $normalizedUserAttributes);
+        $this->assertEquals(
+            array_merge($rawUserAttributes, $expectedNormalizedUserAttributes),
+            $normalizedUserAttributes
+        );
     }
 
     /**

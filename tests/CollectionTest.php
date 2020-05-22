@@ -60,7 +60,6 @@ class CollectionTest extends TestCase
     }
 
 
-
     /**
      * @depends testSetGet
      */
@@ -69,9 +68,11 @@ class CollectionTest extends TestCase
         $collection = new Collection();
 
         $clientName = 'testClientName';
-        $collection->setClients([
-            $clientName => $this->getTestClient(),
-        ]);
+        $collection->setClients(
+            [
+                $clientName => $this->getTestClient(),
+            ]
+        );
 
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
         $this->assertFalse($collection->hasClient('nonExistingClientName'), 'Not existing client check fails!');

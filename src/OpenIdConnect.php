@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Exception;
 use HttpException;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
@@ -401,7 +402,7 @@ final class OpenIdConnect extends OAuth2
             $signature = null;
             $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
             return Json::decode($jwsVerified->getPayload());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $message = YII_DEBUG ? 'Unable to verify JWS: ' . $e->getMessage() : 'Invalid JWS';
             throw new HttpException($message, $e->getCode(), $e);
         }
@@ -425,7 +426,7 @@ final class OpenIdConnect extends OAuth2
     /**
      * Generates the auth nonce value.
      * @return string auth nonce value.
-     * @throws \Exception
+     * @throws Exception
      */
     protected function generateAuthNonce(): string
     {

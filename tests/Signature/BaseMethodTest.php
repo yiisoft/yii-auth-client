@@ -3,12 +3,13 @@
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
 use PHPUnit\Framework\TestCase;
+use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 
 class BaseMethodTest extends TestCase
 {
     /**
      * Creates test signature method instance.
-     * @return \Yiisoft\Yii\AuthClient\Signature\BaseMethod
+     * @return BaseMethod
      */
     protected function createTestSignatureMethod()
     {
@@ -48,6 +49,9 @@ class BaseMethodTest extends TestCase
         $this->assertFalse($signatureMethod->verify($signature, $baseString, $key), 'Unsigned signature is valid!');
 
         $generatedSignature = $signatureMethod->generateSignature($baseString, $key);
-        $this->assertTrue($signatureMethod->verify($generatedSignature, $baseString, $key), 'Generated signature is invalid!');
+        $this->assertTrue(
+            $signatureMethod->verify($generatedSignature, $baseString, $key),
+            'Generated signature is invalid!'
+        );
     }
 }

@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
+use HttpException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Http\Status;
+use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
@@ -208,8 +211,8 @@ final class AuthAction implements MiddlewareInterface
      * This method is invoked in case of authentication cancellation.
      * @param ClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
-     * @throws \Throwable
-     * @throws \Yiisoft\View\Exception\ViewNotFoundException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function authCancel(ClientInterface $client): ResponseInterface
     {
@@ -232,8 +235,8 @@ final class AuthAction implements MiddlewareInterface
      * @param string $url URL to redirect, could be a string or array config to generate a valid URL.
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
      * @return ResponseInterface response instance.
-     * @throws \Throwable
-     * @throws \Yiisoft\View\Exception\ViewNotFoundException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function redirect(string $url, bool $enforceRedirect = true): ResponseInterface
     {
@@ -259,8 +262,8 @@ final class AuthAction implements MiddlewareInterface
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
-     * @throws \Throwable
-     * @throws \Yiisoft\View\Exception\ViewNotFoundException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function redirectSuccess(?string $url = null): ResponseInterface
     {
@@ -274,8 +277,8 @@ final class AuthAction implements MiddlewareInterface
      * Redirect to the {@see cancelUrl} or simply close the popup window.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
-     * @throws \Throwable
-     * @throws \Yiisoft\View\Exception\ViewNotFoundException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function redirectCancel(?string $url = null): ResponseInterface
     {
@@ -327,7 +330,7 @@ final class AuthAction implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @return ResponseInterface action response.
      * @throws InvalidConfigException
-     * @throws \HttpException
+     * @throws HttpException
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
     {

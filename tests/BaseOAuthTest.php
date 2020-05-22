@@ -119,7 +119,7 @@ class BaseOAuthTest extends TestCase
         );
 
         $oauthSignatureMethod = [
-            '__class' => \Yiisoft\Yii\AuthClient\Signature\PlainText::class
+            '__class' => PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();

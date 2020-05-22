@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use InvalidArgumentException;
+use JsonException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -112,7 +114,7 @@ abstract class OAuth2 extends BaseOAuth
             $bodyParams = $incomingRequest->getParsedBody();
             $incomingState = $queryParams['state'] ?? $bodyParams['state'] ?? null;
             if ($incomingState !== null || empty($authState) || strcmp($incomingState, $authState) !== 0) {
-                throw new \InvalidArgumentException('Invalid auth state parameter.');
+                throw new InvalidArgumentException('Invalid auth state parameter.');
             }
             $this->removeState('authState');
         }
@@ -309,7 +311,7 @@ abstract class OAuth2 extends BaseOAuth
      *
      * @param array $params additional request params.
      * @return OAuthToken access token.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function authenticateUserJwt(
         string $username,

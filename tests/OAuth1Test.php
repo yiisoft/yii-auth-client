@@ -3,6 +3,7 @@
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -49,7 +50,7 @@ class OAuth1Test extends TestCase
 
         $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
-        /* @var $oauthSignatureMethod BaseMethod|\PHPUnit\Framework\MockObject\MockObject */
+        /* @var $oauthSignatureMethod BaseMethod|MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
             ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
             ->getMock();
