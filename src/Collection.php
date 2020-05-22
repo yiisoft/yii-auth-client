@@ -40,14 +40,6 @@ class Collection
     }
 
     /**
-     * @param array $clients list of auth clients indexed by their names
-     */
-    public function setClients(array $clients): void
-    {
-        $this->clients = $clients;
-    }
-
-    /**
      * @return ClientInterface[] list of auth clients.
      */
     public function getClients(): array
@@ -58,6 +50,14 @@ class Collection
         }
 
         return $clients;
+    }
+
+    /**
+     * @param array $clients list of auth clients indexed by their names
+     */
+    public function setClients(array $clients): void
+    {
+        $this->clients = $clients;
     }
 
     /**

@@ -37,7 +37,6 @@ use Yiisoft\Yii\Web\Session\SessionInterface;
  */
 abstract class OAuth2 extends BaseOAuth
 {
-    private SessionInterface $session;
     /**
      * @var string OAuth client ID.
      */
@@ -58,6 +57,7 @@ abstract class OAuth2 extends BaseOAuth
      * The option is used for preventing cross-site request forgery.
      */
     protected bool $validateAuthState = true;
+    private SessionInterface $session;
 
     public function __construct(
         \Psr\Http\Client\ClientInterface $httpClient,
@@ -94,6 +94,19 @@ abstract class OAuth2 extends BaseOAuth
         }
 
         return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
+    }
+
+    /**
+     * Generates the auth state value.
+     * @return string auth state value.
+     */
+    protected function generateAuthState(): string
+    {
+        $baseString = get_class($this) . '-' . time();
+        if ($this->session->isActive()) {
+            $baseString .= '-' . $this->session->getId();
+        }
+        return hash('sha256', uniqid($baseString, true));
     }
 
     /**
@@ -137,16 +150,6 @@ abstract class OAuth2 extends BaseOAuth
         return $token;
     }
 
-    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
-    {
-        return RequestUtil::addParams(
-            $request,
-            [
-                'access_token' => $accessToken->getToken(),
-            ]
-        );
-    }
-
     /**
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
@@ -160,6 +163,28 @@ abstract class OAuth2 extends BaseOAuth
             [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
+            ]
+        );
+    }
+
+    /**
+     * Creates token from its configuration.
+     * @param array $tokenConfig token configuration.
+     * @return OAuthToken token instance.
+     */
+    protected function createToken(array $tokenConfig = []): OAuthToken
+    {
+        $tokenConfig['tokenParamKey'] = 'access_token';
+
+        return parent::createToken($tokenConfig);
+    }
+
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
+    {
+        return RequestUtil::addParams(
+            $request,
+            [
+                'access_token' => $accessToken->getToken(),
             ]
         );
     }
@@ -187,45 +212,6 @@ abstract class OAuth2 extends BaseOAuth
         $this->setAccessToken($token);
 
         return $token;
-    }
-
-    /**
-     * Composes default {@see returnUrl} value.
-     * @return string return URL.
-     */
-    protected function defaultReturnUrl(): string
-    {
-        $params = Yii::getApp()->getRequest()->getQueryParams();
-        unset($params['code']);
-        unset($params['state']);
-        $params[0] = Yii::getApp()->controller->getRoute();
-
-        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
-    }
-
-    /**
-     * Generates the auth state value.
-     * @return string auth state value.
-     */
-    protected function generateAuthState(): string
-    {
-        $baseString = get_class($this) . '-' . time();
-        if ($this->session->isActive()) {
-            $baseString .= '-' . $this->session->getId();
-        }
-        return hash('sha256', uniqid($baseString, true));
-    }
-
-    /**
-     * Creates token from its configuration.
-     * @param array $tokenConfig token configuration.
-     * @return OAuthToken token instance.
-     */
-    protected function createToken(array $tokenConfig = []): OAuthToken
-    {
-        $tokenConfig['tokenParamKey'] = 'access_token';
-
-        return parent::createToken($tokenConfig);
     }
 
     /**
@@ -426,5 +412,19 @@ abstract class OAuth2 extends BaseOAuth
         $new = clone $this;
         $new->validateAuthState = false;
         return $new;
+    }
+
+    /**
+     * Composes default {@see returnUrl} value.
+     * @return string return URL.
+     */
+    protected function defaultReturnUrl(): string
+    {
+        $params = Yii::getApp()->getRequest()->getQueryParams();
+        unset($params['code']);
+        unset($params['state']);
+        $params[0] = Yii::getApp()->controller->getRoute();
+
+        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
     }
 }

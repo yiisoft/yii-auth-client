@@ -46,6 +46,34 @@ final class VKontakte extends OAuth2
      */
     private string $apiVersion = '3.0';
 
+    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
+    {
+        return RequestUtil::addParams(
+            $request,
+            [
+                'v' => $this->apiVersion,
+                'uids' => $accessToken->getParam('user_id'),
+                'access_token' => $accessToken->getToken()
+            ]
+        );
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'vkontakte';
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'VKontakte';
+    }
+
     protected function initUserAttributes(): array
     {
         $response = $this->api(
@@ -75,38 +103,10 @@ final class VKontakte extends OAuth2
         return $attributes;
     }
 
-    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
-    {
-        return RequestUtil::addParams(
-            $request,
-            [
-                'v' => $this->apiVersion,
-                'uids' => $accessToken->getParam('user_id'),
-                'access_token' => $accessToken->getToken()
-            ]
-        );
-    }
-
     protected function defaultNormalizeUserAttributeMap(): array
     {
         return [
             'id' => 'uid'
         ];
-    }
-
-    /**
-     * @return string service name.
-     */
-    public function getName(): string
-    {
-        return 'vkontakte';
-    }
-
-    /**
-     * @return string service title.
-     */
-    public function getTitle(): string
-    {
-        return 'VKontakte';
     }
 }

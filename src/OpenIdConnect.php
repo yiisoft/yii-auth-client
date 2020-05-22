@@ -143,6 +143,86 @@ final class OpenIdConnect extends OAuth2
         parent::__construct($httpClient, $requestFactory, $stateStorage, $session, $factory);
     }
 
+    public function buildAuthUrl(array $params = []): string
+    {
+        if ($this->authUrl === null) {
+            $this->authUrl = $this->getConfigParam('authorization_endpoint');
+        }
+        return parent::buildAuthUrl($params);
+    }
+
+    /**
+     * Returns particular configuration parameter value.
+     * @param string $name configuration parameter name.
+     * @return mixed configuration parameter value.
+     * @throws InvalidConfigException
+     * @throws InvalidArgumentException
+     */
+    public function getConfigParam($name)
+    {
+        $params = $this->getConfigParams();
+        return $params[$name];
+    }
+
+    /**
+     * @return array OpenID provider configuration parameters.
+     * @throws InvalidConfigException
+     * @throws InvalidArgumentException
+     */
+    public function getConfigParams(): array
+    {
+        if ($this->configParams === null) {
+            $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
+            if (($configParams = $this->cache->get($cacheKey)) === null) {
+                $configParams = $this->discoverConfig();
+            }
+
+            $this->configParams = $configParams;
+            $this->cache->set($cacheKey, $configParams);
+        }
+        return $this->configParams;
+    }
+
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'open_id_connect';
+    }
+
+    /**
+     * Discovers OpenID Provider configuration parameters.
+     * @return array OpenID Provider configuration parameters.
+     * @throws InvalidConfigException
+     */
+    private function discoverConfig(): array
+    {
+        if ($this->issuerUrl === null) {
+            throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
+        }
+        $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
+        $request = $this->createRequest('GET', $configUrl);
+        $response = $this->sendRequest($request);
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
+    {
+        if ($this->tokenUrl === null) {
+            $this->tokenUrl = $this->getConfigParam('token_endpoint');
+        }
+
+        if (!isset($params['nonce']) && $this->getValidateAuthNonce()) {
+            $nonce = $this->generateAuthNonce();
+            $this->setState('authNonce', $nonce);
+            $params['nonce'] = $nonce;
+        }
+
+        return parent::fetchAccessToken($request, $authCode, $params);
+    }
+
     /**
      * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
      * @throws InvalidConfigException
@@ -168,75 +248,13 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * @return array OpenID provider configuration parameters.
-     * @throws InvalidConfigException
-     * @throws InvalidArgumentException
+     * Generates the auth nonce value.
+     * @return string auth nonce value.
+     * @throws Exception
      */
-    public function getConfigParams(): array
+    protected function generateAuthNonce(): string
     {
-        if ($this->configParams === null) {
-            $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
-            if (($configParams = $this->cache->get($cacheKey)) === null) {
-                $configParams = $this->discoverConfig();
-            }
-
-            $this->configParams = $configParams;
-            $this->cache->set($cacheKey, $configParams);
-        }
-        return $this->configParams;
-    }
-
-    /**
-     * Returns particular configuration parameter value.
-     * @param string $name configuration parameter name.
-     * @return mixed configuration parameter value.
-     * @throws InvalidConfigException
-     * @throws InvalidArgumentException
-     */
-    public function getConfigParam($name)
-    {
-        $params = $this->getConfigParams();
-        return $params[$name];
-    }
-
-    /**
-     * Discovers OpenID Provider configuration parameters.
-     * @return array OpenID Provider configuration parameters.
-     * @throws InvalidConfigException
-     */
-    private function discoverConfig(): array
-    {
-        if ($this->issuerUrl === null) {
-            throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
-        }
-        $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
-        $request = $this->createRequest('GET', $configUrl);
-        $response = $this->sendRequest($request);
-
-        return json_decode($response->getBody()->getContents(), true);
-    }
-
-    public function buildAuthUrl(array $params = []): string
-    {
-        if ($this->authUrl === null) {
-            $this->authUrl = $this->getConfigParam('authorization_endpoint');
-        }
-        return parent::buildAuthUrl($params);
-    }
-
-    public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
-    {
-        if ($this->tokenUrl === null) {
-            $this->tokenUrl = $this->getConfigParam('token_endpoint');
-        }
-
-        if (!isset($params['nonce']) && $this->getValidateAuthNonce()) {
-            $nonce = $this->generateAuthNonce();
-            $this->setState('authNonce', $nonce);
-            $params['nonce'] = $nonce;
-        }
-
-        return parent::fetchAccessToken($request, $authCode, $params);
+        return Random::string();
     }
 
     public function refreshAccessToken(OAuthToken $token): OAuthToken
@@ -245,6 +263,19 @@ final class OpenIdConnect extends OAuth2
             $this->tokenUrl = $this->getConfigParam('token_endpoint');
         }
         return parent::refreshAccessToken($token);
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'OpenID Connect';
+    }
+
+    public function setIssuerUrl(string $url): void
+    {
+        $this->issuerUrl = rtrim($url, '/');
     }
 
     protected function initUserAttributes(): array
@@ -339,25 +370,23 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * Return JwkSet, returning related data.
-     * @return JWKSet object represents a key set.
-     * @throws InvalidConfigException
+     * Decrypts/validates JWS, returning related data.
+     * @param string $jws raw JWS input.
+     * @return array JWS underlying data.
+     * @throws HttpException on invalid JWS signature.
      * @throws InvalidArgumentException
      */
-    protected function getJwkSet(): JWKSet
+    protected function loadJws(string $jws): array
     {
-        if ($this->jwkSet === null) {
-            $cacheKey = $this->configParamsCacheKeyPrefix . 'jwkSet';
-            if (($jwkSet = $this->cache->get($cacheKey)) === false) {
-                $request = $this->createRequest('GET', $this->getConfigParam('jwks_uri'));
-                $response = $this->sendRequest($request);
-                $jwkSet = JWKFactory::createFromValues($response);
-            }
-
-            $this->jwkSet = $jwkSet;
-            $this->cache->set($cacheKey, $jwkSet);
+        try {
+            $jwsLoader = $this->getJwsLoader();
+            $signature = null;
+            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
+            return Json::decode($jwsVerified->getPayload());
+        } catch (Exception $e) {
+            $message = YII_DEBUG ? 'Unable to verify JWS: ' . $e->getMessage() : 'Invalid JWS';
+            throw new HttpException($message, $e->getCode(), $e);
         }
-        return $this->jwkSet;
     }
 
     /**
@@ -389,23 +418,25 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * Decrypts/validates JWS, returning related data.
-     * @param string $jws raw JWS input.
-     * @return array JWS underlying data.
-     * @throws HttpException on invalid JWS signature.
+     * Return JwkSet, returning related data.
+     * @return JWKSet object represents a key set.
+     * @throws InvalidConfigException
      * @throws InvalidArgumentException
      */
-    protected function loadJws(string $jws): array
+    protected function getJwkSet(): JWKSet
     {
-        try {
-            $jwsLoader = $this->getJwsLoader();
-            $signature = null;
-            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
-            return Json::decode($jwsVerified->getPayload());
-        } catch (Exception $e) {
-            $message = YII_DEBUG ? 'Unable to verify JWS: ' . $e->getMessage() : 'Invalid JWS';
-            throw new HttpException($message, $e->getCode(), $e);
+        if ($this->jwkSet === null) {
+            $cacheKey = $this->configParamsCacheKeyPrefix . 'jwkSet';
+            if (($jwkSet = $this->cache->get($cacheKey)) === false) {
+                $request = $this->createRequest('GET', $this->getConfigParam('jwks_uri'));
+                $response = $this->sendRequest($request);
+                $jwkSet = JWKFactory::createFromValues($response);
+            }
+
+            $this->jwkSet = $jwkSet;
+            $this->cache->set($cacheKey, $jwkSet);
         }
+        return $this->jwkSet;
     }
 
     /**
@@ -421,36 +452,5 @@ final class OpenIdConnect extends OAuth2
         if (!isset($claims['aud']) || (strcmp($claims['aud'], $this->clientId) !== 0)) {
             throw new HttpException('Invalid "aud"', 400);
         }
-    }
-
-    /**
-     * Generates the auth nonce value.
-     * @return string auth nonce value.
-     * @throws Exception
-     */
-    protected function generateAuthNonce(): string
-    {
-        return Random::string();
-    }
-
-    /**
-     * @return string service name.
-     */
-    public function getName(): string
-    {
-        return 'open_id_connect';
-    }
-
-    /**
-     * @return string service title.
-     */
-    public function getTitle(): string
-    {
-        return 'OpenID Connect';
-    }
-
-    public function setIssuerUrl(string $url): void
-    {
-        $this->issuerUrl = rtrim($url, '/');
     }
 }

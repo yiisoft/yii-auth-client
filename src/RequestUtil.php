@@ -29,6 +29,15 @@ final class RequestUtil
         return $url;
     }
 
+    public static function addParams(RequestInterface $request, array $params): RequestInterface
+    {
+        $currentParams = self::getParams($request);
+        $newParams = array_merge($currentParams, $params);
+
+        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
+        return $request->withUri($uri);
+    }
+
     public static function getParams(RequestInterface $request): array
     {
         $queryString = $request->getUri()->getQuery();
@@ -52,15 +61,6 @@ final class RequestUtil
             }
         }
         return $result;
-    }
-
-    public static function addParams(RequestInterface $request, array $params): RequestInterface
-    {
-        $currentParams = self::getParams($request);
-        $newParams = array_merge($currentParams, $params);
-
-        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
-        return $request->withUri($uri);
     }
 
     public static function addHeaders(RequestInterface $request, array $headers): RequestInterface

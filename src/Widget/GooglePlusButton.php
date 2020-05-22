@@ -35,28 +35,6 @@ class GooglePlusButton extends AuthChoiceItem
      */
     private $callback;
 
-
-    /**
-     * @param string|array $callback callback JavaScript function name or URL config.
-     */
-    public function setCallback($callback)
-    {
-        $this->callback = $callback;
-    }
-
-    /**
-     * @return string callback JavaScript function name.
-     */
-    public function getCallback()
-    {
-        if (empty($this->callback)) {
-            $this->callback = $this->generateCallback();
-        } elseif (is_array($this->callback)) {
-            $this->callback = $this->generateCallback($this->callback);
-        }
-        return $this->callback;
-    }
-
     /**
      * Initializes the widget.
      */
@@ -77,6 +55,64 @@ class GooglePlusButton extends AuthChoiceItem
     {
         $this->registerClientScript();
         return $this->renderButton();
+    }
+
+    /**
+     * Registers necessary JavaScript.
+     */
+    protected function registerClientScript()
+    {
+        $js = <<<JS
+(function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/client:plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+})();
+JS;
+        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__);
+    }
+
+    /**
+     * Renders sign-in button.
+     * @return string button HTML.
+     */
+    protected function renderButton()
+    {
+        $buttonHtmlOptions = array_merge(
+            [
+                'class' => 'g-signin',
+                'data-callback' => $this->getCallback(),
+                'data-clientid' => $this->client->getClientId(),
+                'data-cookiepolicy' => 'single_host_origin',
+                'data-requestvisibleactions' => null,
+                'data-scope' => $this->client->scope,
+                'data-accesstype' => 'offline',
+                'data-width' => 'iconOnly',
+            ],
+            $this->buttonHtmlOptions
+        );
+        return Html::tag('span', Html::tag('span', '', $buttonHtmlOptions), ['id' => 'signinButton']);
+    }
+
+    /**
+     * @return string callback JavaScript function name.
+     */
+    public function getCallback()
+    {
+        if (empty($this->callback)) {
+            $this->callback = $this->generateCallback();
+        } elseif (is_array($this->callback)) {
+            $this->callback = $this->generateCallback($this->callback);
+        }
+        return $this->callback;
+    }
+
+    /**
+     * @param string|array $callback callback JavaScript function name or URL config.
+     */
+    public function setCallback($callback)
+    {
+        $this->callback = $callback;
     }
 
     /**
@@ -125,42 +161,5 @@ JS;
         $this->view->registerJs($js, WebView::POSITION_END, __CLASS__ . '#' . $this->id);
 
         return $callbackName;
-    }
-
-    /**
-     * Registers necessary JavaScript.
-     */
-    protected function registerClientScript()
-    {
-        $js = <<<JS
-(function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/client:plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-})();
-JS;
-        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__);
-    }
-
-    /**
-     * Renders sign-in button.
-     * @return string button HTML.
-     */
-    protected function renderButton()
-    {
-        $buttonHtmlOptions = array_merge(
-            [
-                'class' => 'g-signin',
-                'data-callback' => $this->getCallback(),
-                'data-clientid' => $this->client->getClientId(),
-                'data-cookiepolicy' => 'single_host_origin',
-                'data-requestvisibleactions' => null,
-                'data-scope' => $this->client->scope,
-                'data-accesstype' => 'offline',
-                'data-width' => 'iconOnly',
-            ],
-            $this->buttonHtmlOptions
-        );
-        return Html::tag('span', Html::tag('span', '', $buttonHtmlOptions), ['id' => 'signinButton']);
     }
 }

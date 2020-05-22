@@ -61,35 +61,11 @@ final class RsaSha extends BaseMethod
     }
 
     /**
-     * @return string public key certificate content.
-     */
-    public function getPublicCertificate(): string
-    {
-        if ($this->publicCertificate === null) {
-            $this->publicCertificate = $this->initPublicCertificate();
-        }
-
-        return $this->publicCertificate;
-    }
-
-    /**
      * @param string $privateCertificateFile private key certificate file.
      */
     public function setPrivateCertificateFile(string $privateCertificateFile): void
     {
         $this->privateCertificateFile = $privateCertificateFile;
-    }
-
-    /**
-     * @return string private key certificate content.
-     */
-    public function getPrivateCertificate(): string
-    {
-        if ($this->privateCertificate === null) {
-            $this->privateCertificate = $this->initPrivateCertificate();
-        }
-
-        return $this->privateCertificate;
     }
 
     public function getName(): string
@@ -117,6 +93,77 @@ final class RsaSha extends BaseMethod
         return 'RSA-' . $algorithmName;
     }
 
+    public function generateSignature(string $baseString, string $key): string
+    {
+        $privateCertificateContent = $this->getPrivateCertificate();
+        // Pull the private key ID from the certificate
+        $privateKeyId = openssl_pkey_get_private($privateCertificateContent);
+        // Sign using the key
+        openssl_sign($baseString, $signature, $privateKeyId, $this->algorithm);
+        // Release the key resource
+        openssl_free_key($privateKeyId);
+
+        return base64_encode($signature);
+    }
+
+    /**
+     * @return string private key certificate content.
+     */
+    public function getPrivateCertificate(): string
+    {
+        if ($this->privateCertificate === null) {
+            $this->privateCertificate = $this->initPrivateCertificate();
+        }
+
+        return $this->privateCertificate;
+    }
+
+    /**
+     * Creates initial value for {@see privateCertificate}.
+     * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
+     * @return string private certificate content.
+     * @throws InvalidConfigException on failure.
+     */
+    protected function initPrivateCertificate(): string
+    {
+        if (!empty($this->privateCertificateFile)) {
+            if (!file_exists($this->privateCertificateFile)) {
+                throw new InvalidConfigException(
+                    "Private certificate file '{$this->privateCertificateFile}' does not exist!"
+                );
+            }
+            return file_get_contents($this->privateCertificateFile);
+        }
+        return '';
+    }
+
+    public function verify(string $signature, string $baseString, string $key): bool
+    {
+        $decodedSignature = base64_decode($signature);
+        // Fetch the public key cert based on the request
+        $publicCertificate = $this->getPublicCertificate();
+        // Pull the public key ID from the certificate
+        $publicKeyId = openssl_pkey_get_public($publicCertificate);
+        // Check the computed signature against the one passed in the query
+        $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
+        // Release the key resource
+        openssl_free_key($publicKeyId);
+
+        return ($verificationResult == 1);
+    }
+
+    /**
+     * @return string public key certificate content.
+     */
+    public function getPublicCertificate(): string
+    {
+        if ($this->publicCertificate === null) {
+            $this->publicCertificate = $this->initPublicCertificate();
+        }
+
+        return $this->publicCertificate;
+    }
+
     /**
      * Creates initial value for {@see publicCertificate}.
      * This method will attempt to fetch the certificate value from {@see publicCertificateFile} file.
@@ -140,52 +187,5 @@ final class RsaSha extends BaseMethod
             fclose($fp);
         }
         return $content;
-    }
-
-    /**
-     * Creates initial value for {@see privateCertificate}.
-     * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
-     * @return string private certificate content.
-     * @throws InvalidConfigException on failure.
-     */
-    protected function initPrivateCertificate(): string
-    {
-        if (!empty($this->privateCertificateFile)) {
-            if (!file_exists($this->privateCertificateFile)) {
-                throw new InvalidConfigException(
-                    "Private certificate file '{$this->privateCertificateFile}' does not exist!"
-                );
-            }
-            return file_get_contents($this->privateCertificateFile);
-        }
-        return '';
-    }
-
-    public function generateSignature(string $baseString, string $key): string
-    {
-        $privateCertificateContent = $this->getPrivateCertificate();
-        // Pull the private key ID from the certificate
-        $privateKeyId = openssl_pkey_get_private($privateCertificateContent);
-        // Sign using the key
-        openssl_sign($baseString, $signature, $privateKeyId, $this->algorithm);
-        // Release the key resource
-        openssl_free_key($privateKeyId);
-
-        return base64_encode($signature);
-    }
-
-    public function verify(string $signature, string $baseString, string $key): bool
-    {
-        $decodedSignature = base64_decode($signature);
-        // Fetch the public key cert based on the request
-        $publicCertificate = $this->getPublicCertificate();
-        // Pull the public key ID from the certificate
-        $publicKeyId = openssl_pkey_get_public($publicCertificate);
-        // Check the computed signature against the one passed in the query
-        $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
-        // Release the key resource
-        openssl_free_key($publicKeyId);
-
-        return ($verificationResult == 1);
     }
 }

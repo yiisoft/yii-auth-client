@@ -98,14 +98,6 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * @param string $returnUrl return URL
-     */
-    public function setReturnUrl($returnUrl): void
-    {
-        $this->returnUrl = $returnUrl;
-    }
-
-    /**
      * @return string return URL.
      */
     public function getReturnUrl(): string
@@ -117,28 +109,32 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * Sets access token to be used.
-     * @param array|OAuthToken $token access token or its configuration.
+     * @param string $returnUrl return URL
      */
-    public function setAccessToken($token): void
+    public function setReturnUrl($returnUrl): void
     {
-        if (!is_object($token) && $token !== null) {
-            $token = $this->createToken($token);
-        }
-        $this->accessToken = $token;
-        $this->saveAccessToken($token);
+        $this->returnUrl = $returnUrl;
     }
 
     /**
-     * @return OAuthToken auth token instance.
+     * Composes default {@see returnUrl} value.
+     * @return string return URL.
      */
-    public function getAccessToken(): ?OAuthToken
+    protected function defaultReturnUrl(): string
     {
-        if (!is_object($this->accessToken)) {
-            $this->accessToken = $this->restoreAccessToken();
+        return Yii::getApp()->getRequest()->getAbsoluteUrl();
+    }
+
+    /**
+     * @return array|BaseMethod signature method instance.
+     */
+    public function getSignatureMethod(): BaseMethod
+    {
+        if (!is_object($this->signatureMethod)) {
+            $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
         }
 
-        return $this->accessToken;
+        return $this->signatureMethod;
     }
 
     /**
@@ -159,15 +155,17 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * @return array|BaseMethod signature method instance.
+     * Creates signature method instance from its configuration.
+     * @param array $signatureMethodConfig signature method configuration.
+     * @return object|BaseMethod signature method instance.
      */
-    public function getSignatureMethod(): BaseMethod
+    protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
     {
-        if (!is_object($this->signatureMethod)) {
-            $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
+        if (!array_key_exists('__class', $signatureMethodConfig)) {
+            $signatureMethodConfig['__class'] = Signature\HmacSha::class;
+            $signatureMethodConfig['__construct()'] = ['sha1'];
         }
-
-        return $this->signatureMethod;
+        return $this->factory->create($signatureMethodConfig);
     }
 
     public function withAutoRefreshAccessToken(): self
@@ -185,26 +183,90 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * Composes default {@see returnUrl} value.
-     * @return string return URL.
+     * Performs request to the OAuth API returning response data.
+     * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
+     * @param string $apiSubUrl API sub URL, which will be append to {@see apiBaseUrl}, or absolute API URL.
+     * @param string $method request method.
+     * @param array|string $data request data or content.
+     * @param array $headers additional request headers.
+     * @return array API response data.
+     * @throws Exception
+     * @see createApiRequest()
      */
-    protected function defaultReturnUrl(): string
+    public function api($apiSubUrl, $method = 'GET', $data = [], $headers = []): array
     {
-        return Yii::getApp()->getRequest()->getAbsoluteUrl();
+        $request = $this->createApiRequest($method, $apiSubUrl);
+        $request = RequestUtil::addHeaders($request, $headers);
+
+        if (!empty($data)) {
+            if (is_array($data)) {
+                $request = RequestUtil::addParams($request, $data);
+            } else {
+                $request->getBody()->write($data);
+            }
+        }
+
+        $request = $this->beforeApiRequestSend($request);
+        $response = $this->sendRequest($request);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new InvalidResponseException(
+                $response,
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
+            );
+        }
+
+        // TODO: parse response body into array
+        return $response->getBody();
     }
 
     /**
-     * Creates signature method instance from its configuration.
-     * @param array $signatureMethodConfig signature method configuration.
-     * @return object|BaseMethod signature method instance.
+     * Creates an HTTP request for the API call.
+     * The created request will be automatically processed adding access token parameters and signature
+     * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
+     * @param string $method
+     * @param string $uri
+     * @return RequestInterface HTTP request instance.
+     * @see createRequest()
      */
-    protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
+    public function createApiRequest(string $method, string $uri): RequestInterface
     {
-        if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = Signature\HmacSha::class;
-            $signatureMethodConfig['__construct()'] = ['sha1'];
+        return $this->createRequest($method, $this->endpoint . $uri);
+    }
+
+    public function beforeApiRequestSend(RequestInterface $request): RequestInterface
+    {
+        $accessToken = $this->getAccessToken();
+        if (!is_object($accessToken) || !$accessToken->getIsValid()) {
+            throw new Exception('Invalid access token.');
         }
-        return $this->factory->create($signatureMethodConfig);
+
+        return $this->applyAccessTokenToRequest($request, $accessToken);
+    }
+
+    /**
+     * @return OAuthToken auth token instance.
+     */
+    public function getAccessToken(): ?OAuthToken
+    {
+        if (!is_object($this->accessToken)) {
+            $this->accessToken = $this->restoreAccessToken();
+        }
+
+        return $this->accessToken;
+    }
+
+    /**
+     * Sets access token to be used.
+     * @param array|OAuthToken $token access token or its configuration.
+     */
+    public function setAccessToken($token): void
+    {
+        if (!is_object($token) && $token !== null) {
+            $token = $this->createToken($token);
+        }
+        $this->accessToken = $token;
+        $this->saveAccessToken($token);
     }
 
     /**
@@ -244,68 +306,6 @@ abstract class BaseOAuth extends BaseClient
             }
         }
         return $token;
-    }
-
-    /**
-     * Creates an HTTP request for the API call.
-     * The created request will be automatically processed adding access token parameters and signature
-     * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
-     * @param string $method
-     * @param string $uri
-     * @return RequestInterface HTTP request instance.
-     * @see createRequest()
-     */
-    public function createApiRequest(string $method, string $uri): RequestInterface
-    {
-        return $this->createRequest($method, $this->endpoint . $uri);
-    }
-
-    public function beforeApiRequestSend(RequestInterface $request): RequestInterface
-    {
-        $accessToken = $this->getAccessToken();
-        if (!is_object($accessToken) || !$accessToken->getIsValid()) {
-            throw new Exception('Invalid access token.');
-        }
-
-        return $this->applyAccessTokenToRequest($request, $accessToken);
-    }
-
-    /**
-     * Performs request to the OAuth API returning response data.
-     * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
-     * @param string $apiSubUrl API sub URL, which will be append to {@see apiBaseUrl}, or absolute API URL.
-     * @param string $method request method.
-     * @param array|string $data request data or content.
-     * @param array $headers additional request headers.
-     * @return array API response data.
-     * @throws Exception
-     * @see createApiRequest()
-     */
-    public function api($apiSubUrl, $method = 'GET', $data = [], $headers = []): array
-    {
-        $request = $this->createApiRequest($method, $apiSubUrl);
-        $request = RequestUtil::addHeaders($request, $headers);
-
-        if (!empty($data)) {
-            if (is_array($data)) {
-                $request = RequestUtil::addParams($request, $data);
-            } else {
-                $request->getBody()->write($data);
-            }
-        }
-
-        $request = $this->beforeApiRequestSend($request);
-        $response = $this->sendRequest($request);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new InvalidResponseException(
-                $response,
-                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
-            );
-        }
-
-        // TODO: parse response body into array
-        return $response->getBody();
     }
 
     /**

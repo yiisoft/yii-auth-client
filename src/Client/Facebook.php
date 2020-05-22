@@ -62,18 +62,6 @@ final class Facebook extends OAuth2
      */
     private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
 
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api(
-            'me',
-            'GET',
-            [
-                'fields' => implode(',', $this->attributeNames),
-            ]
-        );
-    }
-
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -84,14 +72,6 @@ final class Facebook extends OAuth2
         }
         $params['appsecret_proof'] = hash_hmac('sha256', $accessToken->getToken(), $this->clientSecret);
         return RequestUtil::addParams($request, $params);
-    }
-
-    protected function defaultViewOptions(): array
-    {
-        return [
-            'popupWidth' => 860,
-            'popupHeight' => 480,
-        ];
     }
 
     public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
@@ -211,6 +191,25 @@ final class Facebook extends OAuth2
     public function getTitle(): string
     {
         return 'Facebook';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api(
+            'me',
+            'GET',
+            [
+                'fields' => implode(',', $this->attributeNames),
+            ]
+        );
+    }
+
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
     }
 
     protected function getDefaultScope(): string

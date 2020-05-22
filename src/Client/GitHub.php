@@ -40,6 +40,22 @@ final class GitHub extends OAuth2
     private string $tokenUrl = 'https://github.com/login/oauth/access_token';
     private string $endpoint = 'https://api.github.com';
 
+    /**
+     * @return string service name.
+     */
+    public function getName(): string
+    {
+        return 'github';
+    }
+
+    /**
+     * @return string service title.
+     */
+    public function getTitle(): string
+    {
+        return 'GitHub';
+    }
+
     protected function getDefaultScope(): string
     {
         return 'user';
@@ -66,21 +82,5 @@ final class GitHub extends OAuth2
         }
 
         return $attributes;
-    }
-
-    /**
-     * @return string service name.
-     */
-    public function getName(): string
-    {
-        return 'github';
-    }
-
-    /**
-     * @return string service title.
-     */
-    public function getTitle(): string
-    {
-        return 'GitHub';
     }
 }

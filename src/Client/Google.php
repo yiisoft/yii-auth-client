@@ -21,16 +21,6 @@ class Google extends OAuth2
     private string $tokenUrl = 'https://accounts.google.com/o/oauth2/token';
     private string $endpoint = 'https://www.googleapis.com/plus/v1';
 
-    protected function getDefaultScope(): string
-    {
-        return 'profile email';
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('people/me', 'GET');
-    }
-
     /**
      * @return string service name.
      */
@@ -45,5 +35,15 @@ class Google extends OAuth2
     public function getTitle(): string
     {
         return 'Google';
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return 'profile email';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('people/me', 'GET');
     }
 }

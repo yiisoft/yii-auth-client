@@ -40,11 +40,6 @@ final class Twitter extends OAuth1
      */
     private array $attributeParams = [];
 
-    protected function initUserAttributes(): array
-    {
-        return $this->api('account/verify_credentials.json', 'GET', $this->attributeParams);
-    }
-
     /**
      * @return string service name.
      */
@@ -59,5 +54,10 @@ final class Twitter extends OAuth1
     public function getTitle(): string
     {
         return 'Twitter';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('account/verify_credentials.json', 'GET', $this->attributeParams);
     }
 }

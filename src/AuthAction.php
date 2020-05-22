@@ -186,25 +186,41 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
-     * This method is invoked in case of successful authentication via auth client.
-     * @param ClientInterface $client auth client instance.
-     * @return ResponseInterface response instance.
-     * @throws InvalidConfigException on invalid success callback.
+     * Performs OAuth2 auth flow.
+     * @param OAuth2 $client auth client instance.
+     * @return ResponseInterface action response.
+     * @throws Exception on failure.
      */
-    private function authSuccess(ClientInterface $client): ResponseInterface
+    private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
     {
-        if (!is_callable($this->successCallback)) {
-            throw new InvalidConfigException(
-                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
-            );
+        $queryParams = $request->getQueryParams();
+
+        if (isset($queryParams['error']) && ($error = $queryParams['error']) !== null) {
+            if ($error === 'access_denied') {
+                // user denied error
+                return $this->authCancel($client);
+            }
+            // request error
+            $errorMessage = $queryParams['error_description'] ?? $queryParams['error_message'] ?? null;
+            if ($errorMessage === null) {
+                $errorMessage = http_build_query($queryParams);
+            }
+            throw new Exception('Auth error: ' . $errorMessage);
         }
 
-        $response = call_user_func($this->successCallback, $client);
-        if ($response instanceof ResponseInterface) {
-            return $response;
+        // Get the access_token and save them to the session.
+        if (isset($queryParams['code']) && ($code = $queryParams['code']) !== null) {
+            $token = $client->fetchAccessToken($request, $code);
+            if (!empty($token)) {
+                return $this->authSuccess($client);
+            }
+            return $this->authCancel($client);
         }
 
-        return $this->redirectSuccess();
+        $url = $client->buildAuthUrl();
+        return $this->responseFactory
+            ->createResponse(Status::MOVED_PERMANENTLY)
+            ->withHeader('Location', $url);
     }
 
     /**
@@ -228,6 +244,21 @@ final class AuthAction implements MiddlewareInterface
         }
 
         return $this->redirectCancel();
+    }
+
+    /**
+     * Redirect to the {@see cancelUrl} or simply close the popup window.
+     * @param string $url URL to redirect.
+     * @return ResponseInterface response instance.
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     */
+    private function redirectCancel(?string $url = null): ResponseInterface
+    {
+        if ($url === null) {
+            $url = $this->cancelUrl;
+        }
+        return $this->redirect($url, false);
     }
 
     /**
@@ -259,6 +290,28 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
+     * This method is invoked in case of successful authentication via auth client.
+     * @param ClientInterface $client auth client instance.
+     * @return ResponseInterface response instance.
+     * @throws InvalidConfigException on invalid success callback.
+     */
+    private function authSuccess(ClientInterface $client): ResponseInterface
+    {
+        if (!is_callable($this->successCallback)) {
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+            );
+        }
+
+        $response = call_user_func($this->successCallback, $client);
+        if ($response instanceof ResponseInterface) {
+            return $response;
+        }
+
+        return $this->redirectSuccess();
+    }
+
+    /**
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
      * @param string $url URL to redirect.
      * @return ResponseInterface response instance.
@@ -271,57 +324,6 @@ final class AuthAction implements MiddlewareInterface
             $url = $this->successUrl;
         }
         return $this->redirect($url);
-    }
-
-    /**
-     * Redirect to the {@see cancelUrl} or simply close the popup window.
-     * @param string $url URL to redirect.
-     * @return ResponseInterface response instance.
-     * @throws Throwable
-     * @throws ViewNotFoundException
-     */
-    private function redirectCancel(?string $url = null): ResponseInterface
-    {
-        if ($url === null) {
-            $url = $this->cancelUrl;
-        }
-        return $this->redirect($url, false);
-    }
-
-    /**
-     * Performs OpenID auth flow.
-     * @param OpenIdConnect $client auth client instance.
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
-     * @throws InvalidConfigException
-     */
-    private function authOpenId(OpenIdConnect $client, ServerRequestInterface $request): ResponseInterface
-    {
-        $queryParams = $request->getQueryParams();
-        $bodyParams = $request->getParsedBody();
-        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
-
-        if (empty($mode)) {
-            return $this->responseFactory
-                ->createResponse(Status::MOVED_PERMANENTLY)
-                ->withHeader('Location', $client->buildAuthUrl());
-        }
-
-        switch ($mode) {
-            case 'id_res':
-                if ($client->validate()) {
-                    return $this->authSuccess($client);
-                }
-                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
-                $response->getBody()->write(
-                    'Unable to complete the authentication because the required data was not received.'
-                );
-                return $response;
-            case 'cancel':
-                return $this->authCancel($client);
-            default:
-                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
-        }
     }
 
     /**
@@ -358,40 +360,38 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
-     * Performs OAuth2 auth flow.
-     * @param OAuth2 $client auth client instance.
+     * Performs OpenID auth flow.
+     * @param OpenIdConnect $client auth client instance.
+     * @param ServerRequestInterface $request
      * @return ResponseInterface action response.
-     * @throws Exception on failure.
+     * @throws InvalidConfigException
      */
-    private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
+    private function authOpenId(OpenIdConnect $client, ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
+        $bodyParams = $request->getParsedBody();
+        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
 
-        if (isset($queryParams['error']) && ($error = $queryParams['error']) !== null) {
-            if ($error === 'access_denied') {
-                // user denied error
+        if (empty($mode)) {
+            return $this->responseFactory
+                ->createResponse(Status::MOVED_PERMANENTLY)
+                ->withHeader('Location', $client->buildAuthUrl());
+        }
+
+        switch ($mode) {
+            case 'id_res':
+                if ($client->validate()) {
+                    return $this->authSuccess($client);
+                }
+                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
+                $response->getBody()->write(
+                    'Unable to complete the authentication because the required data was not received.'
+                );
+                return $response;
+            case 'cancel':
                 return $this->authCancel($client);
-            }
-            // request error
-            $errorMessage = $queryParams['error_description'] ?? $queryParams['error_message'] ?? null;
-            if ($errorMessage === null) {
-                $errorMessage = http_build_query($queryParams);
-            }
-            throw new Exception('Auth error: ' . $errorMessage);
+            default:
+                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
         }
-
-        // Get the access_token and save them to the session.
-        if (isset($queryParams['code']) && ($code = $queryParams['code']) !== null) {
-            $token = $client->fetchAccessToken($request, $code);
-            if (!empty($token)) {
-                return $this->authSuccess($client);
-            }
-            return $this->authCancel($client);
-        }
-
-        $url = $client->buildAuthUrl();
-        return $this->responseFactory
-            ->createResponse(Status::MOVED_PERMANENTLY)
-            ->withHeader('Location', $url);
     }
 }

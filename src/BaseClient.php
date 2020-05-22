@@ -72,15 +72,6 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param array $userAttributes list of user attributes
-     * @throws InvalidConfigException
-     */
-    public function setUserAttributes(array $userAttributes): void
-    {
-        $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
-    }
-
-    /**
      * @return array list of user attributes
      * @throws InvalidConfigException
      */
@@ -94,69 +85,12 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param array $normalizeUserAttributeMap normalize user attribute map.
+     * @param array $userAttributes list of user attributes
+     * @throws InvalidConfigException
      */
-    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap): void
+    public function setUserAttributes(array $userAttributes): void
     {
-        $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
-    }
-
-    /**
-     * @return array normalize user attribute map.
-     */
-    public function getNormalizeUserAttributeMap(): array
-    {
-        if ($this->normalizeUserAttributeMap === null) {
-            $this->normalizeUserAttributeMap = $this->defaultNormalizeUserAttributeMap();
-        }
-
-        return $this->normalizeUserAttributeMap;
-    }
-
-    /**
-     * @param array $viewOptions view options in format: optionName => optionValue
-     */
-    public function setViewOptions(array $viewOptions): void
-    {
-        $this->viewOptions = $viewOptions;
-    }
-
-    /**
-     * @return array view options in format: optionName => optionValue
-     */
-    public function getViewOptions(): array
-    {
-        if ($this->viewOptions === null) {
-            $this->viewOptions = $this->defaultViewOptions();
-        }
-
-        return $this->viewOptions;
-    }
-
-    /**
-     * Initializes authenticated user attributes.
-     * @return array auth user attributes.
-     */
-    abstract protected function initUserAttributes(): array;
-
-    /**
-     * Returns the default {@see normalizeUserAttributeMap} value.
-     * Particular client may override this method in order to provide specific default map.
-     * @return array normalize attribute map.
-     */
-    protected function defaultNormalizeUserAttributeMap(): array
-    {
-        return [];
-    }
-
-    /**
-     * Returns the default {@see viewOptions} value.
-     * Particular client may override this method in order to provide specific default view options.
-     * @return array list of default {@see viewOptions}
-     */
-    protected function defaultViewOptions(): array
-    {
-        return [];
+        $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
     }
 
     /**
@@ -201,6 +135,72 @@ abstract class BaseClient implements ClientInterface
         return $attributes;
     }
 
+    /**
+     * @return array normalize user attribute map.
+     */
+    public function getNormalizeUserAttributeMap(): array
+    {
+        if ($this->normalizeUserAttributeMap === null) {
+            $this->normalizeUserAttributeMap = $this->defaultNormalizeUserAttributeMap();
+        }
+
+        return $this->normalizeUserAttributeMap;
+    }
+
+    /**
+     * @param array $normalizeUserAttributeMap normalize user attribute map.
+     */
+    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap): void
+    {
+        $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
+    }
+
+    /**
+     * Returns the default {@see normalizeUserAttributeMap} value.
+     * Particular client may override this method in order to provide specific default map.
+     * @return array normalize attribute map.
+     */
+    protected function defaultNormalizeUserAttributeMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Initializes authenticated user attributes.
+     * @return array auth user attributes.
+     */
+    abstract protected function initUserAttributes(): array;
+
+    /**
+     * @return array view options in format: optionName => optionValue
+     */
+    public function getViewOptions(): array
+    {
+        if ($this->viewOptions === null) {
+            $this->viewOptions = $this->defaultViewOptions();
+        }
+
+        return $this->viewOptions;
+    }
+
+    /**
+     * @param array $viewOptions view options in format: optionName => optionValue
+     */
+    public function setViewOptions(array $viewOptions): void
+    {
+        $this->viewOptions = $viewOptions;
+    }
+
+    /**
+     * Returns the default {@see viewOptions} value.
+     * Particular client may override this method in order to provide specific default view options.
+     * @return array list of default {@see viewOptions}
+     */
+    protected function defaultViewOptions(): array
+    {
+        return [];
+    }
+
     public function createRequest(string $method, string $uri): RequestInterface
     {
         return $this->requestFactory->createRequest($method, $uri);
@@ -216,6 +216,15 @@ abstract class BaseClient implements ClientInterface
     {
         $this->stateStorage->set($this->getStateKeyPrefix() . $key, $value);
         return $this;
+    }
+
+    /**
+     * Returns session key prefix, which is used to store internal states.
+     * @return string session key prefix.
+     */
+    protected function getStateKeyPrefix(): string
+    {
+        return get_class($this) . '_' . $this->getName() . '_';
     }
 
     /**
@@ -236,15 +245,6 @@ abstract class BaseClient implements ClientInterface
     protected function removeState(string $key): bool
     {
         return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
-    }
-
-    /**
-     * Returns session key prefix, which is used to store internal states.
-     * @return string session key prefix.
-     */
-    protected function getStateKeyPrefix(): string
-    {
-        return get_class($this) . '_' . $this->getName() . '_';
     }
 
     protected function sendRequest(RequestInterface $request): ResponseInterface

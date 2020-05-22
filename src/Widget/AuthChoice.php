@@ -104,11 +104,53 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param ClientInterface[] $clients auth providers
+     * Initializes the widget.
      */
-    public function setClients(array $clients): void
+    public function init(): void
     {
-        $this->clients = $clients;
+        $view = Yii::getApp()->getView();
+        if ($this->popupMode) {
+            AuthChoiceAsset::register($view);
+            if (empty($this->clientOptions)) {
+                $options = '';
+            } else {
+                $options = Json::htmlEncode($this->clientOptions);
+            }
+            $view->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
+        } else {
+            AuthChoiceStyleAsset::register($view);
+        }
+        $this->options['id'] = $this->getId();
+        echo Html::beginTag('div', $this->options);
+    }
+
+    /**
+     * Runs the widget.
+     * @return string rendered HTML.
+     */
+    public function run(): string
+    {
+        $content = '';
+        if ($this->autoRender) {
+            $content .= $this->renderMainContent();
+        }
+        $content .= Html::endTag('div');
+        return $content;
+    }
+
+    /**
+     * Renders the main content, which includes all external services links.
+     * @return string generated HTML.
+     * @throws InvalidConfigException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     */
+    protected function renderMainContent(): string
+    {
+        $items = [];
+        foreach ($this->getClients() as $externalService) {
+            $items[] = Html::tag('li', $this->clientLink($externalService));
+        }
+        return Html::tag('ul', implode('', $items), ['class' => 'auth-clients']);
     }
 
     /**
@@ -124,23 +166,11 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param array $baseAuthUrl base auth URL configuration.
+     * @param ClientInterface[] $clients auth providers
      */
-    public function setBaseAuthUrl(array $baseAuthUrl): void
+    public function setClients(array $clients): void
     {
-        $this->baseAuthUrl = $baseAuthUrl;
-    }
-
-    /**
-     * @return array base auth URL configuration.
-     */
-    public function getBaseAuthUrl(): array
-    {
-        if (!is_array($this->baseAuthUrl)) {
-            $this->baseAuthUrl = $this->defaultBaseAuthUrl();
-        }
-
-        return $this->baseAuthUrl;
+        $this->clients = $clients;
     }
 
     /**
@@ -150,22 +180,6 @@ final class AuthChoice extends Widget
     protected function defaultClients(): array
     {
         return $this->clientCollection->getClients();
-    }
-
-    /**
-     * Composes default base auth URL configuration.
-     * @return array base auth URL configuration.
-     */
-    protected function defaultBaseAuthUrl(): array
-    {
-        $baseAuthUrl = [
-            Yii::getApp()->controller->getRoute()
-        ];
-        $params = Yii::getApp()->getRequest()->getQueryParams();
-        unset($params[$this->clientIdGetParamName]);
-        $baseAuthUrl = array_merge($baseAuthUrl, $params);
-
-        return $baseAuthUrl;
     }
 
     /**
@@ -234,52 +248,38 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Renders the main content, which includes all external services links.
-     * @return string generated HTML.
-     * @throws InvalidConfigException
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @return array base auth URL configuration.
      */
-    protected function renderMainContent(): string
+    public function getBaseAuthUrl(): array
     {
-        $items = [];
-        foreach ($this->getClients() as $externalService) {
-            $items[] = Html::tag('li', $this->clientLink($externalService));
+        if (!is_array($this->baseAuthUrl)) {
+            $this->baseAuthUrl = $this->defaultBaseAuthUrl();
         }
-        return Html::tag('ul', implode('', $items), ['class' => 'auth-clients']);
+
+        return $this->baseAuthUrl;
     }
 
     /**
-     * Initializes the widget.
+     * @param array $baseAuthUrl base auth URL configuration.
      */
-    public function init(): void
+    public function setBaseAuthUrl(array $baseAuthUrl): void
     {
-        $view = Yii::getApp()->getView();
-        if ($this->popupMode) {
-            AuthChoiceAsset::register($view);
-            if (empty($this->clientOptions)) {
-                $options = '';
-            } else {
-                $options = Json::htmlEncode($this->clientOptions);
-            }
-            $view->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
-        } else {
-            AuthChoiceStyleAsset::register($view);
-        }
-        $this->options['id'] = $this->getId();
-        echo Html::beginTag('div', $this->options);
+        $this->baseAuthUrl = $baseAuthUrl;
     }
 
     /**
-     * Runs the widget.
-     * @return string rendered HTML.
+     * Composes default base auth URL configuration.
+     * @return array base auth URL configuration.
      */
-    public function run(): string
+    protected function defaultBaseAuthUrl(): array
     {
-        $content = '';
-        if ($this->autoRender) {
-            $content .= $this->renderMainContent();
-        }
-        $content .= Html::endTag('div');
-        return $content;
+        $baseAuthUrl = [
+            Yii::getApp()->controller->getRoute()
+        ];
+        $params = Yii::getApp()->getRequest()->getQueryParams();
+        unset($params[$this->clientIdGetParamName]);
+        $baseAuthUrl = array_merge($baseAuthUrl, $params);
+
+        return $baseAuthUrl;
     }
 }

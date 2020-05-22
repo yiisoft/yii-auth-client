@@ -23,11 +23,6 @@ final class Yandex extends OAuth2
     private string $tokenUrl = 'https://oauth.yandex.ru/token';
     private string $endpoint = 'https://login.yandex.ru';
 
-    protected function initUserAttributes(): array
-    {
-        return $this->api('info', 'GET');
-    }
-
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $params = RequestUtil::getParams($request);
@@ -54,5 +49,10 @@ final class Yandex extends OAuth2
     public function getTitle(): string
     {
         return 'Yandex';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('info', 'GET');
     }
 }

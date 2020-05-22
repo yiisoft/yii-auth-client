@@ -20,16 +20,6 @@ final class Live extends OAuth2
     private string $tokenUrl = 'https://login.live.com/oauth20_token.srf';
     private string $endpoint = 'https://apis.live.net/v5.0';
 
-    protected function getDefaultScope(): string
-    {
-        return 'wl.basic wl.emails';
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('me', 'GET');
-    }
-
     /**
      * @return string service name.
      */
@@ -44,5 +34,15 @@ final class Live extends OAuth2
     public function getTitle(): string
     {
         return 'Live';
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return 'wl.basic wl.emails';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('me', 'GET');
     }
 }

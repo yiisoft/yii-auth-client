@@ -34,25 +34,6 @@ final class LinkedIn extends OAuth2
         'public-profile-url',
     ];
 
-    protected function getDefaultScope(): string
-    {
-        return 'r_basicprofile r_emailaddress';
-    }
-
-    protected function defaultNormalizeUserAttributeMap(): array
-    {
-        return [
-            'email' => 'email-address',
-            'first_name' => 'first-name',
-            'last_name' => 'last-name',
-        ];
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('people/~:(' . implode(',', $this->attributeNames) . ')', 'GET');
-    }
-
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -77,5 +58,24 @@ final class LinkedIn extends OAuth2
     public function getTitle(): string
     {
         return 'LinkedIn';
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return 'r_basicprofile r_emailaddress';
+    }
+
+    protected function defaultNormalizeUserAttributeMap(): array
+    {
+        return [
+            'email' => 'email-address',
+            'first_name' => 'first-name',
+            'last_name' => 'last-name',
+        ];
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('people/~:(' . implode(',', $this->attributeNames) . ')', 'GET');
     }
 }
