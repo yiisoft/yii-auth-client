@@ -41,7 +41,7 @@ class OAuth1Test extends TestCase
     // Tests :
 
     /**
-     * @runInSeparateProcess
+     * @ runInSeparateProcess
      */
     public function testSignRequest()
     {
@@ -92,7 +92,7 @@ class OAuth1Test extends TestCase
 
     /**
      * @depends testSignRequest
-     * @runInSeparateProcess
+     * @ runInSeparateProcess
      */
     public function testAuthorizationHeaderMethods()
     {
