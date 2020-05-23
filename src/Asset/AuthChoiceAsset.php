@@ -14,7 +14,7 @@ use Yiisoft\Yii\JQuery\YiiAsset;
  */
 class AuthChoiceAsset extends AssetBundle
 {
-    public ?string $sourcePath = '@Yiisoft/Yii/AuthClient/assets';
+    public ?string $sourcePath = '@auth-client/assets';
     public array $js = [
         'authchoice.js',
     ];

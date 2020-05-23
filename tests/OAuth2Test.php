@@ -33,7 +33,7 @@ class OAuth2Test extends TestCase
     // Tests :
 
     /**
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testBuildAuthUrl()
     {

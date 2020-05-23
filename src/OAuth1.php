@@ -132,14 +132,16 @@ abstract class OAuth1 extends BaseOAuth
         $signatureKey = $this->composeSignatureKey($token);
         $params['oauth_signature'] = $signatureMethod->generateSignature($signatureBaseString, $signatureKey);
 
-        if ($this->authorizationHeaderMethods === null || in_array(
+        if (
+            $this->authorizationHeaderMethods === null || in_array(
                 strtoupper($request->getMethod()),
                 array_map(
                     'strtoupper',
                     $this->authorizationHeaderMethods
                 ),
                 true
-            )) {
+            )
+        ) {
             $authorizationHeader = $this->composeAuthorizationHeader($params);
             if (!empty($authorizationHeader)) {
                 foreach ($authorizationHeader as $name => $value) {

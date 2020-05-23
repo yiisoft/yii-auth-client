@@ -67,7 +67,7 @@ class BaseClientTest extends TestCase
     }
 
     /**
-     * Data provider for [[testNormalizeUserAttributes()]]
+     * Data provider for {@see testNormalizeUserAttributes()}
      * @return array test data
      */
     public function dataProviderNormalizeUserAttributes()

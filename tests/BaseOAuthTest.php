@@ -58,7 +58,7 @@ class BaseOAuthTest extends TestCase
     }
 
     /**
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testSetupComponents()
     {
@@ -78,7 +78,7 @@ class BaseOAuthTest extends TestCase
     }
 
     /**
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testSetupAccessToken()
     {
@@ -101,7 +101,7 @@ class BaseOAuthTest extends TestCase
     /**
      * @depends testSetupComponents
      * @depends testSetupAccessToken
-     * @ runInSeparateProcess
+     * @runInSeparateProcess
      */
     public function testSetupComponentsByConfig()
     {
