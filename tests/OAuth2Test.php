@@ -32,9 +32,6 @@ class OAuth2Test extends TestCase
 
     // Tests :
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testBuildAuthUrl()
     {
         $oauthClient = $this->createClient();

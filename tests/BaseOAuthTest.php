@@ -57,9 +57,6 @@ class BaseOAuthTest extends TestCase
         $this->assertEquals($returnUrl, $oauthClient->getReturnUrl(), 'Unable to setup return URL!');
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSetupComponents()
     {
         $oauthClient = $this->createClient();
@@ -77,9 +74,6 @@ class BaseOAuthTest extends TestCase
         );
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSetupAccessToken()
     {
         $oauthClient = $this->createClient();
@@ -101,7 +95,6 @@ class BaseOAuthTest extends TestCase
     /**
      * @depends testSetupComponents
      * @depends testSetupAccessToken
-     * @runInSeparateProcess
      */
     public function testSetupComponentsByConfig()
     {
