@@ -16,7 +16,7 @@ class InvalidResponseException extends Exception
     /**
      * @var ResponseInterface HTTP response instance.
      */
-    public ResponseInterface $response;
+    private ResponseInterface $response;
 
     /**
      * Constructor.
@@ -29,5 +29,10 @@ class InvalidResponseException extends Exception
     {
         $this->response = $response;
         parent::__construct($message, $code, $previous);
+    }
+
+    public function getResponse(): ResponseInterface
+    {
+        return $this->response;
     }
 }

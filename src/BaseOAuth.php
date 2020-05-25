@@ -12,6 +12,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -219,8 +220,7 @@ abstract class BaseOAuth extends BaseClient
             );
         }
 
-        // TODO: parse response body into array
-        return $response->getBody();
+        return Json::decode($response->getBody()->getContents());
     }
 
     /**

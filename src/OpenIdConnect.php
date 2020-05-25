@@ -208,7 +208,7 @@ final class OpenIdConnect extends OAuth2
         $request = $this->createRequest('GET', $configUrl);
         $response = $this->sendRequest($request);
 
-        return json_decode($response->getBody()->getContents(), true);
+        return Json::decode($response->getBody()->getContents());
     }
 
     public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
@@ -348,7 +348,7 @@ final class OpenIdConnect extends OAuth2
         // OpenIdConnect specifics :
         unset($params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
 
-        return $request->getUri()->withQuery(http_build_query($params))->__toString();
+        return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 
     protected function createToken(array $tokenConfig = []): OAuthToken

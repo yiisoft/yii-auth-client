@@ -148,7 +148,11 @@ abstract class OAuth2 extends BaseOAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $token = $this->createToken(
+            [
+                'setParams' => [Json::decode($response->getBody()->getContents())]
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -212,7 +216,11 @@ abstract class OAuth2 extends BaseOAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $token = $this->createToken(
+            [
+                'setParams' => [Json::decode($response->getBody()->getContents())]
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -245,7 +253,11 @@ abstract class OAuth2 extends BaseOAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $token = $this->createToken(
+            [
+                'setParams' => [Json::decode($response->getBody()->getContents())]
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -281,7 +293,11 @@ abstract class OAuth2 extends BaseOAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $token = $this->createToken(
+            [
+                'setParams' => [Json::decode($response->getBody()->getContents())]
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -428,6 +444,6 @@ abstract class OAuth2 extends BaseOAuth
         unset($params['code']);
         unset($params['state']);
 
-        return $request->getUri()->withQuery(http_build_query($params))->__toString();
+        return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 }

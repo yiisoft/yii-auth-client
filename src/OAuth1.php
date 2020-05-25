@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Json\Json;
 
 /**
  * OAuth1 serves as a client for the OAuth 1/1.0a flow.
@@ -96,7 +97,7 @@ abstract class OAuth1 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [(array)$response->getBody()]
+                'setParams()' => [Json::decode($response->getBody()->getContents())]
             ]
         );
         $this->setState('requestToken', $token);
@@ -356,7 +357,7 @@ abstract class OAuth1 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'params' => $response
+                'setParams()' => [Json::decode($response->getBody()->getContents())]
             ]
         );
         $this->setAccessToken($token);
@@ -462,6 +463,6 @@ abstract class OAuth1 extends BaseOAuth
         $params = $request->getQueryParams();
         unset($params['oauth_token']);
 
-        return $request->getUri()->withQuery(http_build_query($params))->__toString();
+        return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 }
