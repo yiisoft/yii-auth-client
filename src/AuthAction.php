@@ -188,8 +188,11 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Performs OAuth2 auth flow.
      * @param OAuth2 $client auth client instance.
+     * @param ServerRequestInterface $request
      * @return ResponseInterface action response.
-     * @throws Exception on failure.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -217,7 +220,7 @@ final class AuthAction implements MiddlewareInterface
             return $this->authCancel($client);
         }
 
-        $url = $client->buildAuthUrl();
+        $url = $client->buildAuthUrl($request);
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
             ->withHeader('Location', $url);
@@ -350,9 +353,9 @@ final class AuthAction implements MiddlewareInterface
         }
 
         // Get request token.
-        $requestToken = $client->fetchRequestToken();
+        $requestToken = $client->fetchRequestToken($request);
         // Get authorization URL.
-        $url = $client->buildAuthUrl($requestToken);
+        $url = $client->buildAuthUrl($request, $requestToken);
         // Redirect to authorization URL.
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
@@ -375,7 +378,7 @@ final class AuthAction implements MiddlewareInterface
         if (empty($mode)) {
             return $this->responseFactory
                 ->createResponse(Status::MOVED_PERMANENTLY)
-                ->withHeader('Location', $client->buildAuthUrl());
+                ->withHeader('Location', $client->buildAuthUrl($request));
         }
 
         switch ($mode) {

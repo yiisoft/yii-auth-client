@@ -72,15 +72,19 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Composes user authorization URL.
+     * @param ServerRequestInterface $incomingRequest
      * @param array $params additional auth GET params.
      * @return string authorization URL.
      */
-    public function buildAuthUrl(array $params = []): string
-    {
+    public function buildAuthUrl(
+        ServerRequestInterface $incomingRequest,
+        ?OAuthToken $requestToken = null,
+        array $params = []
+    ): string {
         $defaultParams = [
             'client_id' => $this->clientId,
             'response_type' => 'code',
-            'redirect_uri' => $this->getReturnUrl(),
+            'redirect_uri' => $this->getReturnUrl($incomingRequest),
             //'xoauth_displayname' => Yii::getApp()->name,
         ];
         if (!empty($this->getScope())) {
@@ -135,7 +139,7 @@ abstract class OAuth2 extends BaseOAuth
         $defaultParams = [
             'code' => $authCode,
             'grant_type' => 'authorization_code',
-            'redirect_uri' => $this->getReturnUrl(),
+            'redirect_uri' => $this->getReturnUrl($incomingRequest),
         ];
 
         $request = $this->createRequest('POST', $this->tokenUrl);
@@ -418,13 +422,12 @@ abstract class OAuth2 extends BaseOAuth
      * Composes default {@see returnUrl} value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl(): string
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        $params = Yii::getApp()->getRequest()->getQueryParams();
+        $params = $request->getQueryParams();
         unset($params['code']);
         unset($params['state']);
-        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
+        return $request->getUri()->withQuery(http_build_query($params))->__toString();
     }
 }

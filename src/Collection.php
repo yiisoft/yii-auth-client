@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Collection is a storage for all auth clients in the application.
@@ -16,12 +18,12 @@ use InvalidArgumentException;
  *     'google' => [
  *         '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
  *         'setClientId()' => ['google_client_id'],
- *         'setClientSecret' => ['google_client_secret'],
+ *         'setClientSecret()' => ['google_client_secret'],
  *      ],
  *     'facebook' => [
  *         '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
- *         'setClientId' => ['facebook_client_id'],
- *         'setClientSecret' => ['facebook_client_secret'],
+ *         'setClientId()' => ['facebook_client_id'],
+ *         'setClientSecret()' => ['facebook_client_secret'],
  *     ]
  *     ...
  * ]
@@ -30,13 +32,15 @@ use InvalidArgumentException;
 class Collection
 {
     /**
-     * @var ClientInterface|array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var ClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    private iterable $clients;
+    private array $clients;
+    private ContainerInterface $container;
 
-    public function __construct(iterable $clients = [])
+    public function __construct(array $clients, ContainerInterface $container)
     {
         $this->clients = $clients;
+        $this->container = $container;
     }
 
     /**
@@ -71,9 +75,20 @@ class Collection
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
-        // TODO: support declarative syntax and callables?
-
-        return $this->clients[$name];
+        $client = $this->clients[$name];
+        if (is_string($client)) {
+            $client = $this->container->get($client);
+        } elseif ($client instanceof ClientInterface) {
+            return $client;
+        } elseif (is_object($client) && method_exists($client, '__invoke')) {
+            $client = $client($this->container);
+        }
+        if (!($client instanceof ClientInterface)) {
+            throw new RuntimeException(
+                'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
+            );
+        }
+        return $client;
     }
 
     /**

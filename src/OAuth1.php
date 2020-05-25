@@ -67,15 +67,17 @@ abstract class OAuth1 extends BaseOAuth
 
     /**
      * Fetches the OAuth request token.
+     * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
      * @return OAuthToken request token.
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    public function fetchRequestToken(array $params = [])
+    public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = [])
     {
         $this->setAccessToken(null);
         $defaultParams = [
             'oauth_consumer_key' => $this->consumerKey,
-            'oauth_callback' => $this->getReturnUrl(),
+            'oauth_callback' => $this->getReturnUrl($incomingRequest),
             //'xoauth_displayname' => Yii::getApp()->name,
         ];
         if (!empty($this->getScope())) {
@@ -94,7 +96,7 @@ abstract class OAuth1 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'params' => $response
+                'setParams()' => [(array)$response->getBody()]
             ]
         );
         $this->setState('requestToken', $token);
@@ -274,13 +276,16 @@ abstract class OAuth1 extends BaseOAuth
 
     /**
      * Composes user authorization URL.
+     * @param ServerRequestInterface $incomingRequest
      * @param OAuthToken $requestToken OAuth request token.
      * @param array $params additional request params.
      * @return string authorize URL
-     * @throws InvalidArgumentException on failure.
      */
-    public function buildAuthUrl(OAuthToken $requestToken = null, array $params = [])
-    {
+    public function buildAuthUrl(
+        ServerRequestInterface $incomingRequest,
+        ?OAuthToken $requestToken = null,
+        array $params = []
+    ) {
         if (!is_object($requestToken)) {
             $requestToken = $this->getState('requestToken');
             if (!is_object($requestToken)) {
@@ -452,12 +457,11 @@ abstract class OAuth1 extends BaseOAuth
      * Composes default {@see returnUrl} value.
      * @return string return URL.
      */
-    protected function defaultReturnUrl(): string
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        $params = Yii::getApp()->getRequest()->getQueryParams();
+        $params = $request->getQueryParams();
         unset($params['oauth_token']);
-        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
+        return $request->getUri()->withQuery(http_build_query($params))->__toString();
     }
 }

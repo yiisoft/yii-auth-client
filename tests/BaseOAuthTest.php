@@ -6,6 +6,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\BaseOAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
@@ -51,10 +52,17 @@ class BaseOAuthTest extends TestCase
     public function testSetGet()
     {
         $oauthClient = $this->createClient();
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
-        $this->assertEquals($returnUrl, $oauthClient->getReturnUrl(), 'Unable to setup return URL!');
+        $this->assertEquals(
+            $returnUrl,
+            $oauthClient->getReturnUrl(
+                $serverRequest
+            ),
+            'Unable to setup return URL!'
+        );
     }
 
     public function testSetupComponents()

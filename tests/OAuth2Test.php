@@ -5,6 +5,7 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
@@ -41,8 +42,9 @@ class OAuth2Test extends TestCase
         $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl();
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');

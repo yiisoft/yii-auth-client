@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
@@ -49,7 +50,7 @@ abstract class BaseOAuth extends BaseClient
      * Note: this should be absolute URL (with http:// or https:// leading).
      * By default current URL will be used.
      */
-    protected string $returnUrl;
+    protected ?string $returnUrl = null;
     /**
      * @var OAuthToken|array access token instance or its array configuration.
      */
@@ -98,12 +99,13 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
+     * @param ServerRequestInterface $request
      * @return string return URL.
      */
-    public function getReturnUrl(): string
+    public function getReturnUrl(ServerRequestInterface $request): string
     {
         if ($this->returnUrl === null) {
-            $this->returnUrl = $this->defaultReturnUrl();
+            $this->returnUrl = $this->defaultReturnUrl($request);
         }
         return $this->returnUrl;
     }
@@ -111,18 +113,19 @@ abstract class BaseOAuth extends BaseClient
     /**
      * @param string $returnUrl return URL
      */
-    public function setReturnUrl($returnUrl): void
+    public function setReturnUrl(string $returnUrl): void
     {
         $this->returnUrl = $returnUrl;
     }
 
     /**
      * Composes default {@see returnUrl} value.
+     * @param ServerRequestInterface $request
      * @return string return URL.
      */
-    protected function defaultReturnUrl(): string
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        return Yii::getApp()->getRequest()->getAbsoluteUrl();
+        return $request->getUri()->__toString();
     }
 
     /**
@@ -273,6 +276,7 @@ abstract class BaseOAuth extends BaseClient
      * Creates token from its configuration.
      * @param array $tokenConfig token configuration.
      * @return object|OAuthToken
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
     protected function createToken(array $tokenConfig = [])
     {

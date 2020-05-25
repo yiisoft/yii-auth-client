@@ -143,12 +143,15 @@ final class OpenIdConnect extends OAuth2
         parent::__construct($httpClient, $requestFactory, $stateStorage, $session, $factory);
     }
 
-    public function buildAuthUrl(array $params = []): string
-    {
+    public function buildAuthUrl(
+        ServerRequestInterface $incomingRequest,
+        ?OAuthToken $requestToken = null,
+        array $params = []
+    ): string {
         if ($this->authUrl === null) {
             $this->authUrl = $this->getConfigParam('authorization_endpoint');
         }
-        return parent::buildAuthUrl($params);
+        return parent::buildAuthUrl($incomingRequest, $requestToken, $params);
     }
 
     /**
@@ -337,16 +340,15 @@ final class OpenIdConnect extends OAuth2
         return $request;
     }
 
-    protected function defaultReturnUrl(): string
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        $params = Yii::getApp()->getRequest()->getQueryParams();
+        $params = $request->getQueryParams();
         // OAuth2 specifics :
         unset($params['code'], $params['state']);
         // OpenIdConnect specifics :
         unset($params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
-        $params[0] = Yii::getApp()->controller->getRoute();
 
-        return Yii::getApp()->getUrlManager()->createAbsoluteUrl($params);
+        return $request->getUri()->withQuery(http_build_query($params))->__toString();
     }
 
     protected function createToken(array $tokenConfig = []): OAuthToken
@@ -359,7 +361,7 @@ final class OpenIdConnect extends OAuth2
             if ($this->getValidateAuthNonce()) {
                 $authNonce = $this->getState('authNonce');
                 if (!isset($jwsData['nonce']) || empty($authNonce) || strcmp($jwsData['nonce'], $authNonce) !== 0) {
-                    throw new HttpException(400, 'Invalid auth nonce');
+                    throw new HttpException('Invalid auth nonce', 400);
                 }
 
                 $this->removeState('authNonce');

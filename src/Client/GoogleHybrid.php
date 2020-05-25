@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\Widget\GooglePlusButton;
 
 /**
@@ -24,7 +25,7 @@ final class GoogleHybrid extends Google
 {
     private bool $validateAuthState = false;
 
-    protected function defaultReturnUrl(): string
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         return 'postmessage';
     }

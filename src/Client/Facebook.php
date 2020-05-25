@@ -115,12 +115,16 @@ final class Facebook extends OAuth2
      * to avoid triggering Facebook's automated spam systems.
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAccessToken()
+     * @param ServerRequestInterface $incomingRequest
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
      * @return string client auth code.
      */
-    public function fetchClientAuthCode(OAuthToken $token = null, $params = []): string
-    {
+    public function fetchClientAuthCode(
+        ServerRequestInterface $incomingRequest,
+        OAuthToken $token = null,
+        $params = []
+    ): string {
         if ($token === null) {
             $token = $this->getAccessToken();
         }
@@ -128,7 +132,7 @@ final class Facebook extends OAuth2
         $params = array_merge(
             [
                 'access_token' => $token->getToken(),
-                'redirect_uri' => $this->getReturnUrl(),
+                'redirect_uri' => $this->getReturnUrl($incomingRequest),
             ],
             $params
         );
@@ -151,16 +155,20 @@ final class Facebook extends OAuth2
      * to avoid triggering Facebook's automated spam systems.
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
+     * @param ServerRequestInterface $incomingRequest
      * @param string $authCode client auth code.
      * @param array $params
      * @return OAuthToken long-live client-specific access token.
      */
-    public function fetchClientAccessToken($authCode, array $params = []): OAuthToken
-    {
+    public function fetchClientAccessToken(
+        ServerRequestInterface $incomingRequest,
+        string $authCode,
+        array $params = []
+    ): OAuthToken {
         $params = array_merge(
             [
                 'code' => $authCode,
-                'redirect_uri' => $this->getReturnUrl(),
+                'redirect_uri' => $this->getReturnUrl($incomingRequest),
                 'client_id' => $this->clientId,
             ],
             $params
