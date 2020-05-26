@@ -27,5 +27,4 @@ class CollectionFactory
         }
         return new Collection($clients, $container);
     }
-
 }

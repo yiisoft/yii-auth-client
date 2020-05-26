@@ -48,7 +48,6 @@ class CollectionTest extends TestCase
      */
     public function testGetProviderByName()
     {
-
         $clientId = 'testClientId';
         $client = $this->getTestClient();
         $clients = [

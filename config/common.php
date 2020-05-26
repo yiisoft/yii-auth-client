@@ -1,4 +1,5 @@
 <?php
+
 /** @var array $params */
 
 use Psr\Container\ContainerInterface;
