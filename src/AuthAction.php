@@ -171,6 +171,9 @@ final class AuthAction implements MiddlewareInterface
      * @return ResponseInterface response instance.
      * @throws InvalidConfigException
      * @throws NotSupportedException on invalid client.
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
     private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -297,6 +300,8 @@ final class AuthAction implements MiddlewareInterface
      * @param ClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
      * @throws InvalidConfigException on invalid success callback.
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function authSuccess(ClientInterface $client): ResponseInterface
     {
@@ -335,7 +340,9 @@ final class AuthAction implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @return ResponseInterface action response.
      * @throws InvalidConfigException
-     * @throws HttpException
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -364,10 +371,12 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Performs OpenID auth flow.
-     * @param OpenIdConnect $client auth client instance.
+     * @param OpenId $client auth client instance.
      * @param ServerRequestInterface $request
      * @return ResponseInterface action response.
      * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
     private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
     {
