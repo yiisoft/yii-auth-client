@@ -361,10 +361,8 @@ class OpenId extends BaseClient
                             }
                             // Does the server advertise support for either AX or SREG?
                             $result['ax'] = (bool)strpos($content, '<Type>http://openid.net/srv/ax/1.0</Type>');
-                            $result['sreg'] = strpos($content, '<Type>http://openid.net/sreg/1.0</Type>') || strpos(
-                                    $content,
-                                    '<Type>http://openid.net/extensions/sreg/1.1</Type>'
-                                );
+                            $result['sreg'] = strpos($content, '<Type>http://openid.net/sreg/1.0</Type>')
+                                || strpos($content, '<Type>http://openid.net/extensions/sreg/1.1</Type>');
 
                             $server = $server[1];
                             if (isset($delegate[2])) {
