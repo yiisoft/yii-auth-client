@@ -178,7 +178,7 @@ final class AuthAction implements MiddlewareInterface
             return $this->authOAuth2($client, $request);
         } elseif ($client instanceof OAuth1) {
             return $this->authOAuth1($client, $request);
-        } elseif ($client instanceof OpenIdConnect) {
+        } elseif ($client instanceof OpenId) {
             return $this->authOpenId($client, $request);
         }
 
@@ -369,7 +369,7 @@ final class AuthAction implements MiddlewareInterface
      * @return ResponseInterface action response.
      * @throws InvalidConfigException
      */
-    private function authOpenId(OpenIdConnect $client, ServerRequestInterface $request): ResponseInterface
+    private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
         $bodyParams = $request->getParsedBody();
