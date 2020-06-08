@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
-use HttpException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -179,9 +178,13 @@ final class AuthAction implements MiddlewareInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
-        } elseif ($client instanceof OAuth1) {
+        }
+
+        if ($client instanceof OAuth1) {
             return $this->authOAuth1($client, $request);
-        } elseif ($client instanceof OpenId) {
+        }
+
+        if ($client instanceof OpenId) {
             return $this->authOpenId($client, $request);
         }
 
