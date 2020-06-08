@@ -162,7 +162,7 @@ class OpenId extends BaseClient
     /**
      * @return string client trust root (realm).
      */
-    public function getTrustRoot()
+    public function getTrustRoot(): string
     {
         return $this->trustRoot;
     }
@@ -348,9 +348,9 @@ class OpenId extends BaseClient
                         $content = ' ' . $content; // The space is added, so that strpos doesn't return 0.
 
                         // OpenID 2
-                        $ns = preg_quote('http://specs.openid.net/auth/2.0/');
+                        $ns = preg_quote('http://specs.openid.net/auth/2.0/', '#');
                         if (preg_match('#<Type>\s*' . $ns . '(server|signon)\s*</Type>#s', $content, $type)) {
-                            if ($type[1] == 'server') {
+                            if ($type[1] === 'server') {
                                 $result['identifier_select'] = true;
                             }
 
@@ -376,7 +376,7 @@ class OpenId extends BaseClient
                         }
 
                         // OpenID 1.1
-                        $ns = preg_quote('http://openid.net/signon/1.1');
+                        $ns = preg_quote('http://openid.net/signon/1.1', '#');
                         if (preg_match('#<Type>\s*' . $ns . '\s*</Type>#s', $content)) {
                             preg_match('#<URI.*?>(.*)</URI>#', $content, $server);
                             preg_match('#<.*?Delegate>(.*)</.*?Delegate>#', $content, $delegate);
@@ -513,7 +513,7 @@ class OpenId extends BaseClient
                     if (empty($counts[$alias])) {
                         $counts[$alias] = 0;
                     }
-                    $counts[$alias] += 1;
+                    ++$counts[$alias];
                     ${$type}[] = $alias;
                 }
             }
@@ -551,7 +551,7 @@ class OpenId extends BaseClient
         /* If we have an openid.delegate that is different from our claimed id,
         we need to somehow preserve the claimed id between requests.
         The simplest way is to just send it along with the return_to url.*/
-        if ($serverInfo['identity'] != $this->getClaimedId()) {
+        if ($serverInfo['identity'] !== $this->getClaimedId()) {
             $returnUrl .= (strpos($returnUrl, '?') ? '&' : '?') . 'openid.claimed_id=' . $this->getClaimedId();
         }
 
@@ -677,12 +677,12 @@ class OpenId extends BaseClient
         if (preg_match('/is_valid\s*:\s*true/i', $response)) {
             if ($validateRequiredAttributes) {
                 return $this->validateRequiredAttributes();
-            } else {
-                return true;
             }
-        } else {
-            return false;
+
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -710,13 +710,13 @@ class OpenId extends BaseClient
     protected function fetchAxAttributes(): array
     {
         $alias = null;
-        if (isset($this->data['openid_ns_ax']) && $this->data['openid_ns_ax'] != 'http://openid.net/srv/ax/1.0') {
+        if (isset($this->data['openid_ns_ax']) && $this->data['openid_ns_ax'] !== 'http://openid.net/srv/ax/1.0') {
             // It's the most likely case, so we'll check it before
             $alias = 'ax';
         } else {
             // 'ax' prefix is either undefined, or points to another extension, so we search for another prefix
             foreach ($this->data as $key => $value) {
-                if (strncmp($key, 'openid_ns_', 10) === 0 && $value == 'http://openid.net/srv/ax/1.0') {
+                if ($value === 'http://openid.net/srv/ax/1.0' && strncmp($key, 'openid_ns_', 10) === 0) {
                     $alias = substr($key, strlen('openid_ns_'));
                     break;
                 }
@@ -780,9 +780,9 @@ class OpenId extends BaseClient
      * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
      * @see http://www.axschema.org/types/
      */
-    public function fetchAttributes()
+    public function fetchAttributes(): array
     {
-        if (isset($this->data['openid_ns']) && $this->data['openid_ns'] == 'http://specs.openid.net/auth/2.0') {
+        if (isset($this->data['openid_ns']) && $this->data['openid_ns'] === 'http://specs.openid.net/auth/2.0') {
             // OpenID 2.0
             // We search for both AX and SREG attributes, with AX taking precedence.
             return array_merge($this->fetchSregAttributes(), $this->fetchAxAttributes());
@@ -807,7 +807,7 @@ class OpenId extends BaseClient
         $expectedUrlInfo = parse_url($expectedUrl);
         $actualUrlInfo = parse_url($actualUrl);
         foreach ($expectedUrlInfo as $name => $expectedValue) {
-            if ($name == 'query') {
+            if ($name === 'query') {
                 parse_str($expectedValue, $expectedUrlParams);
                 parse_str($actualUrlInfo[$name], $actualUrlParams);
                 $paramsDiff = array_diff_assoc($expectedUrlParams, $actualUrlParams);

@@ -95,8 +95,7 @@ final class VKontakte extends OAuth2
         $accessToken = $this->getAccessToken();
         if (is_object($accessToken)) {
             $accessTokenParams = $accessToken->getParams();
-            unset($accessTokenParams['access_token']);
-            unset($accessTokenParams['expires_in']);
+            unset($accessTokenParams['access_token'], $accessTokenParams['expires_in']);
             $attributes = array_merge($accessTokenParams, $attributes);
         }
 

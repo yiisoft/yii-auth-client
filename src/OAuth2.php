@@ -344,7 +344,7 @@ abstract class OAuth2 extends BaseOAuth
         );
         if (!isset($header['alg'])) {
             $signatureName = $signatureMethod->getName();
-            if (preg_match('/^([a-z])[a-z]*\-([a-z])[a-z]*([0-9]+)$/is', $signatureName, $matches)) {
+            if (preg_match('/^([a-z])[a-z]*-([a-z])[a-z]*(\d+)$/i', $signatureName, $matches)) {
                 // convert 'RSA-SHA256' to 'RS256' :
                 $signatureName = $matches[1] . $matches[2] . $matches[3];
             }
@@ -441,8 +441,7 @@ abstract class OAuth2 extends BaseOAuth
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
-        unset($params['code']);
-        unset($params['state']);
+        unset($params['code'], $params['state']);
 
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }

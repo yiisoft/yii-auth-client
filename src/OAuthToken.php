@@ -82,7 +82,7 @@ class OAuthToken
      */
     public function getParam(string $name)
     {
-        return isset($this->params[$name]) ? $this->params[$name] : null;
+        return $this->params[$name] ?? null;
     }
 
     /**
