@@ -283,7 +283,6 @@ abstract class OAuth1 extends BaseOAuth
      * @return string authorize URL
      */
     public function buildAuthUrl(
-        ServerRequestInterface $incomingRequest,
         ?OAuthToken $requestToken = null,
         array $params = []
     ) {

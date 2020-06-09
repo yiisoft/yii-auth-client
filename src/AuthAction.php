@@ -53,6 +53,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  */
 final class AuthAction implements MiddlewareInterface
 {
+    public const AUTH_NAME = 'auth_displayname';
     /**
      * @var Collection
      * It should point to {@see Collection} instance.
