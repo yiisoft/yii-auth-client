@@ -180,9 +180,7 @@ class OAuth1Test extends TestCase
         $requestToken = new OAuthToken();
         $requestToken->setToken($requestTokenToken);
 
-        $serverRequest = new ServerRequest('GET', new Uri($authUrl));
-
-        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest, $requestToken);
+        $builtAuthUrl = $oauthClient->buildAuthUrl($requestToken);
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($requestTokenToken, $builtAuthUrl, 'No token present!');
