@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Exception;
 
-use Exception;
+use RuntimeException;
 
-class NotSupportedException extends Exception
+class NotSupportedException extends RuntimeException
 {
 }

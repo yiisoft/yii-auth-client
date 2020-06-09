@@ -145,13 +145,12 @@ final class OpenIdConnect extends OAuth2
 
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
-        ?OAuthToken $requestToken = null,
         array $params = []
     ): string {
         if ($this->authUrl === null) {
             $this->authUrl = $this->getConfigParam('authorization_endpoint');
         }
-        return parent::buildAuthUrl($incomingRequest, $requestToken, $params);
+        return parent::buildAuthUrl($incomingRequest, $params);
     }
 
     /**

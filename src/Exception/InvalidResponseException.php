@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Exception;
 
-use Exception;
+use RuntimeException;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
  * InvalidResponseException represents an exception caused by invalid remote server response.
  */
-class InvalidResponseException extends Exception
+class InvalidResponseException extends RuntimeException
 {
     /**
      * @var ResponseInterface HTTP response instance.

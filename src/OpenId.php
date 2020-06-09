@@ -187,35 +187,6 @@ class OpenId extends BaseClient
     }
 
     /**
-     * Checks if the server specified in the url exists.
-     * @param string $url URL to check
-     * @return bool true, if the server exists; false otherwise
-     */
-    public function hostExists($url)
-    {
-        if (strpos($url, '/') === false) {
-            $server = $url;
-        } else {
-            $server = @parse_url($url, PHP_URL_HOST);
-        }
-        if (!$server) {
-            return false;
-        }
-        $ips = gethostbynamel($server);
-
-        return !empty($ips);
-    }
-
-    protected function defaultRequestOptions(): array
-    {
-        return [
-            'userAgent' => 'OpenID Client',
-            'timeout' => 30,
-            'followLocation' => true,
-        ];
-    }
-
-    /**
      * Combines given URLs into single one.
      * @param string $baseUrl base URL.
      * @param string|array $additionalUrl additional URL string or information array.
@@ -542,12 +513,13 @@ class OpenId extends BaseClient
 
     /**
      * Builds authentication URL for the protocol version 1.
+     * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
      * @return string authentication URL.
      */
-    protected function buildAuthUrlV1($serverInfo)
+    protected function buildAuthUrlV1(ServerRequestInterface $incomingRequest, array $serverInfo)
     {
-        $returnUrl = $this->getReturnUrl();
+        $returnUrl = $this->getReturnUrl($incomingRequest);
         /* If we have an openid.delegate that is different from our claimed id,
         we need to somehow preserve the claimed id between requests.
         The simplest way is to just send it along with the return_to url.*/
@@ -570,15 +542,16 @@ class OpenId extends BaseClient
 
     /**
      * Builds authentication URL for the protocol version 2.
+     * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
      * @return string authentication URL.
      */
-    protected function buildAuthUrlV2($serverInfo)
+    protected function buildAuthUrlV2(ServerRequestInterface $incomingRequest, array $serverInfo)
     {
         $params = [
             'openid.ns' => 'http://specs.openid.net/auth/2.0',
             'openid.mode' => 'checkid_setup',
-            'openid.return_to' => $this->getReturnUrl(),
+            'openid.return_to' => $this->getReturnUrl($incomingRequest),
             'openid.realm' => $this->getTrustRoot(),
         ];
         if ($serverInfo['ax']) {
@@ -606,10 +579,11 @@ class OpenId extends BaseClient
 
     /**
      * Returns authentication URL. Usually, you want to redirect your user to it.
+     * @param ServerRequestInterface $incomingRequest
      * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
      * @return string the authentication URL.
      */
-    public function buildAuthUrl($identifierSelect = null)
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, ?bool $identifierSelect = null)
     {
         $authUrl = $this->authUrl;
         $claimedId = $this->getClaimedId();
@@ -622,10 +596,10 @@ class OpenId extends BaseClient
                 $serverInfo['identifier_select'] = $identifierSelect;
             }
 
-            return $this->buildAuthUrlV2($serverInfo);
+            return $this->buildAuthUrlV2($incomingRequest, $serverInfo);
         }
 
-        return $this->buildAuthUrlV1($serverInfo);
+        return $this->buildAuthUrlV1($incomingRequest, $serverInfo);
     }
 
     /**

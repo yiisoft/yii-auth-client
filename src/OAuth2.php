@@ -78,7 +78,6 @@ abstract class OAuth2 extends BaseOAuth
      */
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
-        ?OAuthToken $requestToken = null,
         array $params = []
     ): string {
         $defaultParams = [
