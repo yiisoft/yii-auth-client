@@ -9,7 +9,7 @@ use Yiisoft\Yii\AuthClient\BaseClient;
  */
 class TestClient extends BaseClient
 {
-    protected function initUserAttributes()
+    protected function initUserAttributes(): array
     {
         return [];
     }

@@ -2,9 +2,10 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 
-class HmacShaTest extends \yii\tests\TestCase
+class HmacShaTest extends TestCase
 {
     public function testGenerateSignature()
     {

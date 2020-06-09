@@ -1,13 +1,12 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+declare(strict_types=1);
+
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
+
+use function in_array;
 
 /**
  * GitHub allows authentication via GitHub OAuth.
@@ -32,42 +31,14 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  * ]
  * ```
  *
- * @see http://developer.github.com/v3/oauth/
- * @see https://github.com/settings/applications/new
+ * @link http://developer.github.com/v3/oauth/
+ * @link https://github.com/settings/applications/new
  */
-class GitHub extends OAuth2
+final class GitHub extends OAuth2
 {
-    public $authUrl = 'https://github.com/login/oauth/authorize';
-    public $tokenUrl = 'https://github.com/login/oauth/access_token';
-    public $endpoint = 'https://api.github.com';
-
-    protected function getDefaultScope(): string
-    {
-        return 'user';
-    }
-
-    protected function initUserAttributes()
-    {
-        $attributes = $this->api('user', 'GET');
-
-        if (empty($attributes['email'])) {
-            // in case user set 'Keep my email address private' in GitHub profile, email should be retrieved via extra API request
-            $scopes = explode(' ', $this->getScope());
-            if (\in_array('user:email', $scopes, true) || \in_array('user', $scopes, true)) {
-                $emails = $this->api('user/emails', 'GET');
-                if (!empty($emails)) {
-                    foreach ($emails as $email) {
-                        if ($email['primary'] && $email['verified']) {
-                            $attributes['email'] = $email['email'];
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $attributes;
-    }
+    private string $authUrl = 'https://github.com/login/oauth/authorize';
+    private string $tokenUrl = 'https://github.com/login/oauth/access_token';
+    private string $endpoint = 'https://api.github.com';
 
     /**
      * @return string service name.
@@ -83,5 +54,33 @@ class GitHub extends OAuth2
     public function getTitle(): string
     {
         return 'GitHub';
+    }
+
+    protected function getDefaultScope(): string
+    {
+        return 'user';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        $attributes = $this->api('user', 'GET');
+
+        if (empty($attributes['email'])) {
+            // in case user set 'Keep my email address private' in GitHub profile, email should be retrieved via extra API request
+            $scopes = explode(' ', $this->getScope());
+            if (in_array('user:email', $scopes, true) || in_array('user', $scopes, true)) {
+                $emails = $this->api('user/emails', 'GET');
+                if (!empty($emails)) {
+                    foreach ($emails as $email) {
+                        if ($email['primary'] && $email['verified']) {
+                            $attributes['email'] = $email['email'];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $attributes;
     }
 }

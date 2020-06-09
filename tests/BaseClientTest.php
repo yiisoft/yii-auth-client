@@ -8,6 +8,8 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\BaseClient;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class BaseClientTest extends TestCase
 {
@@ -25,7 +27,7 @@ class BaseClientTest extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(BaseClient::class)
-            ->setConstructorArgs([$httpClient, $this->getRequestFactory()])
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
 
@@ -50,7 +52,11 @@ class BaseClientTest extends TestCase
             'email' => 'some/email',
         ];
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
-        $this->assertEquals($normalizeUserAttributeMap, $client->getNormalizeUserAttributeMap(), 'Unable to setup normalize user attribute map!');
+        $this->assertEquals(
+            $normalizeUserAttributeMap,
+            $client->getNormalizeUserAttributeMap(),
+            'Unable to setup normalize user attribute map!'
+        );
 
         $viewOptions = [
             'option1' => 'value1',
@@ -61,7 +67,7 @@ class BaseClientTest extends TestCase
     }
 
     /**
-     * Data provider for [[testNormalizeUserAttributes()]]
+     * Data provider for {@see testNormalizeUserAttributes()}
      * @return array test data
      */
     public function dataProviderNormalizeUserAttributes()
@@ -145,15 +151,21 @@ class BaseClientTest extends TestCase
      * @param array $rawUserAttributes
      * @param array $expectedNormalizedUserAttributes
      */
-    public function testNormalizeUserAttributes($normalizeUserAttributeMap, $rawUserAttributes, $expectedNormalizedUserAttributes)
-    {
+    public function testNormalizeUserAttributes(
+        $normalizeUserAttributeMap,
+        $rawUserAttributes,
+        $expectedNormalizedUserAttributes
+    ) {
         $client = $this->createClient();
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
 
         $client->setUserAttributes($rawUserAttributes);
         $normalizedUserAttributes = $client->getUserAttributes();
 
-        $this->assertEquals(array_merge($rawUserAttributes, $expectedNormalizedUserAttributes), $normalizedUserAttributes);
+        $this->assertEquals(
+            array_merge($rawUserAttributes, $expectedNormalizedUserAttributes),
+            $normalizedUserAttributes
+        );
     }
 
     /**

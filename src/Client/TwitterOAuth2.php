@@ -1,11 +1,8 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
 
-namespace Yiisoft\Yii\AuthClient\Clients;
+declare(strict_types=1);
+
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -16,25 +13,19 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * Note, that at the time these docs are written, Twitter does not provide full support for OAuth 2 protocol.
  * It is supported only for [application-only authentication](https://dev.twitter.com/oauth/application-only) workflow.
- * Thus only [[authenticateClient()]] method of this class has a practical usage.
+ * Thus only {@see authenticateClient()} method of this class has a practical usage.
  *
- * Any authentication attempt on behalf of the end-user will fail for this client. You should use [[Twitter]] class for
+ * Any authentication attempt on behalf of the end-user will fail for this client. You should use {@see Twitter} class for
  * this workflow.
  *
  * @see Twitter
- * @see https://dev.twitter.com/
+ * @link https://dev.twitter.com/
  */
-class TwitterOAuth2 extends OAuth2
+final class TwitterOAuth2 extends OAuth2
 {
-    public $authUrl = 'https://api.twitter.com/oauth2/authenticate';
-    public $tokenUrl = 'https://api.twitter.com/oauth2/token';
-    public $endpoint = 'https://api.twitter.com/1.1';
-
-
-    protected function initUserAttributes()
-    {
-        return $this->api('account/verify_credentials.json', 'GET');
-    }
+    private string $authUrl = 'https://api.twitter.com/oauth2/authenticate';
+    private string $tokenUrl = 'https://api.twitter.com/oauth2/token';
+    private string $endpoint = 'https://api.twitter.com/1.1';
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
@@ -55,5 +46,10 @@ class TwitterOAuth2 extends OAuth2
     public function getTitle(): string
     {
         return 'Twitter';
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return $this->api('account/verify_credentials.json', 'GET');
     }
 }

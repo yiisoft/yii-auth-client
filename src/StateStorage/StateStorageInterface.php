@@ -1,9 +1,6 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
@@ -38,5 +35,5 @@ interface StateStorageInterface
      * @param string $key the name of the variable to be removed
      * @return bool success.
      */
-    public function remove($key);
+    public function remove($key): bool;
 }

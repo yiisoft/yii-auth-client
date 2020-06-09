@@ -2,27 +2,11 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use yii\tests\TestCase;
 
 class TokenTest extends TestCase
 {
-    public function testCreate()
-    {
-        $config = [
-            'tokenParamKey' => 'test_token_param_key',
-            'tokenSecretParamKey' => 'test_token_secret_param_key',
-        ];
-        $oauthToken = $this->factory->create(array_merge($config, [
-            '__class' => OAuthToken::class,
-        ]));
-        $this->assertTrue(is_object($oauthToken), 'Unable to create access token!');
-        foreach ($config as $name => $value) {
-            $this->assertEquals($value, $oauthToken->$name, 'Unable to setup attributes by constructor!');
-        }
-        $this->assertTrue($oauthToken->createTimestamp > 0, 'Unable to fill create timestamp!');
-    }
-
     public function testSetupParams()
     {
         $oauthToken = new OAuthToken();
@@ -61,7 +45,7 @@ class TokenTest extends TestCase
     }
 
     /**
-     * Data provider for {@link testAutoFetchExpireDuration}.
+     * Data provider for {@see testAutoFetchExpireDuration}.
      * @return array test data.
      */
     public function autoFetchExpireDurationDataProvider()
@@ -87,7 +71,7 @@ class TokenTest extends TestCase
     }
 
     /**
-     * @depends testSetupParamsShortcuts
+     * @depends      testSetupParamsShortcuts
      * @dataProvider autoFetchExpireDurationDataProvider
      *
      * @param array $params
@@ -111,7 +95,7 @@ class TokenTest extends TestCase
 
         $this->assertFalse($oauthToken->getIsExpired(), 'Not expired token check fails!');
 
-        $oauthToken->createTimestamp = $oauthToken->createTimestamp - ($expireDuration +1);
+        $oauthToken->setExpireDuration(-$expireDuration);
         $this->assertTrue($oauthToken->getIsExpired(), 'Expired token check fails!');
     }
 
@@ -129,7 +113,7 @@ class TokenTest extends TestCase
         $oauthToken->setToken('test_token');
         $this->assertTrue($oauthToken->getIsValid(), 'Filled up token is invalid!');
 
-        $oauthToken->createTimestamp = $oauthToken->createTimestamp - ($expireDuration +1);
+        $oauthToken->setExpireDuration($oauthToken->getExpireDuration() - $expireDuration);
         $this->assertFalse($oauthToken->getIsValid(), 'Expired token is valid!');
     }
 }

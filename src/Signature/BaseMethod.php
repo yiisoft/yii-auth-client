@@ -1,9 +1,6 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
@@ -17,14 +14,6 @@ abstract class BaseMethod
      * @return string method name.
      */
     abstract public function getName(): string;
-
-    /**
-     * Generates OAuth request signature.
-     * @param string $baseString signature base string.
-     * @param string $key signature key.
-     * @return string signature string.
-     */
-    abstract public function generateSignature(string $baseString, string $key): string;
 
     /**
      * Verifies given OAuth request.
@@ -42,4 +31,12 @@ abstract class BaseMethod
 
         return (strcmp($expectedSignature, $signature) === 0);
     }
+
+    /**
+     * Generates OAuth request signature.
+     * @param string $baseString signature base string.
+     * @param string $key signature key.
+     * @return string signature string.
+     */
+    abstract public function generateSignature(string $baseString, string $key): string;
 }

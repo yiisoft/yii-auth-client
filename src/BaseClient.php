@@ -1,18 +1,19 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use yii\exceptions\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+
+use function get_class;
+use function is_array;
+use function is_callable;
 
 /**
  * BaseClient is a base Auth Client class.
@@ -24,7 +25,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * @var array authenticated user attributes.
      */
-    private $userAttributes;
+    protected array $userAttributes = [];
     /**
      * @var array map used to normalize user attributes fetched from external auth service
      * in format: normalizedAttributeName => sourceSpecification
@@ -45,38 +46,34 @@ abstract class BaseClient implements ClientInterface
      *  ],
      * ```
      */
-    private $normalizeUserAttributeMap;
+    protected array $normalizeUserAttributeMap = [];
     /**
      * @var array view options in format: optionName => optionValue
      */
-    private $viewOptions;
+    protected array $viewOptions;
 
-    private $httpClient;
+    protected PsrClientInterface $httpClient;
 
-    private $requestFactory;
+    protected RequestFactoryInterface $requestFactory;
 
     /**
      * @var StateStorageInterface state storage to be used.
      */
-    private $stateStorage;
+    private StateStorageInterface $stateStorage;
 
-    public function __construct(\Psr\Http\Client\ClientInterface $httpClient, RequestFactoryInterface $requestFactory)
-    {
+    public function __construct(
+        PsrClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage
+    ) {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
-        $this->stateStorage = new DummyStateStorage();
-    }
-
-    /**
-     * @param array $userAttributes list of user attributes
-     */
-    public function setUserAttributes($userAttributes)
-    {
-        $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
+        $this->stateStorage = $stateStorage;
     }
 
     /**
      * @return array list of user attributes
+     * @throws InvalidConfigException
      */
     public function getUserAttributes(): array
     {
@@ -88,17 +85,60 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param array $normalizeUserAttributeMap normalize user attribute map.
+     * @param array $userAttributes list of user attributes
+     * @throws InvalidConfigException
      */
-    public function setNormalizeUserAttributeMap($normalizeUserAttributeMap)
+    public function setUserAttributes(array $userAttributes): void
     {
-        $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
+        $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
+    }
+
+    /**
+     * Normalize given user attributes according to {@see normalizeUserAttributeMap}.
+     * @param array $attributes raw attributes.
+     * @return array normalized attributes.
+     * @throws InvalidConfigException on incorrect normalize attribute map.
+     */
+    protected function normalizeUserAttributes(array $attributes): array
+    {
+        foreach ($this->getNormalizeUserAttributeMap() as $normalizedName => $actualName) {
+            if (is_scalar($actualName)) {
+                if (array_key_exists($actualName, $attributes)) {
+                    $attributes[$normalizedName] = $attributes[$actualName];
+                }
+            } elseif (is_callable($actualName)) {
+                $attributes[$normalizedName] = $actualName($attributes);
+            } elseif (is_array($actualName)) {
+                $haystack = $attributes;
+                $searchKeys = $actualName;
+                $isFound = true;
+                while (($key = array_shift($searchKeys)) !== null) {
+                    if (is_array($haystack) && array_key_exists($key, $haystack)) {
+                        $haystack = $haystack[$key];
+                    } else {
+                        $isFound = false;
+                        break;
+                    }
+                }
+                if ($isFound) {
+                    $attributes[$normalizedName] = $haystack;
+                }
+            } else {
+                throw new InvalidConfigException(
+                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class(
+                        $this
+                    ) . '::normalizeUserAttributeMap"'
+                );
+            }
+        }
+
+        return $attributes;
     }
 
     /**
      * @return array normalize user attribute map.
      */
-    public function getNormalizeUserAttributeMap()
+    public function getNormalizeUserAttributeMap(): array
     {
         if ($this->normalizeUserAttributeMap === null) {
             $this->normalizeUserAttributeMap = $this->defaultNormalizeUserAttributeMap();
@@ -108,12 +148,28 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param array $viewOptions view options in format: optionName => optionValue
+     * @param array $normalizeUserAttributeMap normalize user attribute map.
      */
-    public function setViewOptions($viewOptions)
+    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap): void
     {
-        $this->viewOptions = $viewOptions;
+        $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
     }
+
+    /**
+     * Returns the default {@see normalizeUserAttributeMap} value.
+     * Particular client may override this method in order to provide specific default map.
+     * @return array normalize attribute map.
+     */
+    protected function defaultNormalizeUserAttributeMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Initializes authenticated user attributes.
+     * @return array auth user attributes.
+     */
+    abstract protected function initUserAttributes(): array;
 
     /**
      * @return array view options in format: optionName => optionValue
@@ -128,75 +184,21 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @param StateStorageInterface $stateStorage stage storage to be used.
+     * @param array $viewOptions view options in format: optionName => optionValue
      */
-    public function setStateStorage(StateStorageInterface $stateStorage): void
+    public function setViewOptions(array $viewOptions): void
     {
-        $this->stateStorage = $stateStorage;
+        $this->viewOptions = $viewOptions;
     }
 
     /**
-     * Initializes authenticated user attributes.
-     * @return array auth user attributes.
-     */
-    abstract protected function initUserAttributes();
-
-    /**
-     * Returns the default [[normalizeUserAttributeMap]] value.
-     * Particular client may override this method in order to provide specific default map.
-     * @return array normalize attribute map.
-     */
-    protected function defaultNormalizeUserAttributeMap()
-    {
-        return [];
-    }
-
-    /**
-     * Returns the default [[viewOptions]] value.
+     * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
-     * @return array list of default [[viewOptions]]
+     * @return array list of default {@see viewOptions}
      */
-    protected function defaultViewOptions()
+    protected function defaultViewOptions(): array
     {
         return [];
-    }
-
-    /**
-     * Normalize given user attributes according to [[normalizeUserAttributeMap]].
-     * @param array $attributes raw attributes.
-     * @return array normalized attributes.
-     * @throws InvalidConfigException on incorrect normalize attribute map.
-     */
-    protected function normalizeUserAttributes($attributes)
-    {
-        foreach ($this->getNormalizeUserAttributeMap() as $normalizedName => $actualName) {
-            if (is_scalar($actualName)) {
-                if (array_key_exists($actualName, $attributes)) {
-                    $attributes[$normalizedName] = $attributes[$actualName];
-                }
-            } elseif (\is_callable($actualName)) {
-                $attributes[$normalizedName] = $actualName($attributes);
-            } elseif (\is_array($actualName)) {
-                $haystack = $attributes;
-                $searchKeys = $actualName;
-                $isFound = true;
-                while (($key = array_shift($searchKeys)) !== null) {
-                    if (\is_array($haystack) && array_key_exists($key, $haystack)) {
-                        $haystack = $haystack[$key];
-                    } else {
-                        $isFound = false;
-                        break;
-                    }
-                }
-                if ($isFound) {
-                    $attributes[$normalizedName] = $haystack;
-                }
-            } else {
-                throw new InvalidConfigException('Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class($this) . '::normalizeUserAttributeMap"');
-            }
-        }
-
-        return $attributes;
     }
 
     public function createRequest(string $method, string $uri): RequestInterface
@@ -210,10 +212,19 @@ abstract class BaseClient implements ClientInterface
      * @param mixed $value state value
      * @return $this the object itself
      */
-    protected function setState($key, $value)
+    protected function setState(string $key, $value): self
     {
         $this->stateStorage->set($this->getStateKeyPrefix() . $key, $value);
         return $this;
+    }
+
+    /**
+     * Returns session key prefix, which is used to store internal states.
+     * @return string session key prefix.
+     */
+    protected function getStateKeyPrefix(): string
+    {
+        return get_class($this) . '_' . $this->getName() . '_';
     }
 
     /**
@@ -221,7 +232,7 @@ abstract class BaseClient implements ClientInterface
      * @param string $key state key.
      * @return mixed state value.
      */
-    protected function getState($key)
+    protected function getState(string $key)
     {
         return $this->stateStorage->get($this->getStateKeyPrefix() . $key);
     }
@@ -231,18 +242,9 @@ abstract class BaseClient implements ClientInterface
      * @param string $key state key.
      * @return bool success.
      */
-    protected function removeState($key)
+    protected function removeState(string $key): bool
     {
         return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
-    }
-
-    /**
-     * Returns session key prefix, which is used to store internal states.
-     * @return string session key prefix.
-     */
-    protected function getStateKeyPrefix()
-    {
-        return \get_class($this) . '_' . $this->getName() . '_';
     }
 
     protected function sendRequest(RequestInterface $request): ResponseInterface

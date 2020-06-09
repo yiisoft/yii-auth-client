@@ -1,16 +1,13 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
 /**
  * PlainText represents 'PLAINTEXT' signature method.
  */
-class PlainText extends BaseMethod
+final class PlainText extends BaseMethod
 {
     public function getName(): string
     {

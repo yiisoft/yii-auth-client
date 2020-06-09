@@ -1,24 +1,26 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\base\Action;
-use yii\exceptions\Exception;
-use yii\exceptions\InvalidConfigException;
-use yii\exceptions\NotSupportedException;
-use yii\helpers\Url;
-use yii\web\Response;
-use yii\web\HttpException;
-use yii\web\NotFoundHttpException;
+use Exception;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
+use Yiisoft\Aliases\Aliases;
+use Yiisoft\Http\Status;
+use Yiisoft\View\Exception\ViewNotFoundException;
+use Yiisoft\View\WebView;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * AuthAction performs authentication via different auth clients.
- * It supports [[OpenId]], [[OAuth1]] and [[OAuth2]] client types.
+ * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
  *
  * Usage:
  *
@@ -47,26 +49,24 @@ use yii\web\NotFoundHttpException;
  * This action handles the redirection and closing of popup window correctly.
  *
  * @see Collection
- * @see \Yiisoft\Yii\AuthClient\Widgets\AuthChoice
- *
- * @property string $cancelUrl Cancel URL.
- * @property string $successUrl Successful URL.
+ * @see \Yiisoft\Yii\AuthClient\Widget\AuthChoice
  */
-class AuthAction extends Action
+final class AuthAction implements MiddlewareInterface
 {
+    public const AUTH_NAME = 'auth_displayname';
     /**
-     * @var string name of the auth client collection application component.
-     * It should point to [[Collection]] instance.
+     * @var Collection
+     * It should point to {@see Collection} instance.
      */
-    public $clientCollection = 'authClientCollection';
+    private Collection $clientCollection;
     /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
      */
-    public $clientIdGetParamName = 'authclient';
+    private string $clientIdGetParamName = 'authclient';
     /**
      * @var callable PHP callback, which should be triggered in case of successful authentication.
-     * This callback should accept [[ClientInterface]] instance as an argument.
+     * This callback should accept {@see ClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -77,13 +77,13 @@ class AuthAction extends Action
      * }
      * ```
      *
-     * If this callback returns [[Response]] instance, it will be used as action response,
-     * otherwise redirection to [[successUrl]] will be performed.
+     * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see successUrl} will be performed.
      */
-    public $successCallback;
+    private $successCallback;
     /**
-     * @var callable PHP callback, which should be triggered in case of authentication cancelation.
-     * This callback should accept [[ClientInterface]] instance as an argument.
+     * @var callable PHP callback, which should be triggered in case of authentication cancellation.
+     * This callback should accept {@see ClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -93,173 +93,199 @@ class AuthAction extends Action
      * }
      * ```
      *
-     * If this callback returns [[Response]] instance, it will be used as action response,
-     * otherwise redirection to [[cancelUrl]] will be performed.
+     * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see cancelUrl} will be performed.
      */
-    public $cancelCallback;
+    private $cancelCallback;
     /**
      * @var string name or alias of the view file, which should be rendered in order to perform redirection.
      * If not set - default one will be used.
      */
-    public $redirectView;
+    private string $redirectView;
 
     /**
      * @var string the redirect url after successful authorization.
      */
-    private $_successUrl;
+    private string $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
-    private $_cancelUrl;
+    private string $cancelUrl;
+    private ResponseFactoryInterface $responseFactory;
+    private Aliases $aliases;
+    private WebView $view;
 
-
-    /**
-     * @param string $url successful URL.
-     */
-    public function setSuccessUrl($url)
-    {
-        $this->_successUrl = $url;
+    public function __construct(
+        Collection $clientCollection,
+        Aliases $aliases,
+        WebView $view,
+        ResponseFactoryInterface $responseFactory
+    ) {
+        $this->clientCollection = $clientCollection;
+        $this->responseFactory = $responseFactory;
+        $this->aliases = $aliases;
+        $this->view = $view;
     }
 
     /**
-     * @return string successful URL.
+     * @param string $url successful URL.
+     * @return AuthAction
      */
-    public function getSuccessUrl()
+    public function withSuccessUrl(string $url): self
     {
-        if (empty($this->_successUrl)) {
-            $this->_successUrl = $this->defaultSuccessUrl();
-        }
-
-        return $this->_successUrl;
+        $new = clone $this;
+        $new->successUrl = $url;
+        return $new;
     }
 
     /**
      * @param string $url cancel URL.
+     * @return AuthAction
      */
-    public function setCancelUrl($url)
+    public function withCancelUrl(string $url): self
     {
-        $this->_cancelUrl = $url;
+        $new = clone $this;
+        $new->cancelUrl = $url;
+        return $new;
     }
 
-    /**
-     * @return string cancel URL.
-     */
-    public function getCancelUrl()
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (empty($this->_cancelUrl)) {
-            $this->_cancelUrl = $this->defaultCancelUrl();
-        }
-
-        return $this->_cancelUrl;
-    }
-
-    /**
-     * Creates default [[successUrl]] value.
-     * @return string success URL value.
-     */
-    protected function defaultSuccessUrl()
-    {
-        return $this->app->getUser()->getReturnUrl();
-    }
-
-    /**
-     * Creates default [[cancelUrl]] value.
-     * @return string cancel URL value.
-     */
-    protected function defaultCancelUrl()
-    {
-        return Url::to($this->app->getUser()->loginUrl);
-    }
-
-    /**
-     * Runs the action.
-     */
-    public function run()
-    {
-        $clientId = $this->app->getRequest()->getQueryParam($this->clientIdGetParamName);
+        $clientId = $request->getAttribute($this->clientIdGetParamName);
         if (!empty($clientId)) {
-            /* @var $collection \Yiisoft\Yii\AuthClient\Collection */
-            $collection = $this->app->get($this->clientCollection);
-            if (!$collection->hasClient($clientId)) {
-                throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
+            if (!$this->clientCollection->hasClient($clientId)) {
+                return $this->responseFactory->createResponse(Status::NOT_FOUND, "Unknown auth client '{$clientId}'");
             }
-            $client = $collection->getClient($clientId);
+            $client = $this->clientCollection->getClient($clientId);
 
-            return $this->auth($client);
+            return $this->auth($client, $request);
         }
 
-        throw new NotFoundHttpException();
+        return $this->responseFactory->createResponse(Status::NOT_FOUND);
     }
 
     /**
      * Perform authentication for the given client.
      * @param mixed $client auth client instance.
-     * @return Response response instance.
-     * @throws \yii\base\NotSupportedException on invalid client.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface response instance.
+     * @throws InvalidConfigException
+     * @throws NotSupportedException on invalid client.
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    protected function auth($client)
+    private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
         if ($client instanceof OAuth2) {
-            return $this->authOAuth2($client);
-        } elseif ($client instanceof OAuth1) {
-            return $this->authOAuth1($client);
-        } elseif ($client instanceof OpenId) {
-            return $this->authOpenId($client);
+            return $this->authOAuth2($client, $request);
+        }
+
+        if ($client instanceof OAuth1) {
+            return $this->authOAuth1($client, $request);
+        }
+
+        if ($client instanceof OpenId) {
+            return $this->authOpenId($client, $request);
         }
 
         throw new NotSupportedException('Provider "' . get_class($client) . '" is not supported.');
     }
 
     /**
-     * This method is invoked in case of successful authentication via auth client.
-     * @param ClientInterface $client auth client instance.
-     * @throws InvalidConfigException on invalid success callback.
-     * @return Response response instance.
+     * Performs OAuth2 auth flow.
+     * @param OAuth2 $client auth client instance.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface action response.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
-    protected function authSuccess($client)
+    private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
     {
-        if (!is_callable($this->successCallback)) {
-            throw new InvalidConfigException('"' . get_class($this) . '::$successCallback" should be a valid callback.');
+        $queryParams = $request->getQueryParams();
+
+        if (isset($queryParams['error']) && ($error = $queryParams['error']) !== null) {
+            if ($error === 'access_denied') {
+                // user denied error
+                return $this->authCancel($client);
+            }
+            // request error
+            $errorMessage = $queryParams['error_description'] ?? $queryParams['error_message'] ?? null;
+            if ($errorMessage === null) {
+                $errorMessage = http_build_query($queryParams);
+            }
+            throw new Exception('Auth error: ' . $errorMessage);
         }
 
-        $response = call_user_func($this->successCallback, $client);
-        if ($response instanceof Response) {
-            return $response;
+        // Get the access_token and save them to the session.
+        if (isset($queryParams['code']) && ($code = $queryParams['code']) !== null) {
+            $token = $client->fetchAccessToken($request, $code);
+            if (!empty($token->getToken())) {
+                return $this->authSuccess($client);
+            }
+            return $this->authCancel($client);
         }
 
-        return $this->redirectSuccess();
+        $url = $client->buildAuthUrl($request);
+        return $this->responseFactory
+            ->createResponse(Status::MOVED_PERMANENTLY)
+            ->withHeader('Location', $url);
     }
 
     /**
-     * This method is invoked in case of authentication cancelation.
+     * This method is invoked in case of authentication cancellation.
      * @param ClientInterface $client auth client instance.
-     * @return Response response instance.
+     * @return ResponseInterface response instance.
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
-    protected function authCancel($client)
+    private function authCancel(ClientInterface $client): ResponseInterface
     {
-        if ($this->cancelCallback !== null) {
-            $response = call_user_func($this->cancelCallback, $client);
-            if ($response instanceof Response) {
-                return $response;
-            }
+        if (!is_callable($this->cancelCallback)) {
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+            );
+        }
+
+        $response = call_user_func($this->cancelCallback, $client);
+        if ($response instanceof ResponseInterface) {
+            return $response;
         }
 
         return $this->redirectCancel();
     }
 
     /**
-     * Redirect to the given URL or simply close the popup window.
-     * @param mixed $url URL to redirect, could be a string or array config to generate a valid URL.
-     * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
-     * @return \yii\web\Response response instance.
+     * Redirect to the {@see cancelUrl} or simply close the popup window.
+     * @param string $url URL to redirect.
+     * @return ResponseInterface response instance.
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
-    public function redirect($url, $enforceRedirect = true)
+    private function redirectCancel(?string $url = null): ResponseInterface
+    {
+        if ($url === null) {
+            $url = $this->cancelUrl;
+        }
+        return $this->redirect($url, false);
+    }
+
+    /**
+     * Redirect to the given URL or simply close the popup window.
+     * @param string $url URL to redirect, could be a string or array config to generate a valid URL.
+     * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
+     * @return ResponseInterface response instance.
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     */
+    private function redirect(string $url, bool $enforceRedirect = true): ResponseInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = __DIR__ . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
-            $viewFile = $this->app->getAlias($viewFile);
+            $viewFile = $this->aliases->get($viewFile);
         }
 
         $viewData = [
@@ -267,53 +293,105 @@ class AuthAction extends Action
             'enforceRedirect' => $enforceRedirect,
         ];
 
-        $response = $this->app->getResponse();
-        $response->content = $this->app->getView()->renderFile($viewFile, $viewData);
+        $response = $this->responseFactory->createResponse();
+        $response->getBody()->write($this->view->renderFile($viewFile, $viewData));
 
         return $response;
     }
 
     /**
-     * Redirect to the URL. If URL is null, [[successUrl]] will be used.
-     * @param string $url URL to redirect.
-     * @return \yii\web\Response response instance.
+     * This method is invoked in case of successful authentication via auth client.
+     * @param ClientInterface $client auth client instance.
+     * @return ResponseInterface response instance.
+     * @throws InvalidConfigException on invalid success callback.
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
-    public function redirectSuccess($url = null)
+    private function authSuccess(ClientInterface $client): ResponseInterface
+    {
+        if (!is_callable($this->successCallback)) {
+            throw new InvalidConfigException(
+                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+            );
+        }
+
+        $response = call_user_func($this->successCallback, $client);
+        if ($response instanceof ResponseInterface) {
+            return $response;
+        }
+
+        return $this->redirectSuccess();
+    }
+
+    /**
+     * Redirect to the URL. If URL is null, {@see successUrl} will be used.
+     * @param string $url URL to redirect.
+     * @return ResponseInterface response instance.
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     */
+    private function redirectSuccess(?string $url = null): ResponseInterface
     {
         if ($url === null) {
-            $url = $this->getSuccessUrl();
+            $url = $this->successUrl;
         }
         return $this->redirect($url);
     }
 
     /**
-     * Redirect to the [[cancelUrl]] or simply close the popup window.
-     * @param string $url URL to redirect.
-     * @return \yii\web\Response response instance.
+     * Performs OAuth1 auth flow.
+     * @param OAuth1 $client auth client instance.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface action response.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    public function redirectCancel($url = null)
+    private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
     {
-        if ($url === null) {
-            $url = $this->getCancelUrl();
+        $queryParams = $request->getQueryParams();
+
+        // user denied error
+        if (isset($queryParams['denied']) && $queryParams['denied'] !== null) {
+            return $this->authCancel($client);
         }
-        return $this->redirect($url, false);
+
+        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token'] ?? null) !== null) {
+            // Upgrade to access token.
+            $client->fetchAccessToken($request, $oauthToken);
+            return $this->authSuccess($client);
+        }
+
+        // Get request token.
+        $requestToken = $client->fetchRequestToken($request);
+        // Get authorization URL.
+        $url = $client->buildAuthUrl($request, $requestToken);
+        // Redirect to authorization URL.
+        return $this->responseFactory
+            ->createResponse(Status::MOVED_PERMANENTLY)
+            ->withHeader('Location', $url);
     }
 
     /**
      * Performs OpenID auth flow.
      * @param OpenId $client auth client instance.
-     * @return Response action response.
-     * @throws Exception on failure.
-     * @throws HttpException on failure.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface action response.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
      */
-    protected function authOpenId($client)
+    private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
     {
-        $request = $this->app->getRequest();
-        $mode = $request->get('openid_mode', $request->post('openid_mode'));
+        $queryParams = $request->getQueryParams();
+        $bodyParams = $request->getParsedBody();
+        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
 
         if (empty($mode)) {
-            $url = $client->buildAuthUrl();
-            return $this->app->getResponse()->redirect($url);
+            return $this->responseFactory
+                ->createResponse(Status::MOVED_PERMANENTLY)
+                ->withHeader('Location', $client->buildAuthUrl($request));
         }
 
         switch ($mode) {
@@ -321,75 +399,15 @@ class AuthAction extends Action
                 if ($client->validate()) {
                     return $this->authSuccess($client);
                 }
-                throw new HttpException(400, 'Unable to complete the authentication because the required data was not received.');
+                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
+                $response->getBody()->write(
+                    'Unable to complete the authentication because the required data was not received.'
+                );
+                return $response;
             case 'cancel':
                 return $this->authCancel($client);
             default:
-                throw new HttpException(400);
+                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
         }
-    }
-
-    /**
-     * Performs OAuth1 auth flow.
-     * @param OAuth1 $client auth client instance.
-     * @return Response action response.
-     */
-    protected function authOAuth1($client)
-    {
-        $request = $this->app->getRequest();
-
-        // user denied error
-        if ($request->get('denied') !== null) {
-            return $this->authCancel($client);
-        }
-
-        if (($oauthToken = $request->get('oauth_token', $request->post('oauth_token'))) !== null) {
-            // Upgrade to access token.
-            $client->fetchAccessToken($oauthToken);
-            return $this->authSuccess($client);
-        }
-
-        // Get request token.
-        $requestToken = $client->fetchRequestToken();
-        // Get authorization URL.
-        $url = $client->buildAuthUrl($requestToken);
-        // Redirect to authorization URL.
-        return $this->app->getResponse()->redirect($url);
-    }
-
-    /**
-     * Performs OAuth2 auth flow.
-     * @param OAuth2 $client auth client instance.
-     * @return Response action response.
-     * @throws \yii\base\Exception on failure.
-     */
-    protected function authOAuth2($client)
-    {
-        $request = $this->app->getRequest();
-
-        if (($error = $request->get('error')) !== null) {
-            if ($error === 'access_denied') {
-                // user denied error
-                return $this->authCancel($client);
-            }
-            // request error
-            $errorMessage = $request->get('error_description', $request->get('error_message'));
-            if ($errorMessage === null) {
-                $errorMessage = http_build_query($request->get());
-            }
-            throw new Exception('Auth error: ' . $errorMessage);
-        }
-
-        // Get the access_token and save them to the session.
-        if (($code = $request->get('code')) !== null) {
-            $token = $client->fetchAccessToken($code);
-            if (!empty($token)) {
-                return $this->authSuccess($client);
-            }
-            return $this->authCancel($client);
-        }
-
-        $url = $client->buildAuthUrl();
-        return $this->app->getResponse()->redirect($url);
     }
 }

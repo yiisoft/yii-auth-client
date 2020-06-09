@@ -5,7 +5,11 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class OAuth2Test extends TestCase
 {
@@ -19,30 +23,31 @@ class OAuth2Test extends TestCase
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(OAuth2::class)
-            ->setConstructorArgs([null, $httpClient, $requestFactory])
+            ->setConstructorArgs(
+                [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), new Factory()]
+            )
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
         return $oauthClient;
     }
 
     // Tests :
-    /**
-     * @runInSeparateProcess
-     */
+
     public function testBuildAuthUrl()
     {
         $oauthClient = $this->createClient();
         $authUrl = 'http://test.auth.url';
-        $oauthClient->authUrl = $authUrl;
+        $oauthClient->setAuthUrl($authUrl);
         $clientId = 'test_client_id';
-        $oauthClient->clientId = $clientId;
+        $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl();
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
 
-        $this->assertContains($authUrl, $builtAuthUrl, 'No auth URL present!');
-        $this->assertContains($clientId, $builtAuthUrl, 'No client id present!');
-        $this->assertContains(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
+        $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
+        $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
+        $this->assertStringContainsString(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
     }
 }

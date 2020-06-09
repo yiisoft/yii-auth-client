@@ -34,3 +34,8 @@ phpunit.phar
 /tests/docker
 /tests/dockerids
 
+# node js
+/node_modules
+
+.phpunit.result.cache
+

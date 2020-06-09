@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
 use Psr\Http\Message\RequestInterface;
+
+use function is_array;
 
 final class RequestUtil
 {
@@ -25,6 +29,15 @@ final class RequestUtil
         return $url;
     }
 
+    public static function addParams(RequestInterface $request, array $params): RequestInterface
+    {
+        $currentParams = self::getParams($request);
+        $newParams = array_merge($currentParams, $params);
+
+        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
+        return $request->withUri($uri);
+    }
+
     public static function getParams(RequestInterface $request): array
     {
         $queryString = $request->getUri()->getQuery();
@@ -41,7 +54,7 @@ final class RequestUtil
             if (!isset($result[$key])) {
                 $result[$key] = $value;
             } else {
-                if (!\is_array($result[$key])) {
+                if (!is_array($result[$key])) {
                     $result[$key] = [$result[$key]];
                 }
                 $result[$key][] = $value;
@@ -50,12 +63,11 @@ final class RequestUtil
         return $result;
     }
 
-    public static function addParams(RequestInterface $request, array $params): RequestInterface
+    public static function addHeaders(RequestInterface $request, array $headers): RequestInterface
     {
-        $currentParams = self::getParams($request);
-        $newParams = array_merge($currentParams, $params);
-
-        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
-        return $request->withUri($uri);
+        foreach ($headers as $header => $value) {
+            $request = $request->withHeader($header, $value);
+        }
+        return $request;
     }
 }

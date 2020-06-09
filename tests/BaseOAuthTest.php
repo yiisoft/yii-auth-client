@@ -3,12 +3,16 @@
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\BaseOAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
-use yii\tests\TestCase;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class BaseOAuthTest extends TestCase
 {
@@ -21,13 +25,24 @@ class BaseOAuthTest extends TestCase
      * Creates test OAuth client instance.
      * @return BaseOAuth oauth client.
      */
-    protected function createClient(?string $endpoint = null)
+    protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
         $oauthClient = $this->getMockBuilder(BaseOAuth::class)
-            ->setConstructorArgs([$endpoint, $httpClient, $this->getRequestFactory()])
-            ->setMethods(['composeRequestCurlOptions', 'refreshAccessToken', 'applyAccessTokenToRequest', 'initUserAttributes', 'getName', 'getTitle'])
+            ->setConstructorArgs(
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+            )
+            ->setMethods(
+                [
+                    'composeRequestCurlOptions',
+                    'refreshAccessToken',
+                    'applyAccessTokenToRequest',
+                    'initUserAttributes',
+                    'getName',
+                    'getTitle'
+                ]
+            )
             ->getMock();
         return $oauthClient;
     }
@@ -37,15 +52,19 @@ class BaseOAuthTest extends TestCase
     public function testSetGet()
     {
         $oauthClient = $this->createClient();
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
-        $this->assertEquals($returnUrl, $oauthClient->getReturnUrl(), 'Unable to setup return URL!');
+        $this->assertEquals(
+            $returnUrl,
+            $oauthClient->getReturnUrl(
+                $serverRequest
+            ),
+            'Unable to setup return URL!'
+        );
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSetupComponents()
     {
         $oauthClient = $this->createClient();
@@ -56,12 +75,13 @@ class BaseOAuthTest extends TestCase
 
         $oauthSignatureMethod = new PlainText();
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
-        $this->assertEquals($oauthSignatureMethod, $oauthClient->getSignatureMethod(), 'Unable to setup signature method!');
+        $this->assertEquals(
+            $oauthSignatureMethod,
+            $oauthClient->getSignatureMethod(),
+            'Unable to setup signature method!'
+        );
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSetupAccessToken()
     {
         $oauthClient = $this->createClient();
@@ -71,7 +91,7 @@ class BaseOAuthTest extends TestCase
 
         $this->assertSame($accessToken, $oauthClient->getAccessToken());
 
-        $oauthClient->setAccessToken(['token' => 'token-mock']);
+        $oauthClient->setAccessToken(['setToken()' => ['token-mock']]);
         $accessToken = $oauthClient->getAccessToken();
         $this->assertTrue($accessToken instanceof OAuthToken);
         $this->assertEquals('token-mock', $accessToken->getToken());
@@ -83,70 +103,32 @@ class BaseOAuthTest extends TestCase
     /**
      * @depends testSetupComponents
      * @depends testSetupAccessToken
-     * @runInSeparateProcess
      */
     public function testSetupComponentsByConfig()
     {
         $oauthClient = $this->createClient();
-
+        $testToken = 'test_token';
         $oauthToken = [
-            'token' => 'test_token',
-            'tokenSecret' => 'test_token_secret',
+            'setToken()' => [$testToken],
+            'setTokenSecret()' => ['test_token_secret'],
         ];
         $oauthClient->setAccessToken($oauthToken);
-        $this->assertEquals($oauthToken['token'], $oauthClient->getAccessToken()->getToken(), 'Unable to setup token as config!');
+        $this->assertEquals(
+            $testToken,
+            $oauthClient->getAccessToken()->getToken(),
+            'Unable to setup token as config!'
+        );
 
         $oauthSignatureMethod = [
-            '__class' => \Yiisoft\Yii\AuthClient\Signature\PlainText::class
+            '__class' => PlainText::class
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
-        $this->assertEquals($oauthSignatureMethod['__class'], get_class($returnedSignatureMethod), 'Unable to setup signature method as config!');
-    }
-
-    /**
-     * Data provider for [[testComposeUrl()]].
-     * @return array test data.
-     */
-    public function composeUrlDataProvider()
-    {
-        return [
-            [
-                'http://test.url',
-                [
-                    'param1' => 'value1',
-                    'param2' => 'value2',
-                ],
-                'http://test.url?param1=value1&param2=value2',
-            ],
-            [
-                'http://test.url?with=some',
-                [
-                    'param1' => 'value1',
-                    'param2' => 'value2',
-                ],
-                'http://test.url?with=some&param1=value1&param2=value2',
-            ],
-            [
-                'http://test.url',
-                [],
-                'http://test.url',
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider composeUrlDataProvider
-     *
-     * @param string $url request URL.
-     * @param array $params request params
-     * @param string $expectedUrl expected composed URL.
-     */
-    public function testComposeUrl($url, array $params, $expectedUrl)
-    {
-        $oauthClient = $this->createClient();
-        $composedUrl = $this->invokeMethod($oauthClient, 'composeUrl', [$url, $params]);
-        $this->assertEquals($expectedUrl, $composedUrl);
+        $this->assertEquals(
+            $oauthSignatureMethod['__class'],
+            get_class($returnedSignatureMethod),
+            'Unable to setup signature method as config!'
+        );
     }
 
     /**
@@ -155,7 +137,8 @@ class BaseOAuthTest extends TestCase
     public function testApiUrl()
     {
         $endpoint = 'http://api.base.url';
-        $oauthClient = $this->createClient($endpoint);
+        $oauthClient = $this->createClient();
+        $oauthClient->setEndpoint($endpoint);
 
         $accessToken = new OAuthToken();
         $accessToken->setToken('test_access_token');

@@ -1,50 +1,36 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\base\BaseObject;
-
 /**
  * Token represents OAuth token.
- *
- * @property int $expireDuration Token expiration duration. Note that the type of this property differs in
- * getter and setter. See [[getExpireDuration()]] and [[setExpireDuration()]] for details.
- * @property string $expireDurationParamKey Expire duration param key.
- * @property bool $isExpired Is token expired. This property is read-only.
- * @property bool $isValid Is token valid. This property is read-only.
- * @property array $params This property is read-only.
- * @property string $token Token value.
- * @property string $tokenSecret Token secret value.
  */
-class OAuthToken extends BaseObject
+class OAuthToken
 {
     /**
-     * @var string key in [[params]] array, which stores token key.
+     * @var string key in {@see params} array, which stores token key.
      */
-    public $tokenParamKey = 'oauth_token';
+    private string $tokenParamKey = 'oauth_token';
     /**
-     * @var string key in [[params]] array, which stores token secret key.
+     * @var string key in {@see params} array, which stores token secret key.
      */
-    public $tokenSecretParamKey = 'oauth_token_secret';
+    private string $tokenSecretParamKey = 'oauth_token_secret';
     /**
      * @var int object creation timestamp.
      */
-    public $createTimestamp;
+    private int $createTimestamp;
 
     /**
-     * @var string key in [[params]] array, which stores token expiration duration.
+     * @var string key in {@see params} array, which stores token expiration duration.
      * If not set will attempt to fetch its value automatically.
      */
-    private $_expireDurationParamKey;
+    private ?string $expireDurationParamKey = null;
     /**
      * @var array token parameters.
      */
-    private $_params = [];
+    private array $params = [];
 
 
     public function __construct()
@@ -53,39 +39,12 @@ class OAuthToken extends BaseObject
     }
 
     /**
-     * @param string $expireDurationParamKey expire duration param key.
+     * Sets token value.
+     * @param string $token token value.
      */
-    public function setExpireDurationParamKey($expireDurationParamKey)
+    public function setToken(string $token): void
     {
-        $this->_expireDurationParamKey = $expireDurationParamKey;
-    }
-
-    /**
-     * @return string expire duration param key.
-     */
-    public function getExpireDurationParamKey()
-    {
-        if ($this->_expireDurationParamKey === null) {
-            $this->_expireDurationParamKey = $this->defaultExpireDurationParamKey();
-        }
-
-        return $this->_expireDurationParamKey;
-    }
-
-    /**
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->_params;
-    }
-
-    /**
-     * @param array $params
-     */
-    public function setParams(array $params)
-    {
-        $this->_params = $params;
+        $this->setParam($this->tokenParamKey, $token);
     }
 
     /**
@@ -93,45 +52,16 @@ class OAuthToken extends BaseObject
      * @param string $name param name.
      * @param mixed $value param value,
      */
-    public function setParam($name, $value)
+    public function setParam(string $name, $value): void
     {
-        $this->_params[$name] = $value;
-    }
-
-    /**
-     * Returns param by name.
-     * @param string $name param name.
-     * @return mixed param value.
-     */
-    public function getParam($name)
-    {
-        return isset($this->_params[$name]) ? $this->_params[$name] : null;
-    }
-
-    /**
-     * Sets token value.
-     * @param string $token token value.
-     * @return $this the object itself
-     */
-    public function setToken($token)
-    {
-        $this->setParam($this->tokenParamKey, $token);
-    }
-
-    /**
-     * Returns token value.
-     * @return string token value.
-     */
-    public function getToken()
-    {
-        return $this->getParam($this->tokenParamKey);
+        $this->params[$name] = $value;
     }
 
     /**
      * Sets the token secret value.
      * @param string $tokenSecret token secret.
      */
-    public function setTokenSecret($tokenSecret)
+    public function setTokenSecret(string $tokenSecret): void
     {
         $this->setParam($this->tokenSecretParamKey, $tokenSecret);
     }
@@ -140,34 +70,55 @@ class OAuthToken extends BaseObject
      * Returns the token secret value.
      * @return string token secret value.
      */
-    public function getTokenSecret()
+    public function getTokenSecret(): string
     {
         return $this->getParam($this->tokenSecretParamKey);
     }
 
     /**
-     * Sets token expire duration.
-     * @param string $expireDuration token expiration duration.
+     * Returns param by name.
+     * @param string $name param name.
+     * @return mixed param value.
      */
-    public function setExpireDuration($expireDuration)
+    public function getParam(string $name)
+    {
+        return $this->params[$name] ?? null;
+    }
+
+    /**
+     * Sets token expire duration.
+     * @param int $expireDuration token expiration duration.
+     */
+    public function setExpireDuration(int $expireDuration): void
     {
         $this->setParam($this->getExpireDurationParamKey(), $expireDuration);
     }
 
     /**
-     * Returns the token expiration duration.
-     * @return int token expiration duration.
+     * @return string expire duration param key.
      */
-    public function getExpireDuration()
+    public function getExpireDurationParamKey(): string
     {
-        return $this->getParam($this->getExpireDurationParamKey());
+        if ($this->expireDurationParamKey === null) {
+            $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
+        }
+
+        return $this->expireDurationParamKey;
+    }
+
+    /**
+     * @param string $expireDurationParamKey expire duration param key.
+     */
+    public function setExpireDurationParamKey(string $expireDurationParamKey): void
+    {
+        $this->expireDurationParamKey = $expireDurationParamKey;
     }
 
     /**
      * Fetches default expire duration param key.
      * @return string expire duration param key.
      */
-    protected function defaultExpireDurationParamKey()
+    protected function defaultExpireDurationParamKey(): string
     {
         $expireDurationParamKey = 'expires_in';
         foreach ($this->getParams() as $name => $value) {
@@ -181,27 +132,66 @@ class OAuthToken extends BaseObject
     }
 
     /**
-     * Checks if token has expired.
-     * @return bool is token expired.
+     * @return array
      */
-    public function getIsExpired()
+    public function getParams(): array
     {
-        $expirationDuration = $this->getExpireDuration();
-        if (empty($expirationDuration)) {
-            return false;
-        }
+        return $this->params;
+    }
 
-        return (time() >= ($this->createTimestamp + $expirationDuration));
+    /**
+     * @param array $params
+     */
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
     }
 
     /**
      * Checks if token is valid.
      * @return bool is token valid.
      */
-    public function getIsValid()
+    public function getIsValid(): bool
     {
         $token = $this->getToken();
 
         return (!empty($token) && !$this->getIsExpired());
+    }
+
+    /**
+     * Returns token value.
+     * @return string token value.
+     */
+    public function getToken(): ?string
+    {
+        return $this->getParam($this->tokenParamKey);
+    }
+
+    /**
+     * Checks if token has expired.
+     * @return bool is token expired.
+     */
+    public function getIsExpired(): bool
+    {
+        $expirationDuration = $this->getExpireDuration();
+        if ($expirationDuration === null) {
+            return false;
+        }
+
+        return time() >= ($this->createTimestamp + $expirationDuration);
+    }
+
+    /**
+     * Returns the token expiration duration.
+     * @return int|null token expiration duration.
+     */
+    public function getExpireDuration(): ?int
+    {
+        return $this->getParam($this->getExpireDurationParamKey());
+    }
+
+    public function getCreateTimestamp(): int
+    {
+        return $this->createTimestamp;
     }
 }

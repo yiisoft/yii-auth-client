@@ -1,30 +1,29 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use yii\exceptions\NotSupportedException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
+
+use function function_exists;
 
 /**
  * HmacSha represents 'HMAC SHA' signature method.
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
  */
-class HmacSha extends BaseMethod
+final class HmacSha extends BaseMethod
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
-     * @see http://php.net/manual/ru/function.hash-algos.php
+     * @link http://php.net/manual/ru/function.hash-algos.php
      */
-    private $algorithm;
+    private string $algorithm;
 
     public function __construct(string $algorithm)
     {
-        if (!\function_exists('hash_hmac')) {
+        if (!function_exists('hash_hmac')) {
             throw new NotSupportedException('PHP "Hash" extension is required.');
         }
 

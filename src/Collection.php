@@ -1,13 +1,12 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
+
+declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use yii\exceptions\InvalidArgumentException;
+use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Collection is a storage for all auth clients in the application.
@@ -15,41 +14,33 @@ use yii\exceptions\InvalidArgumentException;
  * Example application configuration:
  *
  * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'setClients()' => [
- *             'google' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
- *                 'clientId' => 'google_client_id',
- *                 'clientSecret' => 'google_client_secret',
- *              ],
- *             'facebook' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
- *                 'clientId' => 'facebook_client_id',
- *                 'clientSecret' => 'facebook_client_secret',
- *             ],
- *         ],
+ * 'authClients' => [
+ *     'google' => [
+ *         '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
+ *         'setClientId()' => ['google_client_id'],
+ *         'setClientSecret()' => ['google_client_secret'],
+ *      ],
+ *     'facebook' => [
+ *         '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
+ *         'setClientId()' => ['facebook_client_id'],
+ *         'setClientSecret()' => ['facebook_client_secret'],
  *     ]
  *     ...
  * ]
  * ```
- *
- * @property ClientInterface[] $clients List of auth clients indexed by their names. This property is read-only.
  */
 class Collection
 {
     /**
-     * @var array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var ClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
-    private $clients = [];
+    private array $clients;
+    private ContainerInterface $container;
 
-    /**
-     * @param array $clients list of auth clients indexed by their names
-     */
-    public function setClients(array $clients): void
+    public function __construct(array $clients, ContainerInterface $container)
     {
         $this->clients = $clients;
+        $this->container = $container;
     }
 
     /**
@@ -66,19 +57,38 @@ class Collection
     }
 
     /**
+     * @param array $clients list of auth clients indexed by their names
+     */
+    public function setClients(array $clients): void
+    {
+        $this->clients = $clients;
+    }
+
+    /**
      * @param string $name client name
      * @return ClientInterface auth client instance.
      * @throws InvalidArgumentException on non existing client request.
      */
     public function getClient(string $name): ClientInterface
     {
-        if (!array_key_exists($name, $this->clients)) {
+        if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
-        // TODO: support declarative syntax and callables?
-
-        return $this->clients[$name];
+        $client = $this->clients[$name];
+        if (is_string($client)) {
+            $client = $this->container->get($client);
+        } elseif ($client instanceof ClientInterface) {
+            return $client;
+        } elseif (is_object($client) && method_exists($client, '__invoke')) {
+            $client = $client($this->container);
+        }
+        if (!($client instanceof ClientInterface)) {
+            throw new RuntimeException(
+                'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
+            );
+        }
+        return $client;
     }
 
     /**
