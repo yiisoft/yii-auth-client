@@ -21,7 +21,11 @@ Documentation is at [docs/guide/README.md](https://github.com/yiisoft/yii-auth-c
 
 [![Latest Stable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v/stable.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
 [![Total Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/downloads.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
-[![Build Status](https://travis-ci.com/yiisoft/yii-auth-client.svg?branch=master)](https://travis-ci.com/yiisoft/yii-auth-client)
+[![Build status](https://github.com/yiisoft/yii-auth-client/workflows/build/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3Abuild))
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/yiisoft/yii-auth-client/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/yiisoft/yii-auth-client/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/yiisoft/yii-auth-client/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/yiisoft/yii-auth-client/?branch=master)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fyiisoft%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/yiisoft/yii-auth-client/master)
+[![static analysis](https://github.com/yiisoft/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
 
 Installation
 ------------

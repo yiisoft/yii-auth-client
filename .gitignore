@@ -39,3 +39,5 @@ phpunit.phar
 
 .phpunit.result.cache
 
+# Phan
+analysis.txt
