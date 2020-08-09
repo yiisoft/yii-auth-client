@@ -7,7 +7,6 @@ use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
 class RsaShaTest extends TestCase
 {
-
     /**
      * Data provider for {@see testGetName()}
      * @return array test data
