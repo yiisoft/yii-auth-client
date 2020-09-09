@@ -795,11 +795,11 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     public function getName(): string
     {
-        return (new Inflector())->pascalCaseToId(StringHelper::basename(get_class($this)));
+        return (new Inflector())->pascalCaseToId(StringHelper::baseName(get_class($this)));
     }
 
     public function getTitle(): string
     {
-        return StringHelper::basename(get_class($this));
+        return StringHelper::baseName(get_class($this));
     }
 }
