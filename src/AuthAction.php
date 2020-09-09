@@ -20,7 +20,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * AuthAction performs authentication via different auth clients.
- * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
+ * It supports {@see AbstractOpenId}, {@see OAuth1} and {@see OAuth2} client types.
  *
  * Usage:
  *
@@ -66,7 +66,7 @@ final class AuthAction implements MiddlewareInterface
     private string $clientIdGetParamName = 'authclient';
     /**
      * @var callable PHP callback, which should be triggered in case of successful authentication.
-     * This callback should accept {@see ClientInterface} instance as an argument.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -83,7 +83,7 @@ final class AuthAction implements MiddlewareInterface
     private $successCallback;
     /**
      * @var callable PHP callback, which should be triggered in case of authentication cancellation.
-     * This callback should accept {@see ClientInterface} instance as an argument.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -175,7 +175,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
+    private function auth(AuthClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
@@ -185,7 +185,7 @@ final class AuthAction implements MiddlewareInterface
             return $this->authOAuth1($client, $request);
         }
 
-        if ($client instanceof OpenId) {
+        if ($client instanceof AbstractOpenId) {
             return $this->authOpenId($client, $request);
         }
 
@@ -234,13 +234,86 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
+     * Performs OAuth1 auth flow.
+     * @param OAuth1 $client auth client instance.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface action response.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     */
+    private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
+    {
+        $queryParams = $request->getQueryParams();
+
+        // user denied error
+        if (isset($queryParams['denied']) && $queryParams['denied'] !== null) {
+            return $this->authCancel($client);
+        }
+
+        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token'] ?? null) !== null) {
+            // Upgrade to access token.
+            $client->fetchAccessToken($request, $oauthToken);
+            return $this->authSuccess($client);
+        }
+
+        // Get request token.
+        $requestToken = $client->fetchRequestToken($request);
+        // Get authorization URL.
+        $url = $client->buildAuthUrl($requestToken);
+        // Redirect to authorization URL.
+        return $this->responseFactory
+            ->createResponse(Status::MOVED_PERMANENTLY)
+            ->withHeader('Location', $url);
+    }
+
+    /**
+     * Performs OpenID auth flow.
+     * @param AbstractOpenId $client auth client instance.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface action response.
+     * @throws InvalidConfigException
+     * @throws Throwable
+     * @throws ViewNotFoundException
+     */
+    private function authOpenId(AbstractOpenId $client, ServerRequestInterface $request): ResponseInterface
+    {
+        $queryParams = $request->getQueryParams();
+        $bodyParams = $request->getParsedBody();
+        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
+
+        if (empty($mode)) {
+            return $this->responseFactory
+                ->createResponse(Status::MOVED_PERMANENTLY)
+                ->withHeader('Location', $client->buildAuthUrl($request));
+        }
+
+        switch ($mode) {
+            case 'id_res':
+                if ($client->validate()) {
+                    return $this->authSuccess($client);
+                }
+                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
+                $response->getBody()->write(
+                    'Unable to complete the authentication because the required data was not received.'
+                );
+                return $response;
+            case 'cancel':
+                return $this->authCancel($client);
+            default:
+                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
+        }
+    }
+
+    /**
      * This method is invoked in case of authentication cancellation.
-     * @param ClientInterface $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
      * @throws Throwable
      * @throws ViewNotFoundException
      */
-    private function authCancel(ClientInterface $client): ResponseInterface
+    private function authCancel(AuthClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->cancelCallback)) {
             throw new InvalidConfigException(
@@ -301,13 +374,13 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * This method is invoked in case of successful authentication via auth client.
-     * @param ClientInterface $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      * @return ResponseInterface response instance.
      * @throws InvalidConfigException on invalid success callback.
      * @throws Throwable
      * @throws ViewNotFoundException
      */
-    private function authSuccess(ClientInterface $client): ResponseInterface
+    private function authSuccess(AuthClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(
@@ -325,7 +398,7 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
-     * @param string $url URL to redirect.
+     * @param string|null $url URL to redirect.
      * @return ResponseInterface response instance.
      * @throws Throwable
      * @throws ViewNotFoundException
@@ -336,78 +409,5 @@ final class AuthAction implements MiddlewareInterface
             $url = $this->successUrl;
         }
         return $this->redirect($url);
-    }
-
-    /**
-     * Performs OAuth1 auth flow.
-     * @param OAuth1 $client auth client instance.
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
-     * @throws InvalidConfigException
-     * @throws Throwable
-     * @throws ViewNotFoundException
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
-     */
-    private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
-    {
-        $queryParams = $request->getQueryParams();
-
-        // user denied error
-        if (isset($queryParams['denied']) && $queryParams['denied'] !== null) {
-            return $this->authCancel($client);
-        }
-
-        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token'] ?? null) !== null) {
-            // Upgrade to access token.
-            $client->fetchAccessToken($request, $oauthToken);
-            return $this->authSuccess($client);
-        }
-
-        // Get request token.
-        $requestToken = $client->fetchRequestToken($request);
-        // Get authorization URL.
-        $url = $client->buildAuthUrl($request, $requestToken);
-        // Redirect to authorization URL.
-        return $this->responseFactory
-            ->createResponse(Status::MOVED_PERMANENTLY)
-            ->withHeader('Location', $url);
-    }
-
-    /**
-     * Performs OpenID auth flow.
-     * @param OpenId $client auth client instance.
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
-     * @throws InvalidConfigException
-     * @throws Throwable
-     * @throws ViewNotFoundException
-     */
-    private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
-    {
-        $queryParams = $request->getQueryParams();
-        $bodyParams = $request->getParsedBody();
-        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
-
-        if (empty($mode)) {
-            return $this->responseFactory
-                ->createResponse(Status::MOVED_PERMANENTLY)
-                ->withHeader('Location', $client->buildAuthUrl($request));
-        }
-
-        switch ($mode) {
-            case 'id_res':
-                if ($client->validate()) {
-                    return $this->authSuccess($client);
-                }
-                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
-                $response->getBody()->write(
-                    'Unable to complete the authentication because the required data was not received.'
-                );
-                return $response;
-            case 'cancel':
-                return $this->authCancel($client);
-            default:
-                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
-        }
     }
 }

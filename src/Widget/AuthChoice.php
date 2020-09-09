@@ -10,7 +10,7 @@ use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
-use Yiisoft\Yii\AuthClient\ClientInterface;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
@@ -47,7 +47,7 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * <?php AuthChoice::end(); ?>
  * ```
  *
- * This widget supports following keys for {@see ClientInterface::getViewOptions()} result:
+ * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
  *
  *  - popupWidth: int, width of the popup window in pixels.
  *  - popupHeight: int, height of the popup window in pixels.
@@ -92,7 +92,7 @@ final class AuthChoice extends Widget
      */
     private array $baseAuthUrl;
     /**
-     * @var ClientInterface[] auth providers list.
+     * @var AuthClientInterface[] auth providers list.
      */
     private array $clients;
     private UrlGeneratorInterface $urlGenerator;
@@ -154,7 +154,7 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @return ClientInterface[] auth providers
+     * @return AuthClientInterface[] auth providers
      */
     public function getClients(): array
     {
@@ -166,7 +166,7 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param ClientInterface[] $clients auth providers
+     * @param AuthClientInterface[] $clients auth providers
      */
     public function setClients(array $clients): void
     {
@@ -175,7 +175,7 @@ final class AuthChoice extends Widget
 
     /**
      * Returns default auth clients list.
-     * @return ClientInterface[] auth clients list.
+     * @return AuthClientInterface[] auth clients list.
      */
     protected function defaultClients(): array
     {
@@ -184,7 +184,7 @@ final class AuthChoice extends Widget
 
     /**
      * Outputs client auth link.
-     * @param ClientInterface $client external auth client instance.
+     * @param AuthClientInterface $client external auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
      * @return string generated HTML.
@@ -235,7 +235,7 @@ final class AuthChoice extends Widget
 
     /**
      * Composes client auth URL.
-     * @param ClientInterface $client external auth client instance.
+     * @param AuthClientInterface $client external auth client instance.
      * @return string auth URL.
      */
     public function createClientUrl($client): string

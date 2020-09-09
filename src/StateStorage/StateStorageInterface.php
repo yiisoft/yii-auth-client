@@ -20,7 +20,7 @@ interface StateStorageInterface
      * @param string $key variable name
      * @param mixed $value variable value
      */
-    public function set($key, $value);
+    public function set(string $key, $value): void;
 
     /**
      * Returns the state variable value with the variable name.
@@ -28,12 +28,11 @@ interface StateStorageInterface
      * @param string $key the variable name
      * @return mixed the variable value, or `null` if the variable does not exist.
      */
-    public function get($key);
+    public function get(string $key);
 
     /**
      * Removes a state variable.
      * @param string $key the name of the variable to be removed
-     * @return bool success.
      */
-    public function remove($key): bool;
+    public function remove(string $key): void;
 }

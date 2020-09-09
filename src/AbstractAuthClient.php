@@ -8,6 +8,7 @@ use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
@@ -16,11 +17,11 @@ use function is_array;
 use function is_callable;
 
 /**
- * BaseClient is a base Auth Client class.
+ * AbstractAuthClient is a base Auth Client class.
  *
- * @see ClientInterface
+ * @see AuthClientInterface
  */
-abstract class BaseClient implements ClientInterface
+abstract class AbstractAuthClient implements AuthClientInterface
 {
     /**
      * @var array authenticated user attributes.
@@ -191,6 +192,8 @@ abstract class BaseClient implements ClientInterface
         $this->viewOptions = $viewOptions;
     }
 
+    abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
+
     /**
      * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
@@ -224,7 +227,7 @@ abstract class BaseClient implements ClientInterface
      */
     protected function getStateKeyPrefix(): string
     {
-        return get_class($this) . '_' . $this->getName() . '_';
+        return static::class . '_' . $this->getName() . '_';
     }
 
     /**
@@ -240,11 +243,10 @@ abstract class BaseClient implements ClientInterface
     /**
      * Removes persistent state value.
      * @param string $key state key.
-     * @return bool success.
      */
-    protected function removeState(string $key): bool
+    protected function removeState(string $key): void
     {
-        return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
+        $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }
 
     protected function sendRequest(RequestInterface $request): ResponseInterface

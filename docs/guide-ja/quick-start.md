@@ -39,7 +39,7 @@ namespace app\components;
 use app\models\Auth;
 use app\models\User;
 use Yii;
-use Yiisoft\Yii\AuthClient\ClientInterface;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Arrays\ArrayHelper;
 
 /**
@@ -48,11 +48,11 @@ use Yiisoft\Arrays\ArrayHelper;
 class AuthHandler
 {
     /**
-     * @var ClientInterface
+     * @var AuthClientInterface
      */
     private $client;
 
-    public function __construct(ClientInterface $client)
+    public function __construct(AuthClientInterface $client)
     {
         $this->client = $client;
     }

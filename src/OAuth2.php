@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
-use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Yiisoft\Yii\Web\Session\SessionInterface;
 
@@ -35,7 +35,7 @@ use Yiisoft\Yii\Web\Session\SessionInterface;
  * @see http://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
  */
-abstract class OAuth2 extends BaseOAuth
+abstract class OAuth2 extends AbstractOAuth
 {
     /**
      * @var string OAuth client ID.
@@ -306,7 +306,7 @@ abstract class OAuth2 extends BaseOAuth
      * Authenticates user directly using JSON Web Token (JWT).
      * @link https://tools.ietf.org/html/rfc7515
      * @param string $username
-     * @param BaseMethod|array $signature signature method or its array configuration.
+     * @param AbstractSignature|array $signature signature method or its array configuration.
      * If empty - {@see signatureMethod} will be used.
      * @param array $options additional options. Valid options are:
      *
@@ -383,7 +383,11 @@ abstract class OAuth2 extends BaseOAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $token = $this->createToken(
+            [
+                'setParams()' => [Json::decode($response->getBody()->getContents())]
+            ]
+        );
         $this->setAccessToken($token);
 
         return $token;
@@ -435,6 +439,7 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Composes default {@see returnUrl} value.
+     * @param ServerRequestInterface $request
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string
@@ -442,6 +447,6 @@ abstract class OAuth2 extends BaseOAuth
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
 
-        return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
+        return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

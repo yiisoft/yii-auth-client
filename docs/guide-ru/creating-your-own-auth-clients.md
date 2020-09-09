@@ -47,9 +47,9 @@ class MyAuthClient extends OAuth2
 Например:
 
 ```php
-use Yiisoft\Yii\AuthClient\OpenId;
+use Yiisoft\Yii\AuthClient\AbstractOpenId;
 
-class MyAuthClient extends OpenId
+class MyAuthClient extends AbstractOpenId
 {
     public $authUrl = 'https://www.my.com/openid/';
 

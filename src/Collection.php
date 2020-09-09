@@ -32,7 +32,7 @@ use RuntimeException;
 class Collection
 {
     /**
-     * @var ClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var AuthClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients;
     private ContainerInterface $container;
@@ -44,7 +44,7 @@ class Collection
     }
 
     /**
-     * @return ClientInterface[] list of auth clients.
+     * @return AuthClientInterface[] list of auth clients.
      */
     public function getClients(): array
     {
@@ -66,10 +66,10 @@ class Collection
 
     /**
      * @param string $name client name
-     * @return ClientInterface auth client instance.
+     * @return AuthClientInterface auth client instance.
      * @throws InvalidArgumentException on non existing client request.
      */
-    public function getClient(string $name): ClientInterface
+    public function getClient(string $name): AuthClientInterface
     {
         if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
@@ -78,12 +78,12 @@ class Collection
         $client = $this->clients[$name];
         if (is_string($client)) {
             $client = $this->container->get($client);
-        } elseif ($client instanceof ClientInterface) {
+        } elseif ($client instanceof AuthClientInterface) {
             return $client;
-        } elseif (is_object($client) && method_exists($client, '__invoke')) {
+        } elseif (!empty($client) && method_exists($client, '__invoke')) {
             $client = $client($this->container);
         }
-        if (!($client instanceof ClientInterface)) {
+        if (!($client instanceof AuthClientInterface)) {
             throw new RuntimeException(
                 'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
             );

@@ -9,11 +9,12 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
@@ -49,8 +50,8 @@ class OAuth1Test extends TestCase
 
         $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
-        /* @var $oauthSignatureMethod BaseMethod|MockObject */
-        $oauthSignatureMethod = $this->getMockBuilder(BaseMethod::class)
+        /* @var $oauthSignatureMethod AbstractSignature|MockObject */
+        $oauthSignatureMethod = $this->getMockBuilder(AbstractSignature::class)
             ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
@@ -165,7 +166,7 @@ class OAuth1Test extends TestCase
     public function testComposeAuthorizationHeader($realm, array $params, $expectedAuthorizationHeader)
     {
         $oauthClient = $this->createClient();
-        $authorizationHeader = call_user_func_array([$oauthClient, 'composeAuthorizationHeader'], [$params, $realm]);
+        $authorizationHeader = $oauthClient->composeAuthorizationHeader($params, $realm);
         $this->assertEquals($expectedAuthorizationHeader, $authorizationHeader);
     }
 
@@ -179,8 +180,9 @@ class OAuth1Test extends TestCase
         $requestTokenToken = 'test_request_token';
         $requestToken = new OAuthToken();
         $requestToken->setToken($requestTokenToken);
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl($requestToken);
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($requestTokenToken, $builtAuthUrl, 'No token present!');

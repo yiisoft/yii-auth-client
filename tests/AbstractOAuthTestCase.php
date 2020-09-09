@@ -8,13 +8,13 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
-use Yiisoft\Yii\AuthClient\BaseOAuth;
+use Yiisoft\Yii\AuthClient\AbstractOAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
-class BaseOAuthTest extends TestCase
+class AbstractOAuthTestCase extends TestCase
 {
     private function getRequestFactory(): RequestFactoryInterface
     {
@@ -23,13 +23,13 @@ class BaseOAuthTest extends TestCase
 
     /**
      * Creates test OAuth client instance.
-     * @return BaseOAuth oauth client.
+     * @return AbstractOAuth oauth client.
      */
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        $oauthClient = $this->getMockBuilder(BaseOAuth::class)
+        $oauthClient = $this->getMockBuilder(static::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )

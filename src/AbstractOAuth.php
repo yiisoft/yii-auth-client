@@ -14,7 +14,7 @@ use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
@@ -25,7 +25,7 @@ use function is_object;
  *
  * @link http://oauth.net/
  */
-abstract class BaseOAuth extends BaseClient
+abstract class AbstractOAuth extends AbstractAuthClient
 {
     /**
      * @var string API base URL.
@@ -57,7 +57,7 @@ abstract class BaseOAuth extends BaseClient
      */
     protected $accessToken;
     /**
-     * @var array|BaseMethod signature method instance or its array configuration.
+     * @var array|AbstractSignature signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
     private FactoryInterface $factory;
@@ -126,13 +126,13 @@ abstract class BaseOAuth extends BaseClient
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        return $request->getUri()->__toString();
+        return (string)$request->getUri();
     }
 
     /**
-     * @return array|BaseMethod signature method instance.
+     * @return array|AbstractSignature signature method instance.
      */
-    public function getSignatureMethod(): BaseMethod
+    public function getSignatureMethod(): AbstractSignature
     {
         if (!is_object($this->signatureMethod)) {
             $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
@@ -143,7 +143,7 @@ abstract class BaseOAuth extends BaseClient
 
     /**
      * Set signature method to be used.
-     * @param array|BaseMethod $signatureMethod signature method instance or its array configuration.
+     * @param array|AbstractSignature $signatureMethod signature method instance or its array configuration.
      * @throws InvalidArgumentException on wrong argument.
      */
     public function setSignatureMethod($signatureMethod): void
@@ -151,7 +151,7 @@ abstract class BaseOAuth extends BaseClient
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
                 '"' . get_class($this) . '::signatureMethod"'
-                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\BaseMethod" or its array configuration. "'
+                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\AbstractSignature" or its array configuration. "'
                 . gettype($signatureMethod) . '" has been given.'
             );
         }
@@ -161,9 +161,9 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Creates signature method instance from its configuration.
      * @param array $signatureMethodConfig signature method configuration.
-     * @return object|BaseMethod signature method instance.
+     * @return object|AbstractSignature signature method instance.
      */
-    protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
+    protected function createSignatureMethod(array $signatureMethodConfig): AbstractSignature
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
             $signatureMethodConfig['__class'] = Signature\HmacSha::class;

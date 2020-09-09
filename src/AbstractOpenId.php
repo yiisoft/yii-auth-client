@@ -33,7 +33,7 @@ use Yiisoft\Strings\StringHelper;
  *
  * @link http://openid.net/
  */
-class OpenId extends BaseClient
+abstract class AbstractOpenId extends AbstractAuthClient
 {
     /**
      * @var string authentication base URL, which should be used to compose actual authentication URL
@@ -140,6 +140,7 @@ class OpenId extends BaseClient
     }
 
     /**
+     * @param ServerRequestInterface $incomingRequest
      * @return string authentication return URL.
      */
     public function getReturnUrl(ServerRequestInterface $incomingRequest): string
@@ -180,10 +181,7 @@ class OpenId extends BaseClient
                 unset($params[$name]);
             }
         }
-        return $incomingRequest
-            ->getUri()
-            ->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))
-            ->__toString();
+        return (string)$incomingRequest->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 
     /**
@@ -574,16 +572,16 @@ class OpenId extends BaseClient
             $params['openid.claimed_id'] = $this->getClaimedId();
         }
 
-        return $this->buildUrl($serverInfo['url'], ['query' => http_build_query($params, '', '&')]);
+        return $this->buildUrl($serverInfo['url'], $params);
     }
 
     /**
      * Returns authentication URL. Usually, you want to redirect your user to it.
      * @param ServerRequestInterface $incomingRequest
-     * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
+     * @param array $params
      * @return string the authentication URL.
      */
-    public function buildAuthUrl(ServerRequestInterface $incomingRequest, ?bool $identifierSelect = null)
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
     {
         $authUrl = $this->authUrl;
         $claimedId = $this->getClaimedId();
@@ -591,9 +589,9 @@ class OpenId extends BaseClient
             $this->setClaimedId($authUrl);
         }
         $serverInfo = $this->discover($authUrl);
-        if ($serverInfo['version'] == 2) {
-            if ($identifierSelect !== null) {
-                $serverInfo['identifier_select'] = $identifierSelect;
+        if ($serverInfo['version'] === 2) {
+            if (isset($params['identifierSelect']) !== null) {
+                $serverInfo['identifier_select'] = $params['identifierSelect'];
             }
 
             return $this->buildAuthUrlV2($incomingRequest, $serverInfo);
@@ -624,7 +622,7 @@ class OpenId extends BaseClient
             Even though we should know location of the endpoint,
             we still need to verify it by discovery, so $server is not set here*/
             $params['openid.ns'] = 'http://specs.openid.net/auth/2.0';
-        } elseif (isset($this->data['openid_claimed_id']) && $this->data['openid_claimed_id'] != $this->data['openid_identity']) {
+        } elseif (isset($this->data['openid_claimed_id']) && $this->data['openid_claimed_id'] !== $this->data['openid_identity']) {
             // If it's an OpenID 1 provider, and we've got claimed_id,
             // we have to append it to the returnUrl, like authUrlV1 does.
             $this->returnUrl .= (strpos($this->returnUrl, '?') ? '&' : '?') . 'openid.claimed_id=' . $claimedId;
@@ -797,7 +795,7 @@ class OpenId extends BaseClient
 
     public function getName(): string
     {
-        return (new Inflector())->camel2id(StringHelper::basename(get_class($this)));
+        return (new Inflector())->pascalCaseToId(StringHelper::basename(get_class($this)));
     }
 
     public function getTitle(): string
