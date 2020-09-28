@@ -25,6 +25,6 @@ class CollectionFactory
             }
             $clients[$name] = $container->get($client);
         }
-        return new Collection($clients, $container);
+        return new Collection($clients);
     }
 }

@@ -23,7 +23,7 @@ class OAuthToken
     private int $createTimestamp;
 
     /**
-     * @var string key in {@see params} array, which stores token expiration duration.
+     * @var string|null key in {@see params} array, which stores token expiration duration.
      * If not set will attempt to fetch its value automatically.
      */
     private ?string $expireDurationParamKey = null;

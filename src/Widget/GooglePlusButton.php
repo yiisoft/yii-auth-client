@@ -110,7 +110,7 @@ JS;
     /**
      * @param string|array $callback callback JavaScript function name or URL config.
      */
-    public function setCallback($callback)
+    public function setCallback($callback): void
     {
         $this->callback = $callback;
     }
@@ -120,7 +120,7 @@ JS;
      * @param array $url auth callback URL.
      * @return string JavaScript function name.
      */
-    protected function generateCallback($url = [])
+    protected function generateCallback(array $url = []): string
     {
         if (empty($url)) {
             $url = $this->authChoice->createClientUrl($this->client);

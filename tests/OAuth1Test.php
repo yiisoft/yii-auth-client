@@ -4,6 +4,7 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
+use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\Uri;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +30,7 @@ class OAuth1Test extends TestCase
      * Creates test OAuth1 client instance.
      * @return OAuth1 oauth client.
      */
-    protected function createClient()
+    protected function createClient(): OAuth1
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
@@ -180,9 +181,9 @@ class OAuth1Test extends TestCase
         $requestTokenToken = 'test_request_token';
         $requestToken = new OAuthToken();
         $requestToken->setToken($requestTokenToken);
-        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
+        $serverRequest = new ServerRequest('GET', 'http://test.local');
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest->withBody(Stream::create('')));
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($requestTokenToken, $builtAuthUrl, 'No token present!');

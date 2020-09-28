@@ -2,11 +2,12 @@
 
 /** @var array $params */
 
-use Psr\Container\ContainerInterface;
 use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\Factory\CollectionFactory;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 return [
-    Collection::class => static function (ContainerInterface $container) use ($params) {
-        return new Collection($params['authClients'], $container);
-    }
+    Collection::class => new CollectionFactory($params['yiisoft/yii-auth-client']['clients']),
+    StateStorageInterface::class => SessionStateStorage::class
 ];

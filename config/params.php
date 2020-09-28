@@ -4,6 +4,8 @@ return [
     'aliases' => [
         '@auth-client' => dirname(__DIR__)
     ],
-    'authClient.enabled' => false,
-    'authClients' => []
+    'yiisoft/yii-auth-client' => [
+        'enabled' => true,
+        'clients' => []
+    ],
 ];

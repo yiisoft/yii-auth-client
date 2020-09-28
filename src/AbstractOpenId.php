@@ -590,7 +590,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
         }
         $serverInfo = $this->discover($authUrl);
         if ($serverInfo['version'] === 2) {
-            if (isset($params['identifierSelect']) !== null) {
+            if (isset($params['identifierSelect'])) {
                 $serverInfo['identifier_select'] = $params['identifierSelect'];
             }
 
@@ -786,7 +786,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
                 if (!empty($paramsDiff)) {
                     return false;
                 }
-            } elseif ($expectedValue != $actualUrlInfo[$name]) {
+            } elseif ($expectedValue !== $actualUrlInfo[$name]) {
                 return false;
             }
         }

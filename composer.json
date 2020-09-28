@@ -71,6 +71,12 @@
     "extra": {
         "branch-alias": {
             "dev-master": "3.0.x-dev"
+        },
+        "config-plugin": {
+            "common": "config/common.php",
+            "params": "config/params.php",
+            "providers-web": "config/providers-web.php",
+            "tests": "config/tests.php"
         }
     },
     "config": {

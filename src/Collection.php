@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
-use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 /**
@@ -35,12 +34,10 @@ class Collection
      * @var AuthClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients;
-    private ContainerInterface $container;
 
-    public function __construct(array $clients, ContainerInterface $container)
+    public function __construct(array $clients)
     {
         $this->clients = $clients;
-        $this->container = $container;
     }
 
     /**
@@ -76,13 +73,6 @@ class Collection
         }
 
         $client = $this->clients[$name];
-        if (is_string($client)) {
-            $client = $this->container->get($client);
-        } elseif ($client instanceof AuthClientInterface) {
-            return $client;
-        } elseif (!empty($client) && method_exists($client, '__invoke')) {
-            $client = $client($this->container);
-        }
         if (!($client instanceof AuthClientInterface)) {
             throw new RuntimeException(
                 'Client should be ClientInterface instance. "' . get_class($client) . '" given.'

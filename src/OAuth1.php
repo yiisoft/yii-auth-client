@@ -73,7 +73,7 @@ abstract class OAuth1 extends AbstractOAuth
      * @return OAuthToken request token.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
-    public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = [])
+    public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = []): OAuthToken
     {
         $this->setAccessToken(null);
         $defaultParams = [
