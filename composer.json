@@ -34,7 +34,7 @@
         "yiisoft/yii-web": "^3.0@dev"
     },
     "require-dev": {
-        "infection/infection": "^0.16.3 || ^0.17.0",
+        "infection/infection": "^0.16.3 || ^0.17.0 || ^0.18.0",
         "kriswallsmith/buzz": "^1.0",
         "nyholm/psr7": "^1.0",
         "phan/phan": "^3.0",
