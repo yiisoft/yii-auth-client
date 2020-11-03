@@ -13,7 +13,7 @@ use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Yiisoft\Yii\Web\Session\SessionInterface;
+use Yiisoft\Session\SessionInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
