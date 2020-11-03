@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
-use Yiisoft\Yii\Web\Session\SessionInterface;
+use Yiisoft\Session\SessionInterface;
 
 /**
  * SessionStateStorage provides Auth client state storage based on web session.
