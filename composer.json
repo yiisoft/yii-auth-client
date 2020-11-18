@@ -35,8 +35,8 @@
         "yiisoft/yii-web": "^3.0@dev"
     },
     "require-dev": {
-        "kriswallsmith/buzz": "^1.0",
-        "nyholm/psr7": "^1.0",
+        "kriswallsmith/buzz": "^1.1",
+        "nyholm/psr7": "^1.3",
         "phpunit/phpunit": "^9.4",
         "roave/infection-static-analysis-plugin": "^1.4",
         "vimeo/psalm": "^4.1",
