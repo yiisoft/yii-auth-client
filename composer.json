@@ -35,10 +35,10 @@
         "yiisoft/yii-web": "^3.0@dev"
     },
     "require-dev": {
-        "infection/infection": "^0.20.0",
         "kriswallsmith/buzz": "^1.0",
         "nyholm/psr7": "^1.0",
         "phpunit/phpunit": "^9.4",
+        "roave/infection-static-analysis-plugin": "^1.4",
         "vimeo/psalm": "^4.1",
         "yiisoft/di": "^3.0@dev",
         "yiisoft/log": "^3.0@dev",
