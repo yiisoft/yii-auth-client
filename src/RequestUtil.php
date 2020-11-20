@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use Psr\Http\Message\RequestInterface;
-
 use function is_array;
+
+use Psr\Http\Message\RequestInterface;
 
 final class RequestUtil
 {
     /**
      * Composes URL from base URL and GET params.
+     *
      * @param string $url base URL.
      * @param array $params GET params.
+     *
      * @return string composed URL.
      */
     public static function composeUrl(string $url, array $params = []): string

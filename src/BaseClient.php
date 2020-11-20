@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use function is_array;
+use function is_callable;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-
-use function get_class;
-use function is_array;
-use function is_callable;
 
 /**
  * BaseClient is a base Auth Client class.
@@ -72,8 +71,9 @@ abstract class BaseClient implements ClientInterface
     }
 
     /**
-     * @return array list of user attributes
      * @throws InvalidConfigException
+     *
+     * @return array list of user attributes
      */
     public function getUserAttributes(): array
     {
@@ -86,6 +86,7 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * @param array $userAttributes list of user attributes
+     *
      * @throws InvalidConfigException
      */
     public function setUserAttributes(array $userAttributes): void
@@ -95,9 +96,12 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * Normalize given user attributes according to {@see normalizeUserAttributeMap}.
+     *
      * @param array $attributes raw attributes.
-     * @return array normalized attributes.
+     *
      * @throws InvalidConfigException on incorrect normalize attribute map.
+     *
+     * @return array normalized attributes.
      */
     protected function normalizeUserAttributes(array $attributes): array
     {
@@ -125,9 +129,9 @@ abstract class BaseClient implements ClientInterface
                 }
             } else {
                 throw new InvalidConfigException(
-                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class(
-                        $this
-                    ) . '::normalizeUserAttributeMap"'
+                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . static::class
+
+                     . '::normalizeUserAttributeMap"'
                 );
             }
         }
@@ -158,6 +162,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * Returns the default {@see normalizeUserAttributeMap} value.
      * Particular client may override this method in order to provide specific default map.
+     *
      * @return array normalize attribute map.
      */
     protected function defaultNormalizeUserAttributeMap(): array
@@ -167,6 +172,7 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * Initializes authenticated user attributes.
+     *
      * @return array auth user attributes.
      */
     abstract protected function initUserAttributes(): array;
@@ -194,6 +200,7 @@ abstract class BaseClient implements ClientInterface
     /**
      * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
+     *
      * @return array list of default {@see viewOptions}
      */
     protected function defaultViewOptions(): array
@@ -208,8 +215,10 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * Sets persistent state.
+     *
      * @param string $key state key.
      * @param mixed $value state value
+     *
      * @return $this the object itself
      */
     protected function setState(string $key, $value): self
@@ -220,16 +229,19 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * Returns session key prefix, which is used to store internal states.
+     *
      * @return string session key prefix.
      */
     protected function getStateKeyPrefix(): string
     {
-        return get_class($this) . '_' . $this->getName() . '_';
+        return static::class . '_' . $this->getName() . '_';
     }
 
     /**
      * Returns persistent state value.
+     *
      * @param string $key state key.
+     *
      * @return mixed state value.
      */
     protected function getState(string $key)
@@ -239,7 +251,9 @@ abstract class BaseClient implements ClientInterface
 
     /**
      * Removes persistent state value.
+     *
      * @param string $key state key.
+     *
      * @return bool success.
      */
     protected function removeState(string $key): bool

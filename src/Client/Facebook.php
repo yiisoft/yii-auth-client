@@ -51,11 +51,13 @@ final class Facebook extends OAuth2
     private bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
+     *
      * @see exchangeToken()
      */
     private bool $autoExchangeAccessToken = false;
     /**
      * @var string URL endpoint for the client auth code generation.
+     *
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
      * @see fetchClientAccessToken()
@@ -87,8 +89,11 @@ final class Facebook extends OAuth2
      * Exchanges short-live (2 hours) access token to long-live (60 days) one.
      * Note that this method will success for already long-live token, but will not actually prolong it any further.
      * Pay attention, that this method will fail on already expired access token.
+     *
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     *
      * @param OAuthToken $token short-live access token.
+     *
      * @return OAuthToken long-live access token.
      */
     public function exchangeAccessToken(OAuthToken $token): OAuthToken
@@ -113,11 +118,14 @@ final class Facebook extends OAuth2
      * Requests the authorization code for the client-specific access token.
      * This make sense for the distributed applications, which provides several Auth clients (web and mobile)
      * to avoid triggering Facebook's automated spam systems.
+     *
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAccessToken()
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
+     *
      * @return string client auth code.
      */
     public function fetchClientAuthCode(
@@ -153,11 +161,14 @@ final class Facebook extends OAuth2
      * Fetches access token from client-specific authorization code.
      * This make sense for the distributed applications, which provides several Auth clients (web and mobile)
      * to avoid triggering Facebook's automated spam systems.
+     *
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param string $authCode client auth code.
      * @param array $params
+     *
      * @return OAuthToken long-live client-specific access token.
      */
     public function fetchClientAccessToken(

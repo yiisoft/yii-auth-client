@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\ServerRequest;
-use Nyholm\Psr7\Uri;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
@@ -26,19 +26,19 @@ class OAuth1Test extends TestCase
 
     /**
      * Creates test OAuth1 client instance.
+     *
      * @return OAuth1 oauth client.
      */
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        $oauthClient = $this->getMockBuilder(OAuth1::class)
+        return $this->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
-        return $oauthClient;
     }
 
     // Tests :
@@ -55,10 +55,10 @@ class OAuth1Test extends TestCase
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue('test'));
+            ->willReturn('test');
         $oauthSignatureMethod->expects($this->any())
             ->method('generateSignature')
-            ->will($this->returnArgument(0));
+            ->willReturnArgument(0);
         $oauthSignatureMethod->method('setConsumerSecret')->with('test_secret');
         $oauthSignatureMethod->method('setConsumerKey')->with('test_key');
 
@@ -82,7 +82,7 @@ class OAuth1Test extends TestCase
                     'oauth_version' => $signedParams['oauth_version'],
                     's' => 'some',
                 ]
-            )
+            ),
         ];
         $parts = array_map('rawurlencode', $parts);
         $expectedSignature = implode('&', $parts);
@@ -123,6 +123,7 @@ class OAuth1Test extends TestCase
 
     /**
      * Data provider for {@see testComposeAuthorizationHeader()}.
+     *
      * @return array test data.
      */
     public function composeAuthorizationHeaderDataProvider()
@@ -134,7 +135,7 @@ class OAuth1Test extends TestCase
                     'oauth_test_name_1' => 'oauth_test_value_1',
                     'oauth_test_name_2' => 'oauth_test_value_2',
                 ],
-                ['Authorization' => 'OAuth oauth_test_name_1="oauth_test_value_1", oauth_test_name_2="oauth_test_value_2"']
+                ['Authorization' => 'OAuth oauth_test_name_1="oauth_test_value_1", oauth_test_name_2="oauth_test_value_2"'],
             ],
             [
                 'test_realm',
@@ -142,7 +143,7 @@ class OAuth1Test extends TestCase
                     'oauth_test_name_1' => 'oauth_test_value_1',
                     'oauth_test_name_2' => 'oauth_test_value_2',
                 ],
-                ['Authorization' => 'OAuth realm="test_realm", oauth_test_name_1="oauth_test_value_1", oauth_test_name_2="oauth_test_value_2"']
+                ['Authorization' => 'OAuth realm="test_realm", oauth_test_name_1="oauth_test_value_1", oauth_test_name_2="oauth_test_value_2"'],
             ],
             [
                 '',
@@ -150,7 +151,7 @@ class OAuth1Test extends TestCase
                     'oauth_test_name_1' => 'oauth_test_value_1',
                     'test_name_2' => 'test_value_2',
                 ],
-                ['Authorization' => 'OAuth oauth_test_name_1="oauth_test_value_1"']
+                ['Authorization' => 'OAuth oauth_test_name_1="oauth_test_value_1"'],
             ],
         ];
     }

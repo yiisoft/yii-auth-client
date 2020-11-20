@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /** @var array $params */
 
 use Yiisoft\Yii\AuthClient\AuthClientServiceProvider;
@@ -9,5 +11,5 @@ if (!(bool)$params['authClient.enabled']) {
 }
 
 return [
-    'AuthClient' => AuthClientServiceProvider::class
+    'AuthClient' => AuthClientServiceProvider::class,
 ];

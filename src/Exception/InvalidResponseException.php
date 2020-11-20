@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Exception;
 
-use RuntimeException;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -20,6 +20,7 @@ class InvalidResponseException extends RuntimeException
 
     /**
      * Constructor.
+     *
      * @param ResponseInterface $response HTTP response instance
      * @param string $message error message
      * @param int $code error code

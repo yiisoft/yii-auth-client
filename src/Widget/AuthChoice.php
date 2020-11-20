@@ -55,7 +55,6 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  *    such widget should be a subclass of {@see AuthChoiceItem}.
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
- *
  */
 final class AuthChoice extends Widget
 {
@@ -70,6 +69,7 @@ final class AuthChoice extends Widget
     private string $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
+     *
      * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     private array $options = [];
@@ -126,6 +126,7 @@ final class AuthChoice extends Widget
 
     /**
      * Runs the widget.
+     *
      * @return string rendered HTML.
      */
     public function run(): string
@@ -140,9 +141,11 @@ final class AuthChoice extends Widget
 
     /**
      * Renders the main content, which includes all external services links.
-     * @return string generated HTML.
+     *
      * @throws InvalidConfigException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return string generated HTML.
      */
     protected function renderMainContent(): string
     {
@@ -175,6 +178,7 @@ final class AuthChoice extends Widget
 
     /**
      * Returns default auth clients list.
+     *
      * @return ClientInterface[] auth clients list.
      */
     protected function defaultClients(): array
@@ -184,12 +188,15 @@ final class AuthChoice extends Widget
 
     /**
      * Outputs client auth link.
+     *
      * @param ClientInterface $client external auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
-     * @return string generated HTML.
+     *
      * @throws InvalidConfigException on wrong configuration.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return string generated HTML.
      */
     public function clientLink($client, $text = null, array $htmlOptions = []): Widget
     {
@@ -235,7 +242,9 @@ final class AuthChoice extends Widget
 
     /**
      * Composes client auth URL.
+     *
      * @param ClientInterface $client external auth client instance.
+     *
      * @return string auth URL.
      */
     public function createClientUrl($client): string
@@ -269,17 +278,16 @@ final class AuthChoice extends Widget
 
     /**
      * Composes default base auth URL configuration.
+     *
      * @return array base auth URL configuration.
      */
     protected function defaultBaseAuthUrl(): array
     {
         $baseAuthUrl = [
-            Yii::getApp()->controller->getRoute()
+            Yii::getApp()->controller->getRoute(),
         ];
         $params = Yii::getApp()->getRequest()->getQueryParams();
         unset($params[$this->clientIdGetParamName]);
-        $baseAuthUrl = array_merge($baseAuthUrl, $params);
-
-        return $baseAuthUrl;
+        return array_merge($baseAuthUrl, $params);
     }
 }

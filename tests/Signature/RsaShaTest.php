@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
 use PHPUnit\Framework\TestCase;
@@ -9,6 +11,7 @@ class RsaShaTest extends TestCase
 {
     /**
      * Data provider for {@see testGetName()}
+     *
      * @return array test data
      */
     public function dataProviderGetName()

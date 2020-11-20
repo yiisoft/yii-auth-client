@@ -11,15 +11,18 @@ abstract class BaseMethod
 {
     /**
      * Return the canonical name of the Signature Method.
+     *
      * @return string method name.
      */
     abstract public function getName(): string;
 
     /**
      * Verifies given OAuth request.
+     *
      * @param string $signature signature to be verified.
      * @param string $baseString signature base string.
      * @param string $key signature key.
+     *
      * @return bool success.
      */
     public function verify(string $signature, string $baseString, string $key): bool
@@ -29,13 +32,15 @@ abstract class BaseMethod
             return false;
         }
 
-        return (strcmp($expectedSignature, $signature) === 0);
+        return strcmp($expectedSignature, $signature) === 0;
     }
 
     /**
      * Generates OAuth request signature.
+     *
      * @param string $baseString signature base string.
      * @param string $key signature key.
+     *
      * @return string signature string.
      */
     abstract public function generateSignature(string $baseString, string $key): string;

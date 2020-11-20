@@ -13,6 +13,7 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  * and setup its credentials at <https://console.developers.google.com/project/[yourProjectId]/apiui/credential>.
  * In order to enable using scopes for retrieving user attributes, you should also enable Google+ API at
  * <https://console.developers.google.com/project/[yourProjectId]/apiui/api/plus>
+ *
  * @link https://console.developers.google.com/project
  */
 class Google extends OAuth2

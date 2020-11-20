@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -23,13 +25,14 @@ class BaseOAuthTest extends TestCase
 
     /**
      * Creates test OAuth client instance.
+     *
      * @return BaseOAuth oauth client.
      */
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        $oauthClient = $this->getMockBuilder(BaseOAuth::class)
+        return $this->getMockBuilder(BaseOAuth::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
@@ -40,11 +43,10 @@ class BaseOAuthTest extends TestCase
                     'applyAccessTokenToRequest',
                     'initUserAttributes',
                     'getName',
-                    'getTitle'
+                    'getTitle',
                 ]
             )
             ->getMock();
-        return $oauthClient;
     }
 
     // Tests :
@@ -120,7 +122,7 @@ class BaseOAuthTest extends TestCase
         );
 
         $oauthSignatureMethod = [
-            '__class' => PlainText::class
+            '__class' => PlainText::class,
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
