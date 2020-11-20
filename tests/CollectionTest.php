@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -51,13 +53,12 @@ class CollectionTest extends TestCase
         $clientId = 'testClientId';
         $client = $this->getTestClient();
         $clients = [
-            $clientId => $client
+            $clientId => $client,
         ];
         $collection = new Collection($clients, $this->getContainer());
 
         $this->assertEquals($client, $collection->getClient($clientId), 'Unable to get client by id!');
     }
-
 
     /**
      * @depends testSetGet

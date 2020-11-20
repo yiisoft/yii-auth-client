@@ -11,9 +11,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
+use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Yiisoft\Session\SessionInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
@@ -72,8 +72,10 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Composes user authorization URL.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param array $params additional auth GET params.
+     *
      * @return string authorization URL.
      */
     public function buildAuthUrl(
@@ -101,11 +103,12 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Generates the auth state value.
+     *
      * @return string auth state value.
      */
     protected function generateAuthState(): string
     {
-        $baseString = get_class($this) . '-' . time();
+        $baseString = static::class . '-' . time();
         if ($this->session->isActive()) {
             $baseString .= '-' . $this->session->getId();
         }
@@ -114,9 +117,11 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Fetches access token from authorization code.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param string $authCode authorization code, usually comes at GET parameter 'code'.
      * @param array $params additional request params.
+     *
      * @return OAuthToken access token.
      */
     public function fetchAccessToken(
@@ -149,7 +154,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())]
+                'setParams' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -160,7 +165,9 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
+     *
      * @param RequestInterface $request HTTP request instance.
+     *
      * @return RequestInterface
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
@@ -176,7 +183,9 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Creates token from its configuration.
+     *
      * @param array $tokenConfig token configuration.
+     *
      * @return OAuthToken token instance.
      */
     protected function createToken(array $tokenConfig = []): OAuthToken
@@ -198,13 +207,15 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Gets new auth token to replace expired one.
+     *
      * @param OAuthToken $token expired auth token.
+     *
      * @return OAuthToken new auth token.
      */
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
-            'grant_type' => 'refresh_token'
+            'grant_type' => 'refresh_token',
         ];
         $params = array_merge($token->getParams(), $params);
 
@@ -217,7 +228,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())]
+                'setParams' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -228,8 +239,11 @@ abstract class OAuth2 extends BaseOAuth
     /**
      * Authenticate OAuth client directly at the provider without third party (user) involved,
      * using 'client_credentials' grant type.
+     *
      * @link http://tools.ietf.org/html/rfc6749#section-4.4
+     *
      * @param array $params additional request params.
+     *
      * @return OAuthToken access token.
      */
     public function authenticateClient(array $params = []): OAuthToken
@@ -254,7 +268,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())]
+                'setParams' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -264,10 +278,13 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Authenticates user directly by 'username/password' pair, using 'password' grant type.
+     *
      * @link https://tools.ietf.org/html/rfc6749#section-4.3
+     *
      * @param string $username user name.
      * @param string $password user password.
      * @param array $params additional request params.
+     *
      * @return OAuthToken access token.
      */
     public function authenticateUser(string $username, string $password, array $params = []): OAuthToken
@@ -294,7 +311,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())]
+                'setParams' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -304,19 +321,22 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Authenticates user directly using JSON Web Token (JWT).
+     *
      * @link https://tools.ietf.org/html/rfc7515
+     *
      * @param string $username
-     * @param BaseMethod|array $signature signature method or its array configuration.
+     * @param array|BaseMethod $signature signature method or its array configuration.
      * If empty - {@see signatureMethod} will be used.
      * @param array $options additional options. Valid options are:
      *
      * - header: array, additional JWS header parameters.
      * - payload: array, additional JWS payload (message or claim-set) parameters.
      * - signatureKey: string, signature key to be used, if not set - {@see clientSecret} will be used.
-     *
      * @param array $params additional request params.
-     * @return OAuthToken access token.
+     *
      * @throws JsonException
+     *
+     * @return OAuthToken access token.
      */
     public function authenticateUserJwt(
         string $username,
@@ -337,7 +357,7 @@ abstract class OAuth2 extends BaseOAuth
 
         $header = array_merge(
             [
-                'typ' => 'JWT'
+                'typ' => 'JWT',
             ],
             $header
         );
@@ -435,6 +455,7 @@ abstract class OAuth2 extends BaseOAuth
 
     /**
      * Composes default {@see returnUrl} value.
+     *
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string

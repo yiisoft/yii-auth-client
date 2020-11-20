@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -46,6 +48,7 @@ class TokenTest extends TestCase
 
     /**
      * Data provider for {@see testAutoFetchExpireDuration}.
+     *
      * @return array test data.
      */
     public function autoFetchExpireDurationDataProvider()
@@ -53,19 +56,19 @@ class TokenTest extends TestCase
         return [
             [
                 ['expire_in' => 123345],
-                123345
+                123345,
             ],
             [
                 ['expire' => 233456],
-                233456
+                233456,
             ],
             [
                 ['expiry_in' => 34567],
-                34567
+                34567,
             ],
             [
                 ['expiry' => 45678],
-                45678
+                45678,
             ],
         ];
     }

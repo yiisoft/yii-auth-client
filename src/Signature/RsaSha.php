@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-
 use function function_exists;
 use function is_int;
+
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
@@ -27,6 +27,7 @@ final class RsaSha extends BaseMethod
     private string $publicCertificateFile;
     /**
      * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
+     *
      * @link http://php.net/manual/en/openssl.signature-algos.php
      */
     private $algorithm;
@@ -41,7 +42,6 @@ final class RsaSha extends BaseMethod
      * This value can be fetched from file specified by {@see publicCertificateFile}.
      */
     private ?string $publicCertificate = null;
-
 
     public function __construct($algorithm = null)
     {
@@ -121,8 +121,10 @@ final class RsaSha extends BaseMethod
     /**
      * Creates initial value for {@see privateCertificate}.
      * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
-     * @return string private certificate content.
+     *
      * @throws InvalidConfigException on failure.
+     *
+     * @return string private certificate content.
      */
     protected function initPrivateCertificate(): string
     {
@@ -149,7 +151,7 @@ final class RsaSha extends BaseMethod
         // Release the key resource
         openssl_free_key($publicKeyId);
 
-        return ($verificationResult == 1);
+        return $verificationResult == 1;
     }
 
     /**
@@ -167,8 +169,10 @@ final class RsaSha extends BaseMethod
     /**
      * Creates initial value for {@see publicCertificate}.
      * This method will attempt to fetch the certificate value from {@see publicCertificateFile} file.
-     * @return string public certificate content.
+     *
      * @throws InvalidConfigException on failure.
+     *
+     * @return string public certificate content.
      */
     protected function initPublicCertificate(): string
     {

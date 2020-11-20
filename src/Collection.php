@@ -32,7 +32,7 @@ use RuntimeException;
 class Collection
 {
     /**
-     * @var ClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var array|ClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients;
     private ContainerInterface $container;
@@ -66,8 +66,10 @@ class Collection
 
     /**
      * @param string $name client name
-     * @return ClientInterface auth client instance.
+     *
      * @throws InvalidArgumentException on non existing client request.
+     *
+     * @return ClientInterface auth client instance.
      */
     public function getClient(string $name): ClientInterface
     {
@@ -93,7 +95,9 @@ class Collection
 
     /**
      * Checks if client exists in the hub.
+     *
      * @param string $name client id.
+     *
      * @return bool whether client exist.
      */
     public function hasClient(string $name): bool

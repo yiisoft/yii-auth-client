@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
-use Yiisoft\Session\SessionException;
 use Yiisoft\Session\SessionInterface;
 
 /**
@@ -11,6 +12,7 @@ use Yiisoft\Session\SessionInterface;
 class Session implements SessionInterface
 {
     private array $data = [];
+
     public function __construct()
     {
         // blank, preventing shutdown function registration

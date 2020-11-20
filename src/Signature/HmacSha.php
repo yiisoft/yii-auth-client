@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-
 use function function_exists;
+
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * HmacSha represents 'HMAC SHA' signature method.
@@ -17,6 +17,7 @@ final class HmacSha extends BaseMethod
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
+     *
      * @link http://php.net/manual/ru/function.hash-algos.php
      */
     private string $algorithm;

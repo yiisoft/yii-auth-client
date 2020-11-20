@@ -129,6 +129,7 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * @param string $url successful URL.
+     *
      * @return AuthAction
      */
     public function withSuccessUrl(string $url): self
@@ -140,6 +141,7 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * @param string $url cancel URL.
+     *
      * @return AuthAction
      */
     public function withCancelUrl(string $url): self
@@ -166,14 +168,17 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Perform authentication for the given client.
+     *
      * @param mixed $client auth client instance.
      * @param ServerRequestInterface $request
-     * @return ResponseInterface response instance.
+     *
      * @throws InvalidConfigException
      * @throws NotSupportedException on invalid client.
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return ResponseInterface response instance.
      */
     private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -194,12 +199,15 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Performs OAuth2 auth flow.
+     *
      * @param OAuth2 $client auth client instance.
      * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
+     *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface action response.
      */
     private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -235,20 +243,23 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * This method is invoked in case of authentication cancellation.
+     *
      * @param ClientInterface $client auth client instance.
-     * @return ResponseInterface response instance.
+     *
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface response instance.
      */
     private function authCancel(ClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->cancelCallback)) {
             throw new InvalidConfigException(
-                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+                '"' . self::class . '::$successCallback" should be a valid callback.'
             );
         }
 
-        $response = call_user_func($this->cancelCallback, $client);
+        $response = ($this->cancelCallback)($client);
         if ($response instanceof ResponseInterface) {
             return $response;
         }
@@ -258,10 +269,13 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Redirect to the {@see cancelUrl} or simply close the popup window.
+     *
      * @param string $url URL to redirect.
-     * @return ResponseInterface response instance.
+     *
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface response instance.
      */
     private function redirectCancel(?string $url = null): ResponseInterface
     {
@@ -273,11 +287,14 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Redirect to the given URL or simply close the popup window.
+     *
      * @param string $url URL to redirect, could be a string or array config to generate a valid URL.
      * @param bool $enforceRedirect indicates if redirect should be performed even in case of popup window.
-     * @return ResponseInterface response instance.
+     *
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface response instance.
      */
     private function redirect(string $url, bool $enforceRedirect = true): ResponseInterface
     {
@@ -301,21 +318,24 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * This method is invoked in case of successful authentication via auth client.
+     *
      * @param ClientInterface $client auth client instance.
-     * @return ResponseInterface response instance.
+     *
      * @throws InvalidConfigException on invalid success callback.
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface response instance.
      */
     private function authSuccess(ClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(
-                '"' . get_class($this) . '::$successCallback" should be a valid callback.'
+                '"' . self::class . '::$successCallback" should be a valid callback.'
             );
         }
 
-        $response = call_user_func($this->successCallback, $client);
+        $response = ($this->successCallback)($client);
         if ($response instanceof ResponseInterface) {
             return $response;
         }
@@ -325,10 +345,13 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
+     *
      * @param string $url URL to redirect.
-     * @return ResponseInterface response instance.
+     *
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface response instance.
      */
     private function redirectSuccess(?string $url = null): ResponseInterface
     {
@@ -340,13 +363,16 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Performs OAuth1 auth flow.
+     *
      * @param OAuth1 $client auth client instance.
      * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
+     *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return ResponseInterface action response.
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
     {
@@ -375,12 +401,15 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * Performs OpenID auth flow.
+     *
      * @param OpenId $client auth client instance.
      * @param ServerRequestInterface $request
-     * @return ResponseInterface action response.
+     *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
+     * @return ResponseInterface action response.
      */
     private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
     {

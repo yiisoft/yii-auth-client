@@ -38,10 +38,11 @@ final class VKontakte extends OAuth2
         'city',
         'country',
         'timezone',
-        'photo'
+        'photo',
     ];
     /**
      * @var string the API version to send in the API request.
+     *
      * @see https://vk.com/dev/versions
      */
     private string $apiVersion = '3.0';
@@ -53,7 +54,7 @@ final class VKontakte extends OAuth2
             [
                 'v' => $this->apiVersion,
                 'uids' => $accessToken->getParam('user_id'),
-                'access_token' => $accessToken->getToken()
+                'access_token' => $accessToken->getToken(),
             ]
         );
     }
@@ -105,7 +106,7 @@ final class VKontakte extends OAuth2
     protected function defaultNormalizeUserAttributeMap(): array
     {
         return [
-            'id' => 'uid'
+            'id' => 'uid',
         ];
     }
 }
