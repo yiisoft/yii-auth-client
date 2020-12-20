@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://avatars0.githubusercontent.com/u/993323" height="80px">
+        <img src="https://yiisoft.github.io/docs/images/yii_logo.svg" height="80px">
     </a>
     <a href="https://oauth.net/2/" target="_blank">
         <img src="https://oauth.net/images/oauth-2-sm.png" height="80px">
