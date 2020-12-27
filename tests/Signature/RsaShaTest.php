@@ -98,7 +98,9 @@ class RsaShaTest extends TestCase
         $certificateFileName = __FILE__;
         $signatureMethod->setPublicCertificateFile($certificateFileName);
         $this->assertStringEqualsFile(
-            $certificateFileName, $signatureMethod->getPublicCertificate(), 'Unable to fetch public certificate from file!'
+            $certificateFileName,
+            $signatureMethod->getPublicCertificate(),
+            'Unable to fetch public certificate from file!'
         );
     }
 }
