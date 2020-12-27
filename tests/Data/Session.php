@@ -82,9 +82,9 @@ class Session implements SessionInterface
         return isset($this->data[$key]);
     }
 
-    public function pull(string $key)
+    public function pull(string $key, $default = null)
     {
-        $value = $this->get($key);
+        $value = $this->data[$key] ?? $default;
         $this->remove($key);
         return $value;
     }
