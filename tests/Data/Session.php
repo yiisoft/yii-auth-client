@@ -2,8 +2,7 @@
 
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
-use Yiisoft\Yii\Web\Session\SessionException;
-use Yiisoft\Yii\Web\Session\SessionInterface;
+use Yiisoft\Session\SessionInterface;
 
 /**
  * Web session class mock.
