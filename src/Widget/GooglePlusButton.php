@@ -27,7 +27,7 @@ class GooglePlusButton extends AuthChoiceItem
     public array $buttonHtmlOptions = [];
 
     /**
-     * @var string|array name of the JavaScript function, which should be used as sign-in callback.
+     * @var array|string name of the JavaScript function, which should be used as sign-in callback.
      * If blank default one will be generated: it will redirect page to the auth action using auth result
      * as GET parameters.
      * You may pass an array configuration of the URL here, which will be used creating such
@@ -42,7 +42,7 @@ class GooglePlusButton extends AuthChoiceItem
     {
         if (!($this->client instanceof GoogleHybrid)) {
             throw new InvalidConfigException(
-                '"' . get_class($this) . '::$client" must be instance of "' . GoogleHybrid::class . '". "'
+                '"' . static::class . '::$client" must be instance of "' . GoogleHybrid::class . '". "'
                 . get_class($this->client) . '" given.'
             );
         }
@@ -74,6 +74,7 @@ JS;
 
     /**
      * Renders sign-in button.
+     *
      * @return string button HTML.
      */
     protected function renderButton()
@@ -108,7 +109,7 @@ JS;
     }
 
     /**
-     * @param string|array $callback callback JavaScript function name or URL config.
+     * @param array|string $callback callback JavaScript function name or URL config.
      */
     public function setCallback($callback): void
     {
@@ -117,7 +118,9 @@ JS;
 
     /**
      * Generates JavaScript callback function, which will be used to handle auth response.
+     *
      * @param array $url auth callback URL.
+     *
      * @return string JavaScript function name.
      */
     protected function generateCallback(array $url = []): string

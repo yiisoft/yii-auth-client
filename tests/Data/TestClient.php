@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
 use Psr\Http\Message\ServerRequestInterface;

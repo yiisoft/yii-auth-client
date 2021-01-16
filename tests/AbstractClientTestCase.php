@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -26,12 +28,10 @@ class AbstractClientTestCase extends TestCase
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        $oauthClient = $this->getMockBuilder(static::class)
+        return $this->getMockBuilder(BaseClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
             ->getMock();
-
-        return $oauthClient;
     }
 
     // Tests :
@@ -68,6 +68,7 @@ class AbstractClientTestCase extends TestCase
 
     /**
      * Data provider for {@see testNormalizeUserAttributes()}
+     *
      * @return array test data
      */
     public function dataProviderNormalizeUserAttributes()
@@ -107,7 +108,7 @@ class AbstractClientTestCase extends TestCase
                 ],
                 [
                     'emails' => [
-                        'prime' => 'some@email.com'
+                        'prime' => 'some@email.com',
                     ],
                 ],
                 [

@@ -53,7 +53,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
      */
     protected ?string $returnUrl = null;
     /**
-     * @var OAuthToken|array access token instance or its array configuration.
+     * @var array|OAuthToken access token instance or its array configuration.
      */
     protected $accessToken;
     /**
@@ -64,6 +64,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * BaseOAuth constructor.
+     *
      * @param PsrClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
@@ -101,6 +102,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * @param ServerRequestInterface $request
+     *
      * @return string return URL.
      */
     public function getReturnUrl(ServerRequestInterface $request): string
@@ -121,7 +123,9 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Composes default {@see returnUrl} value.
+     *
      * @param ServerRequestInterface $request
+     *
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string
@@ -150,8 +154,8 @@ abstract class AbstractOAuth extends AbstractAuthClient
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
-                '"' . get_class($this) . '::signatureMethod"'
-                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\AbstractSignature" or its array configuration. "'
+                '"' . static::class . '::signatureMethod"'
+                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\BaseMethod" or its array configuration. "'
                 . gettype($signatureMethod) . '" has been given.'
             );
         }
@@ -160,6 +164,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Creates signature method instance from its configuration.
+     *
      * @param array $signatureMethodConfig signature method configuration.
      * @return object|AbstractSignature signature method instance.
      */
@@ -189,12 +194,16 @@ abstract class AbstractOAuth extends AbstractAuthClient
     /**
      * Performs request to the OAuth API returning response data.
      * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
+     *
      * @param string $apiSubUrl API sub URL, which will be append to {@see apiBaseUrl}, or absolute API URL.
      * @param string $method request method.
      * @param array|string $data request data or content.
      * @param array $headers additional request headers.
-     * @return array API response data.
+     *
      * @throws Exception
+     *
+     * @return array API response data.
+     *
      * @see createApiRequest()
      */
     public function api($apiSubUrl, $method = 'GET', $data = [], $headers = []): array
@@ -227,9 +236,12 @@ abstract class AbstractOAuth extends AbstractAuthClient
      * Creates an HTTP request for the API call.
      * The created request will be automatically processed adding access token parameters and signature
      * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
+     *
      * @param string $method
      * @param string $uri
+     *
      * @return RequestInterface HTTP request instance.
+     *
      * @see createRequest()
      */
     public function createApiRequest(string $method, string $uri): RequestInterface
@@ -261,6 +273,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Sets access token to be used.
+     *
      * @param array|OAuthToken $token access token or its configuration.
      */
     public function setAccessToken($token): void
@@ -274,9 +287,12 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Creates token from its configuration.
+     *
      * @param array $tokenConfig token configuration.
-     * @return object|OAuthToken
+     *
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return OAuthToken|object
      */
     protected function createToken(array $tokenConfig = [])
     {
@@ -288,7 +304,9 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Saves token as persistent state.
+     *
      * @param OAuthToken|null $token auth token to be saved.
+     *
      * @return $this the object itself.
      */
     protected function saveAccessToken($token): self
@@ -298,6 +316,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Restores access token.
+     *
      * @return OAuthToken auth token.
      */
     protected function restoreAccessToken(): ?OAuthToken
@@ -314,13 +333,16 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Gets new auth token to replace expired one.
+     *
      * @param OAuthToken $token expired auth token.
+     *
      * @return OAuthToken new auth token.
      */
     abstract public function refreshAccessToken(OAuthToken $token): OAuthToken;
 
     /**
      * Applies access token to the HTTP request instance.
+     *
      * @param RequestInterface $request HTTP request instance.
      * @param OAuthToken $accessToken access token instance.
      */

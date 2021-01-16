@@ -73,8 +73,9 @@ abstract class AbstractAuthClient implements AuthClientInterface
     }
 
     /**
-     * @return array list of user attributes
      * @throws InvalidConfigException
+     *
+     * @return array list of user attributes
      */
     public function getUserAttributes(): array
     {
@@ -87,6 +88,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * @param array $userAttributes list of user attributes
+     *
      * @throws InvalidConfigException
      */
     public function setUserAttributes(array $userAttributes): void
@@ -96,9 +98,12 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Normalize given user attributes according to {@see normalizeUserAttributeMap}.
+     *
      * @param array $attributes raw attributes.
-     * @return array normalized attributes.
+     *
      * @throws InvalidConfigException on incorrect normalize attribute map.
+     *
+     * @return array normalized attributes.
      */
     protected function normalizeUserAttributes(array $attributes): array
     {
@@ -126,9 +131,9 @@ abstract class AbstractAuthClient implements AuthClientInterface
                 }
             } else {
                 throw new InvalidConfigException(
-                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . get_class(
-                        $this
-                    ) . '::normalizeUserAttributeMap"'
+                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . static::class
+
+                     . '::normalizeUserAttributeMap"'
                 );
             }
         }
@@ -159,6 +164,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
     /**
      * Returns the default {@see normalizeUserAttributeMap} value.
      * Particular client may override this method in order to provide specific default map.
+     *
      * @return array normalize attribute map.
      */
     protected function defaultNormalizeUserAttributeMap(): array
@@ -168,6 +174,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Initializes authenticated user attributes.
+     *
      * @return array auth user attributes.
      */
     abstract protected function initUserAttributes(): array;
@@ -197,6 +204,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
     /**
      * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
+     *
      * @return array list of default {@see viewOptions}
      */
     protected function defaultViewOptions(): array
@@ -211,8 +219,10 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Sets persistent state.
+     *
      * @param string $key state key.
      * @param mixed $value state value
+     *
      * @return $this the object itself
      */
     protected function setState(string $key, $value): self
@@ -223,6 +233,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Returns session key prefix, which is used to store internal states.
+     *
      * @return string session key prefix.
      */
     protected function getStateKeyPrefix(): string
@@ -232,7 +243,9 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Returns persistent state value.
+     *
      * @param string $key state key.
+     *
      * @return mixed state value.
      */
     protected function getState(string $key)
@@ -242,7 +255,10 @@ abstract class AbstractAuthClient implements AuthClientInterface
 
     /**
      * Removes persistent state value.
+     *
      * @param string $key state key.
+     *
+     * @return bool success.
      */
     protected function removeState(string $key): void
     {

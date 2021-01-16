@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
 use Yiisoft\Session\SessionInterface;
@@ -10,6 +12,7 @@ use Yiisoft\Session\SessionInterface;
 class Session implements SessionInterface
 {
     private array $data = [];
+
     public function __construct()
     {
         // blank, preventing shutdown function registration
@@ -79,9 +82,9 @@ class Session implements SessionInterface
         return isset($this->data[$key]);
     }
 
-    public function pull(string $key)
+    public function pull(string $key, $default = null)
     {
-        $value = $this->get($key);
+        $value = $this->data[$key] ?? $default;
         $this->remove($key);
         return $value;
     }

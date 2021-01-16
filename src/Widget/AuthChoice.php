@@ -55,7 +55,6 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  *    such widget should be a subclass of {@see AuthChoiceItem}.
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
- *
  */
 final class AuthChoice extends Widget
 {
@@ -66,6 +65,7 @@ final class AuthChoice extends Widget
     private string $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
+     *
      * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     private array $options = [];
@@ -138,6 +138,7 @@ final class AuthChoice extends Widget
 
     /**
      * Runs the widget.
+     *
      * @return string rendered HTML.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      */
@@ -153,9 +154,11 @@ final class AuthChoice extends Widget
 
     /**
      * Renders the main content, which includes all external services links.
-     * @return string generated HTML.
+     *
      * @throws InvalidConfigException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return string generated HTML.
      */
     protected function renderMainContent(): string
     {
@@ -187,9 +190,11 @@ final class AuthChoice extends Widget
      * @param AuthClientInterface $client external auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
-     * @return string generated HTML.
+     *
      * @throws InvalidConfigException on wrong configuration.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return string generated HTML.
      */
     public function clientLink(AuthClientInterface $client, string $text = null, array $htmlOptions = []): string
     {

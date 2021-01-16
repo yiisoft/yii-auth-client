@@ -170,7 +170,9 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Generates default {@see returnUrl} value.
+     *
      * @param ServerRequestInterface $incomingRequest
+     *
      * @return string default authentication return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $incomingRequest): string
@@ -186,8 +188,10 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Combines given URLs into single one.
+     *
      * @param string $baseUrl base URL.
-     * @param string|array $additionalUrl additional URL string or information array.
+     * @param array|string $additionalUrl additional URL string or information array.
+     *
      * @return string composed URL.
      */
     protected function buildUrl(string $baseUrl, $additionalUrl): string
@@ -215,12 +219,14 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Scans content for <meta>/<link> tags and extract information from them.
+     *
      * @param string $content HTML content to be be parsed.
      * @param string $tag name of the source tag.
      * @param string $matchAttributeName name of the source tag attribute, which should contain $matchAttributeValue
      * @param string $matchAttributeValue required value of $matchAttributeName
      * @param string $valueAttributeName name of the source tag attribute, which should contain searched value.
-     * @return string|bool searched value, "false" on failure.
+     *
+     * @return bool|string searched value, "false" on failure.
      */
     protected function extractHtmlTagValue(
         string $content,
@@ -246,7 +252,9 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Performs Yadis and HTML discovery.
+     *
      * @param string $url Identity URL.
+     *
      * @return array OpenID provider info, following keys will be available:
      *
      * - url: string, OP Endpoint (i.e. OpenID provider address).
@@ -425,6 +433,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Composes SREG request parameters.
+     *
      * @return array SREG parameters.
      */
     protected function buildSregParams(): array
@@ -461,6 +470,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Composes AX request parameters.
+     *
      * @return array AX parameters.
      */
     protected function buildAxParams(): array
@@ -511,8 +521,10 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Builds authentication URL for the protocol version 1.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
+     *
      * @return string authentication URL.
      */
     protected function buildAuthUrlV1(ServerRequestInterface $incomingRequest, array $serverInfo)
@@ -540,8 +552,10 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Builds authentication URL for the protocol version 2.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
+     *
      * @return string authentication URL.
      */
     protected function buildAuthUrlV2(ServerRequestInterface $incomingRequest, array $serverInfo)
@@ -577,7 +591,10 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Returns authentication URL. Usually, you want to redirect your user to it.
+     *
      * @param ServerRequestInterface $incomingRequest
+     * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
+     *
      * @param array $params
      * @return string the authentication URL.
      */
@@ -602,7 +619,9 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Performs OpenID verification with the OP.
+     *
      * @param bool $validateRequiredAttributes whether to validate required attributes.
+     *
      * @return bool whether the verification was successful.
      */
     public function validate(bool $validateRequiredAttributes = true): bool
@@ -659,6 +678,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Checks if all required attributes are present in the server response.
+     *
      * @return bool whether all required attributes are present.
      */
     protected function validateRequiredAttributes(): bool
@@ -677,6 +697,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Gets AX attributes provided by OP.
+     *
      * @return array array of attributes.
      */
     protected function fetchAxAttributes(): array
@@ -721,6 +742,7 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Gets SREG attributes provided by OP. SREG names will be mapped to AX names.
+     *
      * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
      */
     protected function fetchSregAttributes()
@@ -749,7 +771,9 @@ abstract class AbstractOpenId extends AbstractAuthClient
      * or that there will be no other attributes besides those specified.
      * In other words. OP may provide whatever information it wants to.
      * SREG names will be mapped to AX names.
+     *
      * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
+     *
      * @see http://www.axschema.org/types/
      */
     public function fetchAttributes(): array
@@ -770,8 +794,10 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     /**
      * Compares 2 URLs taking in account possible GET parameters order miss match and URL encoding inconsistencies.
+     *
      * @param string $expectedUrl expected URL.
      * @param string $actualUrl actual URL.
+     *
      * @return bool whether URLs are equal.
      */
     protected function compareUrl(string $expectedUrl, string $actualUrl): bool
@@ -795,11 +821,11 @@ abstract class AbstractOpenId extends AbstractAuthClient
 
     public function getName(): string
     {
-        return (new Inflector())->pascalCaseToId(StringHelper::baseName(get_class($this)));
+        return (new Inflector())->pascalCaseToId(StringHelper::baseName(static::class));
     }
 
     public function getTitle(): string
     {
-        return StringHelper::baseName(get_class($this));
+        return StringHelper::baseName(static::class);
     }
 }

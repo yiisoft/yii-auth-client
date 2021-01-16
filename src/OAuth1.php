@@ -65,13 +65,15 @@ abstract class OAuth1 extends AbstractOAuth
      */
     protected ?array $authorizationHeaderMethods = ['POST'];
 
-
     /**
      * Fetches the OAuth request token.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
-     * @return OAuthToken request token.
+     *
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return OAuthToken request token.
      */
     public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = []): OAuthToken
     {
@@ -97,7 +99,7 @@ abstract class OAuth1 extends AbstractOAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [Json::decode($response->getBody()->getContents())]
+                'setParams()' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setState('requestToken', $token);
@@ -107,8 +109,10 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Sign given request with {@see signatureMethod}.
+     *
      * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set {@see accessToken} will be used.
+     *
      * @return RequestInterface
      */
     public function signRequest(RequestInterface $request, ?OAuthToken $token = null): RequestInterface
@@ -166,6 +170,7 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Generate common request params like version, timestamp etc.
+     *
      * @return array common request params.
      */
     protected function generateCommonRequestParams(): array
@@ -179,6 +184,7 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Generates nonce value.
+     *
      * @return string nonce value.
      */
     protected function generateNonce(): string
@@ -188,6 +194,7 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Generates timestamp.
+     *
      * @return int timestamp.
      */
     protected function generateTimestamp(): int
@@ -197,9 +204,11 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Creates signature base string, which will be signed by {@see signatureMethod}.
+     *
      * @param string $method request method.
      * @param string $url request URL.
      * @param array $params request params.
+     *
      * @return string base signature string.
      */
     protected function composeSignatureBaseString($method, $url, array $params)
@@ -217,7 +226,7 @@ abstract class OAuth1 extends AbstractOAuth
         $parts = [
             strtoupper($method),
             $url,
-            http_build_query($params, '', '&', PHP_QUERY_RFC3986)
+            http_build_query($params, '', '&', PHP_QUERY_RFC3986),
         ];
         $parts = array_map('rawurlencode', $parts);
 
@@ -226,13 +235,15 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Composes request signature key.
+     *
      * @param OAuthToken|null $token OAuth token to be used for signature key.
+     *
      * @return string signature key.
      */
     protected function composeSignatureKey($token = null): string
     {
         $signatureKeyParts = [
-            $this->consumerSecret
+            $this->consumerSecret,
         ];
 
         if ($token === null) {
@@ -251,8 +262,10 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Composes authorization header.
+     *
      * @param array $params request params.
      * @param string $realm authorization realm.
+     *
      * @return array authorization header in format: [name => content].
      */
     public function composeAuthorizationHeader(array $params, $realm = '')
@@ -277,8 +290,10 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Composes user authorization URL.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
+     *
      * @return string authorize URL
      */
     public function buildAuthUrl(
@@ -299,11 +314,13 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Fetches OAuth access token.
+     *
      * @param ServerRequestInterface $incomingRequest
      * @param string $oauthToken OAuth token returned with redirection back to client.
      * @param OAuthToken $requestToken OAuth request token.
      * @param string $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
+     *
      * @return OAuthToken OAuth access token.
      */
     public function fetchAccessToken(
@@ -334,7 +351,7 @@ abstract class OAuth1 extends AbstractOAuth
 
         $defaultParams = [
             'oauth_consumer_key' => $this->consumerKey,
-            'oauth_token' => $requestToken->getToken()
+            'oauth_token' => $requestToken->getToken(),
         ];
         if ($oauthVerifier === null) {
             $oauthVerifier = $queryParams['oauth_verifier'] ?? $bodyParams['oauth_verifier'];
@@ -356,7 +373,7 @@ abstract class OAuth1 extends AbstractOAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [Json::decode($response->getBody()->getContents())]
+                'setParams()' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -374,7 +391,9 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Gets new auth token to replace expired one.
+     *
      * @param OAuthToken $token expired auth token.
+     *
      * @return OAuthToken new auth token.
      */
     public function refreshAccessToken(?OAuthToken $token = null): OAuthToken
@@ -455,6 +474,7 @@ abstract class OAuth1 extends AbstractOAuth
 
     /**
      * Composes default {@see returnUrl} value.
+     *
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string

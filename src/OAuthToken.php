@@ -32,7 +32,6 @@ class OAuthToken
      */
     private array $params = [];
 
-
     public function __construct()
     {
         $this->createTimestamp = time();
@@ -40,6 +39,7 @@ class OAuthToken
 
     /**
      * Sets token value.
+     *
      * @param string $token token value.
      */
     public function setToken(string $token): void
@@ -49,6 +49,7 @@ class OAuthToken
 
     /**
      * Sets param by name.
+     *
      * @param string $name param name.
      * @param mixed $value param value,
      */
@@ -59,6 +60,7 @@ class OAuthToken
 
     /**
      * Sets the token secret value.
+     *
      * @param string $tokenSecret token secret.
      */
     public function setTokenSecret(string $tokenSecret): void
@@ -68,6 +70,7 @@ class OAuthToken
 
     /**
      * Returns the token secret value.
+     *
      * @return string token secret value.
      */
     public function getTokenSecret(): string
@@ -77,7 +80,9 @@ class OAuthToken
 
     /**
      * Returns param by name.
+     *
      * @param string $name param name.
+     *
      * @return mixed param value.
      */
     public function getParam(string $name)
@@ -87,6 +92,7 @@ class OAuthToken
 
     /**
      * Sets token expire duration.
+     *
      * @param int $expireDuration token expiration duration.
      */
     public function setExpireDuration(int $expireDuration): void
@@ -116,6 +122,7 @@ class OAuthToken
 
     /**
      * Fetches default expire duration param key.
+     *
      * @return string expire duration param key.
      */
     protected function defaultExpireDurationParamKey(): string
@@ -149,17 +156,19 @@ class OAuthToken
 
     /**
      * Checks if token is valid.
+     *
      * @return bool is token valid.
      */
     public function getIsValid(): bool
     {
         $token = $this->getToken();
 
-        return (!empty($token) && !$this->getIsExpired());
+        return !empty($token) && !$this->getIsExpired();
     }
 
     /**
      * Returns token value.
+     *
      * @return string token value.
      */
     public function getToken(): ?string
@@ -169,6 +178,7 @@ class OAuthToken
 
     /**
      * Checks if token has expired.
+     *
      * @return bool is token expired.
      */
     public function getIsExpired(): bool
@@ -183,6 +193,7 @@ class OAuthToken
 
     /**
      * Returns the token expiration duration.
+     *
      * @return int|null token expiration duration.
      */
     public function getExpireDuration(): ?int

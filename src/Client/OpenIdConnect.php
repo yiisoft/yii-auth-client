@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Exception;
 use HttpException;
+use function in_array;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Core\AlgorithmManager;
@@ -25,13 +26,12 @@ use Psr\SimpleCache\InvalidArgumentException;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Security\Random;
+use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Yiisoft\Yii\Web\Session\SessionInterface;
 
-use function in_array;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -84,12 +84,13 @@ final class OpenIdConnect extends OAuth2
         'RS512',
         'PS256',
         'PS384',
-        'PS512'
+        'PS512',
     ];
 
     /**
      * @var string the prefix for the key used to store {@see configParams} data in cache.
      * Actual cache key will be formed addition {@see id} value to it.
+     *
      * @see cache
      */
     private string $configParamsCacheKeyPrefix = 'config-params-';
@@ -119,6 +120,7 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * OpenIdConnect constructor.
+     *
      * @param string|null $endpoint
      * @param $name
      * @param $title
@@ -156,10 +158,13 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Returns particular configuration parameter value.
+     *
      * @param string $name configuration parameter name.
-     * @return mixed configuration parameter value.
+     *
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
+     *
+     * @return mixed configuration parameter value.
      */
     public function getConfigParam($name)
     {
@@ -168,9 +173,10 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * @return array OpenID provider configuration parameters.
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
+     *
+     * @return array OpenID provider configuration parameters.
      */
     public function getConfigParams(): array
     {
@@ -196,8 +202,10 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Discovers OpenID Provider configuration parameters.
-     * @return array OpenID Provider configuration parameters.
+     *
      * @throws InvalidConfigException
+     *
+     * @return array OpenID Provider configuration parameters.
      */
     private function discoverConfig(): array
     {
@@ -227,9 +235,10 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
+     *
+     * @return bool whether to use and validate auth 'nonce' parameter in authentication flow.
      */
     public function getValidateAuthNonce(): bool
     {
@@ -253,8 +262,10 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Generates the auth nonce value.
-     * @return string auth nonce value.
+     *
      * @throws Exception
+     *
+     * @return string auth nonce value.
      */
     protected function generateAuthNonce(): string
     {
@@ -345,9 +356,9 @@ final class OpenIdConnect extends OAuth2
     {
         $params = $request->getQueryParams();
         // OAuth2 specifics :
-        unset($params['code'], $params['state']);
+        unset($params['code'], $params['state'], $params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
         // OpenIdConnect specifics :
-        unset($params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
+
 
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
@@ -374,10 +385,13 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Decrypts/validates JWS, returning related data.
+     *
      * @param string $jws raw JWS input.
-     * @return array JWS underlying data.
+     *
      * @throws HttpException on invalid JWS signature.
      * @throws InvalidArgumentException
+     *
+     * @return array JWS underlying data.
      */
     protected function loadJws(string $jws): array
     {
@@ -394,8 +408,10 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Return JWSLoader that validate the JWS token.
-     * @return JWSLoader to do token validation.
+     *
      * @throws InvalidConfigException on invalid algorithm provide in configuration.
+     *
+     * @return JWSLoader to do token validation.
      */
     protected function getJwsLoader(): JWSLoader
     {
@@ -422,9 +438,11 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Return JwkSet, returning related data.
-     * @return JWKSet object represents a key set.
+     *
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
+     *
+     * @return JWKSet object represents a key set.
      */
     protected function getJwkSet(): JWKSet
     {
@@ -444,7 +462,9 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * Validates the claims data received from OpenID provider.
+     *
      * @param array $claims claims data.
+     *
      * @throws HttpException on invalid claims.
      */
     protected function validateClaims(array $claims): void

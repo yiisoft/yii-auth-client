@@ -17,6 +17,7 @@ interface StateStorageInterface
     /**
      * Adds a state variable.
      * If the specified name already exists, the old value will be overwritten.
+     *
      * @param string $key variable name
      * @param mixed $value variable value
      */
@@ -25,13 +26,16 @@ interface StateStorageInterface
     /**
      * Returns the state variable value with the variable name.
      * If the variable does not exist, the `$defaultValue` will be returned.
+     *
      * @param string $key the variable name
+     *
      * @return mixed the variable value, or `null` if the variable does not exist.
      */
     public function get(string $key);
 
     /**
      * Removes a state variable.
+     *
      * @param string $key the name of the variable to be removed
      */
     public function remove(string $key): void;

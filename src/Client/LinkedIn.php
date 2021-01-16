@@ -39,7 +39,7 @@ final class LinkedIn extends OAuth2
         return RequestUtil::addParams(
             $request,
             [
-                'oauth2_access_token' => $accessToken->getToken()
+                'oauth2_access_token' => $accessToken->getToken(),
             ]
         );
     }

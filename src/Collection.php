@@ -83,7 +83,9 @@ class Collection
 
     /**
      * Checks if client exists in the hub.
+     *
      * @param string $name client id.
+     *
      * @return bool whether client exist.
      */
     public function hasClient(string $name): bool

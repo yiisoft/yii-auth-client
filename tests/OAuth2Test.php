@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -15,6 +17,7 @@ class OAuth2Test extends TestCase
 {
     /**
      * Creates test OAuth2 client instance.
+     *
      * @return OAuth2 oauth client.
      */
     protected function createClient()
@@ -22,13 +25,12 @@ class OAuth2Test extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
 
-        $oauthClient = $this->getMockBuilder(OAuth2::class)
+        return $this->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), new Factory()]
             )
             ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
-        return $oauthClient;
     }
 
     // Tests :
