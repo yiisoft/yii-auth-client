@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use function in_array;
-
 use Yiisoft\Yii\AuthClient\OAuth2;
+
+use function in_array;
 
 /**
  * GitHub allows authentication via GitHub OAuth.

@@ -28,7 +28,7 @@ class AbstractClientTestCase extends TestCase
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        return $this->getMockBuilder(BaseClient::class)
+        return $this->getMockBuilder(AbstractAuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->setMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
             ->getMock();

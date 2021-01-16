@@ -103,7 +103,7 @@ final class Facebook extends OAuth2
             'fb_exchange_token' => $token->getToken(),
         ];
 
-        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = $this->createRequest('POST', $this->getTokenUrl());
         //->setParams($params);
         $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
@@ -185,7 +185,7 @@ final class Facebook extends OAuth2
             $params
         );
 
-        $request = $this->createRequest('POST', $this->tokenUrl);
+        $request = $this->createRequest('POST', $this->getTokenUrl());
         $request = RequestUtil::addParams($request, $params);
 
         $response = $this->sendRequest($request);

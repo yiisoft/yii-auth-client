@@ -66,6 +66,30 @@ abstract class OAuth1 extends AbstractOAuth
     protected ?array $authorizationHeaderMethods = ['POST'];
 
     /**
+     * Composes user authorization URL.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     * @param array $params additional request params.
+     *
+     * @return string authorize URL
+     */
+    public function buildAuthUrl(
+        ServerRequestInterface $incomingRequest,
+        array $params = []
+    ): string {
+        $requestToken = $this->fetchRequestToken($incomingRequest);
+        if (!is_object($requestToken)) {
+            $requestToken = $this->getState('requestToken');
+            if (!is_object($requestToken)) {
+                throw new InvalidArgumentException('Request token is required to build authorize URL!');
+            }
+        }
+        $params['oauth_token'] = $requestToken->getToken();
+
+        return RequestUtil::composeUrl($this->authUrl, $params);
+    }
+
+    /**
      * Fetches the OAuth request token.
      *
      * @param ServerRequestInterface $incomingRequest
@@ -286,30 +310,6 @@ abstract class OAuth1 extends AbstractOAuth
         }
 
         return ['Authorization' => $header];
-    }
-
-    /**
-     * Composes user authorization URL.
-     *
-     * @param ServerRequestInterface $incomingRequest
-     * @param array $params additional request params.
-     *
-     * @return string authorize URL
-     */
-    public function buildAuthUrl(
-        ServerRequestInterface $incomingRequest,
-        array $params = []
-    ): string {
-        $requestToken = $this->fetchRequestToken($incomingRequest);
-        if (!is_object($requestToken)) {
-            $requestToken = $this->getState('requestToken');
-            if (!is_object($requestToken)) {
-                throw new InvalidArgumentException('Request token is required to build authorize URL!');
-            }
-        }
-        $params['oauth_token'] = $requestToken->getToken();
-
-        return RequestUtil::composeUrl($this->authUrl, $params);
     }
 
     /**

@@ -116,7 +116,7 @@ final class AuthChoice extends Widget
         if ($this->popupMode) {
             $this->assetManager->register(
                 [
-                    AuthChoiceAsset::class
+                    AuthChoiceAsset::class,
                 ]
             );
             if (empty($this->clientOptions)) {
@@ -128,7 +128,7 @@ final class AuthChoice extends Widget
         } else {
             $this->assetManager->register(
                 [
-                    AuthChoiceStyleAsset::class
+                    AuthChoiceStyleAsset::class,
                 ]
             );
         }
@@ -136,11 +136,16 @@ final class AuthChoice extends Widget
         echo Html::beginTag('div', $this->options);
     }
 
+    public function getId(): string
+    {
+        return 'yii-auth-client';
+    }
+
     /**
      * Runs the widget.
      *
-     * @return string rendered HTML.
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @return string rendered HTML.
      */
     public function run(): string
     {
@@ -187,6 +192,7 @@ final class AuthChoice extends Widget
 
     /**
      * Outputs client auth link.
+     *
      * @param AuthClientInterface $client external auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
@@ -240,7 +246,9 @@ final class AuthChoice extends Widget
 
     /**
      * Composes client auth URL.
+     *
      * @param AuthClientInterface $client external auth client instance.
+     *
      * @return string auth URL.
      */
     public function createClientUrl($client): string
@@ -254,16 +262,12 @@ final class AuthChoice extends Widget
 
     /**
      * @param string $authRoute
+     *
      * @return self
      */
     public function authRoute(string $authRoute): self
     {
         $this->authRoute = $authRoute;
         return $this;
-    }
-
-    public function getId(): string
-    {
-        return 'yii-auth-client';
     }
 }

@@ -11,9 +11,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
+use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Yiisoft\Session\SessionInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
@@ -405,7 +405,7 @@ abstract class OAuth2 extends AbstractOAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [Json::decode($response->getBody()->getContents())]
+                'setParams()' => [Json::decode($response->getBody()->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -459,7 +459,9 @@ abstract class OAuth2 extends AbstractOAuth
 
     /**
      * Composes default {@see returnUrl} value.
+     *
      * @param ServerRequestInterface $request
+     *
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string

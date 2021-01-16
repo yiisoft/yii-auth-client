@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Exception;
 use HttpException;
-use function in_array;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Core\AlgorithmManager;
@@ -29,9 +28,11 @@ use Yiisoft\Security\Random;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+
+use function in_array;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -124,7 +125,7 @@ final class OpenIdConnect extends OAuth2
      * @param string|null $endpoint
      * @param $name
      * @param $title
-     * @param AuthClientInterface $httpClient
+     * @param ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param CacheInterface $cache
      * @param StateStorageInterface $stateStorage

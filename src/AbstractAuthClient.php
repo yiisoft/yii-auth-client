@@ -12,7 +12,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
-use function get_class;
 use function is_array;
 use function is_callable;
 
@@ -133,7 +132,7 @@ abstract class AbstractAuthClient implements AuthClientInterface
                 throw new InvalidConfigException(
                     'Invalid actual name "' . gettype($actualName) . '" specified at "' . static::class
 
-                     . '::normalizeUserAttributeMap"'
+                    . '::normalizeUserAttributeMap"'
                 );
             }
         }
@@ -199,8 +198,6 @@ abstract class AbstractAuthClient implements AuthClientInterface
         $this->viewOptions = $viewOptions;
     }
 
-    abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
-
     /**
      * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
@@ -211,6 +208,8 @@ abstract class AbstractAuthClient implements AuthClientInterface
     {
         return [];
     }
+
+    abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface
     {

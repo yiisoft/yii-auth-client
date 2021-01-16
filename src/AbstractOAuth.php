@@ -147,7 +147,9 @@ abstract class AbstractOAuth extends AbstractAuthClient
 
     /**
      * Set signature method to be used.
+     *
      * @param array|AbstractSignature $signatureMethod signature method instance or its array configuration.
+     *
      * @throws InvalidArgumentException on wrong argument.
      */
     public function setSignatureMethod($signatureMethod): void
@@ -166,6 +168,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
      * Creates signature method instance from its configuration.
      *
      * @param array $signatureMethodConfig signature method configuration.
+     *
      * @return object|AbstractSignature signature method instance.
      */
     protected function createSignatureMethod(array $signatureMethodConfig): AbstractSignature
@@ -286,35 +289,6 @@ abstract class AbstractOAuth extends AbstractAuthClient
     }
 
     /**
-     * Creates token from its configuration.
-     *
-     * @param array $tokenConfig token configuration.
-     *
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
-     *
-     * @return OAuthToken|object
-     */
-    protected function createToken(array $tokenConfig = [])
-    {
-        if (!array_key_exists('__class', $tokenConfig)) {
-            $tokenConfig['__class'] = OAuthToken::class;
-        }
-        return $this->factory->create($tokenConfig);
-    }
-
-    /**
-     * Saves token as persistent state.
-     *
-     * @param OAuthToken|null $token auth token to be saved.
-     *
-     * @return $this the object itself.
-     */
-    protected function saveAccessToken($token): self
-    {
-        return $this->setState('token', $token);
-    }
-
-    /**
      * Restores access token.
      *
      * @return OAuthToken auth token.
@@ -350,6 +324,35 @@ abstract class AbstractOAuth extends AbstractAuthClient
         RequestInterface $request,
         OAuthToken $accessToken
     ): RequestInterface;
+
+    /**
+     * Creates token from its configuration.
+     *
+     * @param array $tokenConfig token configuration.
+     *
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return OAuthToken|object
+     */
+    protected function createToken(array $tokenConfig = [])
+    {
+        if (!array_key_exists('__class', $tokenConfig)) {
+            $tokenConfig['__class'] = OAuthToken::class;
+        }
+        return $this->factory->create($tokenConfig);
+    }
+
+    /**
+     * Saves token as persistent state.
+     *
+     * @param OAuthToken|null $token auth token to be saved.
+     *
+     * @return $this the object itself.
+     */
+    protected function saveAccessToken($token): self
+    {
+        return $this->setState('token', $token);
+    }
 
     /**
      * @return string

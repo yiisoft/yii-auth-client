@@ -63,8 +63,9 @@ class Collection
 
     /**
      * @param string $name client name
-     * @return AuthClientInterface auth client instance.
+     *
      * @throws InvalidArgumentException on non existing client request.
+     * @return AuthClientInterface auth client instance.
      */
     public function getClient(string $name): AuthClientInterface
     {
