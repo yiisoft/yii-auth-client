@@ -58,10 +58,6 @@ class RsaShaTest extends TestCase
      */
     public function testVerify(): void
     {
-        if (PHP_VERSION_ID >= 80000) {
-            $this->markTestSkipped('The test should be fixed in PHP 8.0.');
-        }
-
         $signatureMethod = new RsaSha(OPENSSL_ALGO_SHA1);
         $signatureMethod->setPrivateCertificateFile(dirname(__DIR__, 1) . '/Data/private.key');
         $signatureMethod->setPublicCertificateFile(dirname(__DIR__, 1) . '/Data/public.key');
