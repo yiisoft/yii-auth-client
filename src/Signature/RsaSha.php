@@ -101,7 +101,9 @@ final class RsaSha extends BaseMethod
         // Sign using the key
         openssl_sign($baseString, $signature, $privateKeyId, $this->algorithm);
         // Release the key resource
-        openssl_free_key($privateKeyId);
+        if (PHP_MAJOR_VERSION < 8) {
+            openssl_pkey_free($privateKeyId);
+        }
 
         return base64_encode($signature);
     }
@@ -149,7 +151,9 @@ final class RsaSha extends BaseMethod
         // Check the computed signature against the one passed in the query
         $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
         // Release the key resource
-        openssl_free_key($publicKeyId);
+        if (PHP_MAJOR_VERSION < 8) {
+            openssl_pkey_free($publicKeyId);
+        }
 
         return $verificationResult == 1;
     }
