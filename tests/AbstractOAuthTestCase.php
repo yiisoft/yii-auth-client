@@ -50,7 +50,7 @@ class AbstractOAuthTestCase extends TestCase
 
     // Tests :
 
-    public function testSetGet()
+    public function testSetGet(): void
     {
         $oauthClient = $this->createClient();
         $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
@@ -66,7 +66,7 @@ class AbstractOAuthTestCase extends TestCase
         );
     }
 
-    public function testSetupComponents()
+    public function testSetupComponents(): void
     {
         $oauthClient = $this->createClient();
 
@@ -83,7 +83,7 @@ class AbstractOAuthTestCase extends TestCase
         );
     }
 
-    public function testSetupAccessToken()
+    public function testSetupAccessToken(): void
     {
         $oauthClient = $this->createClient();
 
@@ -105,7 +105,7 @@ class AbstractOAuthTestCase extends TestCase
      * @depends testSetupComponents
      * @depends testSetupAccessToken
      */
-    public function testSetupComponentsByConfig()
+    public function testSetupComponentsByConfig(): void
     {
         $oauthClient = $this->createClient();
         $testToken = 'test_token';
@@ -135,7 +135,7 @@ class AbstractOAuthTestCase extends TestCase
     /**
      * @depends testSetupAccessToken
      */
-    public function testApiUrl()
+    public function testApiUrl(): void
     {
         $endpoint = 'http://api.base.url';
         $oauthClient = $this->createClient();

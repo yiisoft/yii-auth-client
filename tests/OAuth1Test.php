@@ -47,7 +47,7 @@ class OAuth1Test extends TestCase
 
     // Tests :
 
-    public function testSignRequest()
+    public function testSignRequest(): void
     {
         $oauthClient = $this->createClient();
 
@@ -97,7 +97,7 @@ class OAuth1Test extends TestCase
     /**
      * @depends testSignRequest
      */
-    public function testAuthorizationHeaderMethods()
+    public function testAuthorizationHeaderMethods(): void
     {
         $oauthClient = $this->createClient();
 
@@ -130,7 +130,7 @@ class OAuth1Test extends TestCase
      *
      * @return array test data.
      */
-    public function composeAuthorizationHeaderDataProvider()
+    public function composeAuthorizationHeaderDataProvider(): array
     {
         return [
             [
@@ -167,14 +167,14 @@ class OAuth1Test extends TestCase
      * @param array $params request params.
      * @param string $expectedAuthorizationHeader expected authorization header.
      */
-    public function testComposeAuthorizationHeader($realm, array $params, $expectedAuthorizationHeader)
+    public function testComposeAuthorizationHeader(string $realm, array $params, string $expectedAuthorizationHeader): void
     {
         $oauthClient = $this->createClient();
         $authorizationHeader = $oauthClient->composeAuthorizationHeader($params, $realm);
         $this->assertEquals($expectedAuthorizationHeader, $authorizationHeader);
     }
 
-    public function testBuildAuthUrl()
+    public function testBuildAuthUrl(): void
     {
         $oauthClient = $this->createClient();
         $authUrl = 'http://test.auth.url';

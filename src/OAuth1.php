@@ -154,7 +154,7 @@ abstract class OAuth1 extends AbstractOAuth
             $params = array_merge($this->generateCommonRequestParams(), $params);
         }
 
-        $url = $request->getUri()->__toString();
+        $url = (string)$request->getUri();
 
         $signatureMethod = $this->getSignatureMethod();
 

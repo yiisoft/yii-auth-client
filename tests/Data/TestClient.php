@@ -10,7 +10,7 @@ use Yiisoft\Yii\AuthClient\AbstractAuthClient;
 /**
  * Mock for the Auth client.
  */
-class TestClient extends AbstractAuthClient
+final class TestClient extends AbstractAuthClient
 {
     protected function initUserAttributes(): array
     {

@@ -7,7 +7,7 @@ namespace Yiisoft\Yii\AuthClient;
 /**
  * Token represents OAuth token.
  */
-class OAuthToken
+final class OAuthToken
 {
     /**
      * @var string key in {@see params} array, which stores token key.

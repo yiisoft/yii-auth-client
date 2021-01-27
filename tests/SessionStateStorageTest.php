@@ -10,7 +10,7 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class SessionStateStorageTest extends TestCase
 {
-    public function testSetState()
+    public function testSetState(): void
     {
         $storage = new SessionStateStorage(
             new Session()

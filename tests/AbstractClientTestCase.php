@@ -36,7 +36,7 @@ class AbstractClientTestCase extends TestCase
 
     // Tests :
 
-    public function testSetGet()
+    public function testSetGet(): void
     {
         $client = $this->createClient();
 
@@ -156,7 +156,7 @@ class AbstractClientTestCase extends TestCase
         $normalizeUserAttributeMap,
         $rawUserAttributes,
         $expectedNormalizedUserAttributes
-    ) {
+    ): void {
         $client = $this->createClient();
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
 
@@ -172,7 +172,7 @@ class AbstractClientTestCase extends TestCase
     /**
      * @depends testSetGet
      */
-    public function testCreateRequest()
+    public function testCreateRequest(): void
     {
         $request = $this->createClient()->createRequest('GET', 'http://example.com/');
         $this->assertInstanceOf(RequestInterface::class, $request);

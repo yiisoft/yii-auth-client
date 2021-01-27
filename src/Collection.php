@@ -28,7 +28,7 @@ use RuntimeException;
  * ]
  * ```
  */
-class Collection
+final class Collection
 {
     /**
      * @var AuthClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]

@@ -35,7 +35,7 @@ class OAuth2Test extends TestCase
 
     // Tests :
 
-    public function testBuildAuthUrl()
+    public function testBuildAuthUrl(): void
     {
         $oauthClient = $this->createClient();
         $authUrl = 'http://test.auth.url';
