@@ -7,7 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Signature;
 /**
  * BaseMethod is a base class for the OAuth signature methods.
  */
-abstract class AbstractSignature
+abstract class Signature
 {
     /**
      * Return the canonical name of the Signature Method.

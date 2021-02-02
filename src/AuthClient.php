@@ -16,11 +16,11 @@ use function is_array;
 use function is_callable;
 
 /**
- * AbstractAuthClient is a base Auth Client class.
+ * AuthClient is a base Auth Client class.
  *
  * @see AuthClientInterface
  */
-abstract class AbstractAuthClient implements AuthClientInterface
+abstract class AuthClient implements AuthClientInterface
 {
     /**
      * @var array authenticated user attributes.

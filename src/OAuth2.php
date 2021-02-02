@@ -12,7 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
-use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
+use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
@@ -35,7 +35,7 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
  * @see http://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
  */
-abstract class OAuth2 extends AbstractOAuth
+abstract class OAuth2 extends OAuth
 {
     /**
      * @var string OAuth client ID.
@@ -325,7 +325,7 @@ abstract class OAuth2 extends AbstractOAuth
      * @link https://tools.ietf.org/html/rfc7515
      *
      * @param string $username
-     * @param AbstractSignature|array $signature signature method or its array configuration.
+     * @param Signature|array $signature signature method or its array configuration.
      * If empty - {@see signatureMethod} will be used.
      * @param array $options additional options. Valid options are:
      *

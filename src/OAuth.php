@@ -14,7 +14,7 @@ use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
+use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
@@ -25,7 +25,7 @@ use function is_object;
  *
  * @link http://oauth.net/
  */
-abstract class AbstractOAuth extends AbstractAuthClient
+abstract class OAuth extends AuthClient
 {
     /**
      * @var string API base URL.
@@ -57,7 +57,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
      */
     protected $accessToken;
     /**
-     * @var array|AbstractSignature signature method instance or its array configuration.
+     * @var array|Signature signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
     private FactoryInterface $factory;
@@ -134,9 +134,9 @@ abstract class AbstractOAuth extends AbstractAuthClient
     }
 
     /**
-     * @return array|AbstractSignature signature method instance.
+     * @return array|Signature signature method instance.
      */
-    public function getSignatureMethod(): AbstractSignature
+    public function getSignatureMethod(): Signature
     {
         if (!is_object($this->signatureMethod)) {
             $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
@@ -148,7 +148,7 @@ abstract class AbstractOAuth extends AbstractAuthClient
     /**
      * Set signature method to be used.
      *
-     * @param array|AbstractSignature $signatureMethod signature method instance or its array configuration.
+     * @param array|Signature $signatureMethod signature method instance or its array configuration.
      *
      * @throws InvalidArgumentException on wrong argument.
      */
@@ -169,9 +169,9 @@ abstract class AbstractOAuth extends AbstractAuthClient
      *
      * @param array $signatureMethodConfig signature method configuration.
      *
-     * @return object|AbstractSignature signature method instance.
+     * @return object|Signature signature method instance.
      */
-    protected function createSignatureMethod(array $signatureMethodConfig): AbstractSignature
+    protected function createSignatureMethod(array $signatureMethodConfig): Signature
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
             $signatureMethodConfig['__class'] = Signature\HmacSha::class;

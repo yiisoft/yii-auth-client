@@ -13,7 +13,7 @@ use function function_exists;
  *
  * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
  */
-final class HmacSha extends AbstractSignature
+final class HmacSha extends Signature
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.

@@ -20,7 +20,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 /**
  * AuthAction performs authentication via different auth clients.
- * It supports {@see AbstractOpenId}, {@see OAuth1} and {@see OAuth2} client types.
+ * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
  *
  * Usage:
  *
@@ -190,7 +190,7 @@ final class AuthAction implements MiddlewareInterface
             return $this->authOAuth1($client, $request);
         }
 
-        if ($client instanceof AbstractOpenId) {
+        if ($client instanceof OpenId) {
             return $this->authOpenId($client, $request);
         }
 
@@ -299,7 +299,7 @@ final class AuthAction implements MiddlewareInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
             $viewFile = $this->aliases->get($viewFile);
         }
@@ -398,7 +398,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Performs OpenID auth flow.
      *
-     * @param AbstractOpenId $client auth client instance.
+     * @param OpenId $client auth client instance.
      * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
@@ -406,7 +406,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws ViewNotFoundException
      * @return ResponseInterface action response.
      */
-    private function authOpenId(AbstractOpenId $client, ServerRequestInterface $request): ResponseInterface
+    private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
         $bodyParams = $request->getParsedBody();

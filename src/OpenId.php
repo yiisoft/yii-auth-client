@@ -33,7 +33,7 @@ use Yiisoft\Strings\StringHelper;
  *
  * @link http://openid.net/
  */
-abstract class AbstractOpenId extends AbstractAuthClient
+abstract class OpenId extends AuthClient
 {
     /**
      * @var string authentication base URL, which should be used to compose actual authentication URL

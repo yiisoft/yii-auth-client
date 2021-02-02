@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
 use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Yii\AuthClient\AbstractAuthClient;
+use Yiisoft\Yii\AuthClient\AuthClient;
 
 /**
  * Mock for the Auth client.
  */
-final class TestClient extends AbstractAuthClient
+final class TestClient extends AuthClient
 {
     protected function initUserAttributes(): array
     {

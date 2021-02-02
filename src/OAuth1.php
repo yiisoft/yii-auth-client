@@ -30,7 +30,7 @@ use Yiisoft\Json\Json;
  * @see https://oauth.net/1/
  * @see https://tools.ietf.org/html/rfc5849
  */
-abstract class OAuth1 extends AbstractOAuth
+abstract class OAuth1 extends OAuth
 {
     private const PROTOCOL_VERSION = '1.0';
 

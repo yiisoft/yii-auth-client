@@ -15,7 +15,7 @@ use function is_int;
  *
  * > **Note:** This class requires PHP "OpenSSL" extension({@link http://php.net/manual/en/book.openssl.php}).
  */
-final class RsaSha extends AbstractSignature
+final class RsaSha extends Signature
 {
     /**
      * @var string path to the file, which holds private key certificate.

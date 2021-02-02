@@ -17,7 +17,7 @@ use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use Yiisoft\Yii\AuthClient\Signature\AbstractSignature;
+use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
@@ -53,8 +53,8 @@ class OAuth1Test extends TestCase
 
         $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
-        /* @var $oauthSignatureMethod AbstractSignature|MockObject */
-        $oauthSignatureMethod = $this->getMockBuilder(AbstractSignature::class)
+        /* @var $oauthSignatureMethod Signature|MockObject */
+        $oauthSignatureMethod = $this->getMockBuilder(Signature::class)
             ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
