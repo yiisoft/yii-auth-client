@@ -14,6 +14,7 @@ use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
+use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
@@ -174,7 +175,7 @@ abstract class OAuth extends AuthClient
     protected function createSignatureMethod(array $signatureMethodConfig): Signature
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = Signature\HmacSha::class;
+            $signatureMethodConfig['__class'] = HmacSha::class;
             $signatureMethodConfig['__construct()'] = ['sha1'];
         }
         return $this->factory->create($signatureMethodConfig);
