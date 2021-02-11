@@ -7,12 +7,10 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Stream;
-use Nyholm\Psr7\Uri;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
@@ -167,8 +165,11 @@ class OAuth1Test extends TestCase
      * @param array $params request params.
      * @param array $expectedAuthorizationHeader expected authorization header.
      */
-    public function testComposeAuthorizationHeader(string $realm, array $params, array $expectedAuthorizationHeader): void
-    {
+    public function testComposeAuthorizationHeader(
+        string $realm,
+        array $params,
+        array $expectedAuthorizationHeader
+    ): void {
         $oauthClient = $this->createClient();
         $authorizationHeader = $oauthClient->composeAuthorizationHeader($params, $realm);
         $this->assertEquals($expectedAuthorizationHeader, $authorizationHeader);
