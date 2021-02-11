@@ -22,6 +22,7 @@ class ClientTestCase extends TestCase
 
     /**
      * Creates test OAuth client instance.
+     *
      * @return AuthClient oauth client.
      */
     protected function createClient()

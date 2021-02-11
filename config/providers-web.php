@@ -11,5 +11,5 @@ if (!(bool)$params['yiisoft/yii-auth-client']['enabled']) {
 }
 
 return [
-    'yiisoft/yii-auth-client' => AuthClientServiceProvider::class
+    'yiisoft/yii-auth-client' => AuthClientServiceProvider::class,
 ];

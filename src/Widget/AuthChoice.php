@@ -145,6 +145,7 @@ final class AuthChoice extends Widget
      * Runs the widget.
      *
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
      * @return string rendered HTML.
      */
     public function run(): string

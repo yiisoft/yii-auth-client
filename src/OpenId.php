@@ -112,7 +112,6 @@ abstract class OpenId extends AuthClient
      *
      * @param ServerRequestInterface $incomingRequest
      * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
-     *
      * @param array $params
      *
      * @return string the authentication URL.

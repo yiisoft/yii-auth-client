@@ -11,6 +11,7 @@ class SignatureTest extends TestCase
 {
     /**
      * Creates test signature method instance.
+     *
      * @return Signature
      */
     protected function createTestSignatureMethod()

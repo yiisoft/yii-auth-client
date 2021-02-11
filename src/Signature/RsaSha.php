@@ -155,7 +155,7 @@ final class RsaSha extends Signature
             openssl_pkey_free($publicKeyId);
         }
 
-        return ($verificationResult === 1);
+        return $verificationResult === 1;
     }
 
     /**

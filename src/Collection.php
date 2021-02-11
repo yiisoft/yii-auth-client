@@ -31,7 +31,7 @@ use RuntimeException;
 final class Collection
 {
     /**
-     * @var AuthClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients;
 
@@ -65,6 +65,7 @@ final class Collection
      * @param string $name client name
      *
      * @throws InvalidArgumentException on non existing client request.
+     *
      * @return AuthClientInterface auth client instance.
      */
     public function getClient(string $name): AuthClientInterface

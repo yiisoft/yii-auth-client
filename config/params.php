@@ -8,6 +8,6 @@ return [
     ],
     'yiisoft/yii-auth-client' => [
         'enabled' => true,
-        'clients' => []
+        'clients' => [],
     ],
 ];

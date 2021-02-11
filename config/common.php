@@ -11,5 +11,5 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 return [
     Collection::class => new CollectionFactory($params['yiisoft/yii-auth-client']['clients']),
-    StateStorageInterface::class => SessionStateStorage::class
+    StateStorageInterface::class => SessionStateStorage::class,
 ];

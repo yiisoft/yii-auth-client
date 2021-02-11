@@ -325,7 +325,7 @@ abstract class OAuth2 extends OAuth
      * @link https://tools.ietf.org/html/rfc7515
      *
      * @param string $username
-     * @param Signature|array $signature signature method or its array configuration.
+     * @param array|Signature $signature signature method or its array configuration.
      * If empty - {@see signatureMethod} will be used.
      * @param array $options additional options. Valid options are:
      *
