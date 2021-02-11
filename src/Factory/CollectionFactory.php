@@ -16,7 +16,7 @@ class CollectionFactory
         $this->clients = $clients;
     }
 
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): Collection
     {
         $clients = [];
         foreach ($this->clients as $name => $client) {
@@ -25,6 +25,6 @@ class CollectionFactory
             }
             $clients[$name] = $container->get($client);
         }
-        return new Collection($clients, $container);
+        return new Collection($clients);
     }
 }

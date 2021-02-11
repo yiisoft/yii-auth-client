@@ -30,7 +30,7 @@ use Yiisoft\Json\Json;
  * @see https://oauth.net/1/
  * @see https://tools.ietf.org/html/rfc5849
  */
-abstract class OAuth1 extends BaseOAuth
+abstract class OAuth1 extends OAuth
 {
     private const PROTOCOL_VERSION = '1.0';
 
@@ -66,6 +66,30 @@ abstract class OAuth1 extends BaseOAuth
     protected ?array $authorizationHeaderMethods = ['POST'];
 
     /**
+     * Composes user authorization URL.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     * @param array $params additional request params.
+     *
+     * @return string authorize URL
+     */
+    public function buildAuthUrl(
+        ServerRequestInterface $incomingRequest,
+        array $params = []
+    ): string {
+        $requestToken = $this->fetchRequestToken($incomingRequest);
+        if (!is_object($requestToken)) {
+            $requestToken = $this->getState('requestToken');
+            if (!is_object($requestToken)) {
+                throw new InvalidArgumentException('Request token is required to build authorize URL!');
+            }
+        }
+        $params['oauth_token'] = $requestToken->getToken();
+
+        return RequestUtil::composeUrl($this->authUrl, $params);
+    }
+
+    /**
      * Fetches the OAuth request token.
      *
      * @param ServerRequestInterface $incomingRequest
@@ -75,7 +99,7 @@ abstract class OAuth1 extends BaseOAuth
      *
      * @return OAuthToken request token.
      */
-    public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = [])
+    public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = []): OAuthToken
     {
         $this->setAccessToken(null);
         $defaultParams = [
@@ -130,7 +154,7 @@ abstract class OAuth1 extends BaseOAuth
             $params = array_merge($this->generateCommonRequestParams(), $params);
         }
 
-        $url = $request->getUri()->__toString();
+        $url = (string)$request->getUri();
 
         $signatureMethod = $this->getSignatureMethod();
 
@@ -289,30 +313,6 @@ abstract class OAuth1 extends BaseOAuth
     }
 
     /**
-     * Composes user authorization URL.
-     *
-     * @param ServerRequestInterface $incomingRequest
-     * @param OAuthToken $requestToken OAuth request token.
-     * @param array $params additional request params.
-     *
-     * @return string authorize URL
-     */
-    public function buildAuthUrl(
-        ?OAuthToken $requestToken = null,
-        array $params = []
-    ) {
-        if (!is_object($requestToken)) {
-            $requestToken = $this->getState('requestToken');
-            if (!is_object($requestToken)) {
-                throw new InvalidArgumentException('Request token is required to build authorize URL!');
-            }
-        }
-        $params['oauth_token'] = $requestToken->getToken();
-
-        return RequestUtil::composeUrl($this->authUrl, $params);
-    }
-
-    /**
      * Fetches OAuth access token.
      *
      * @param ServerRequestInterface $incomingRequest
@@ -329,7 +329,7 @@ abstract class OAuth1 extends BaseOAuth
         OAuthToken $requestToken = null,
         string $oauthVerifier = null,
         array $params = []
-    ) {
+    ): OAuthToken {
         $queryParams = $incomingRequest->getQueryParams();
         $bodyParams = $incomingRequest->getParsedBody();
         if ($oauthToken === null) {
@@ -417,7 +417,7 @@ abstract class OAuth1 extends BaseOAuth
         return $this->consumerSecret;
     }
 
-    public function setConsumerSecret(string $consumerSecret)
+    public function setConsumerSecret(string $consumerSecret): void
     {
         $this->consumerSecret = $consumerSecret;
     }
@@ -467,7 +467,7 @@ abstract class OAuth1 extends BaseOAuth
         return $this->authorizationHeaderMethods;
     }
 
-    public function setAuthorizationHeaderMethods(?array $authorizationHeaderMethods = null)
+    public function setAuthorizationHeaderMethods(?array $authorizationHeaderMethods = null): void
     {
         $this->authorizationHeaderMethods = $authorizationHeaderMethods;
     }
@@ -482,6 +482,6 @@ abstract class OAuth1 extends BaseOAuth
         $params = $request->getQueryParams();
         unset($params['oauth_token']);
 
-        return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
+        return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

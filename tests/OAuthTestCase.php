@@ -10,13 +10,13 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
-use Yiisoft\Yii\AuthClient\BaseOAuth;
+use Yiisoft\Yii\AuthClient\OAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\PlainText;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
-class BaseOAuthTest extends TestCase
+class OAuthTestCase extends TestCase
 {
     private function getRequestFactory(): RequestFactoryInterface
     {
@@ -25,14 +25,13 @@ class BaseOAuthTest extends TestCase
 
     /**
      * Creates test OAuth client instance.
-     *
-     * @return BaseOAuth oauth client.
+     * @return OAuth oauth client.
      */
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        return $this->getMockBuilder(BaseOAuth::class)
+        return $this->getMockBuilder(OAuth::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
@@ -51,7 +50,7 @@ class BaseOAuthTest extends TestCase
 
     // Tests :
 
-    public function testSetGet()
+    public function testSetGet(): void
     {
         $oauthClient = $this->createClient();
         $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
@@ -67,7 +66,7 @@ class BaseOAuthTest extends TestCase
         );
     }
 
-    public function testSetupComponents()
+    public function testSetupComponents(): void
     {
         $oauthClient = $this->createClient();
 
@@ -84,7 +83,7 @@ class BaseOAuthTest extends TestCase
         );
     }
 
-    public function testSetupAccessToken()
+    public function testSetupAccessToken(): void
     {
         $oauthClient = $this->createClient();
 
@@ -106,7 +105,7 @@ class BaseOAuthTest extends TestCase
      * @depends testSetupComponents
      * @depends testSetupAccessToken
      */
-    public function testSetupComponentsByConfig()
+    public function testSetupComponentsByConfig(): void
     {
         $oauthClient = $this->createClient();
         $testToken = 'test_token';
@@ -136,7 +135,7 @@ class BaseOAuthTest extends TestCase
     /**
      * @depends testSetupAccessToken
      */
-    public function testApiUrl()
+    public function testApiUrl(): void
     {
         $endpoint = 'http://api.base.url';
         $oauthClient = $this->createClient();

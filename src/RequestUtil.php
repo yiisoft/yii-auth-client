@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use function is_array;
-
 use Psr\Http\Message\RequestInterface;
+
+use function is_array;
 
 final class RequestUtil
 {

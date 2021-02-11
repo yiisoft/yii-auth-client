@@ -9,11 +9,11 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
-use Yiisoft\Yii\AuthClient\BaseClient;
+use Yiisoft\Yii\AuthClient\AuthClient;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
-class BaseClientTest extends TestCase
+class ClientTestCase extends TestCase
 {
     private function getRequestFactory(): RequestFactoryInterface
     {
@@ -22,22 +22,21 @@ class BaseClientTest extends TestCase
 
     /**
      * Creates test OAuth client instance.
-     *
-     * @return BaseClient oauth client.
+     * @return AuthClient oauth client.
      */
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
-        return $this->getMockBuilder(BaseClient::class)
+        return $this->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->setMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
             ->getMock();
     }
 
     // Tests :
 
-    public function testSetGet()
+    public function testSetGet(): void
     {
         $client = $this->createClient();
 
@@ -157,7 +156,7 @@ class BaseClientTest extends TestCase
         $normalizeUserAttributeMap,
         $rawUserAttributes,
         $expectedNormalizedUserAttributes
-    ) {
+    ): void {
         $client = $this->createClient();
         $client->setNormalizeUserAttributeMap($normalizeUserAttributeMap);
 
@@ -173,7 +172,7 @@ class BaseClientTest extends TestCase
     /**
      * @depends testSetGet
      */
-    public function testCreateRequest()
+    public function testCreateRequest(): void
     {
         $request = $this->createClient()->createRequest('GET', 'http://example.com/');
         $this->assertInstanceOf(RequestInterface::class, $request);

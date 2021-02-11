@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use function is_array;
-use function is_callable;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function is_array;
+use function is_callable;
+
 /**
- * BaseClient is a base Auth Client class.
+ * AuthClient is a base Auth Client class.
  *
- * @see ClientInterface
+ * @see AuthClientInterface
  */
-abstract class BaseClient implements ClientInterface
+abstract class AuthClient implements AuthClientInterface
 {
     /**
      * @var array authenticated user attributes.
@@ -131,7 +132,7 @@ abstract class BaseClient implements ClientInterface
                 throw new InvalidConfigException(
                     'Invalid actual name "' . gettype($actualName) . '" specified at "' . static::class
 
-                     . '::normalizeUserAttributeMap"'
+                    . '::normalizeUserAttributeMap"'
                 );
             }
         }
@@ -208,6 +209,8 @@ abstract class BaseClient implements ClientInterface
         return [];
     }
 
+    abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
+
     public function createRequest(string $method, string $uri): RequestInterface
     {
         return $this->requestFactory->createRequest($method, $uri);
@@ -256,9 +259,9 @@ abstract class BaseClient implements ClientInterface
      *
      * @return bool success.
      */
-    protected function removeState(string $key): bool
+    protected function removeState(string $key): void
     {
-        return $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
+        $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }
 
     protected function sendRequest(RequestInterface $request): ResponseInterface

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
-use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 /**
@@ -29,22 +28,20 @@ use RuntimeException;
  * ]
  * ```
  */
-class Collection
+final class Collection
 {
     /**
-     * @var array|ClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
+     * @var AuthClientInterface[]|array list of Auth clients with their configuration in format: 'clientName' => [...]
      */
     private array $clients;
-    private ContainerInterface $container;
 
-    public function __construct(array $clients, ContainerInterface $container)
+    public function __construct(array $clients)
     {
         $this->clients = $clients;
-        $this->container = $container;
     }
 
     /**
-     * @return ClientInterface[] list of auth clients.
+     * @return AuthClientInterface[] list of auth clients.
      */
     public function getClients(): array
     {
@@ -68,24 +65,16 @@ class Collection
      * @param string $name client name
      *
      * @throws InvalidArgumentException on non existing client request.
-     *
-     * @return ClientInterface auth client instance.
+     * @return AuthClientInterface auth client instance.
      */
-    public function getClient(string $name): ClientInterface
+    public function getClient(string $name): AuthClientInterface
     {
         if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
         $client = $this->clients[$name];
-        if (is_string($client)) {
-            $client = $this->container->get($client);
-        } elseif ($client instanceof ClientInterface) {
-            return $client;
-        } elseif (is_object($client) && method_exists($client, '__invoke')) {
-            $client = $client($this->container);
-        }
-        if (!($client instanceof ClientInterface)) {
+        if (!($client instanceof AuthClientInterface)) {
             throw new RuntimeException(
                 'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
             );

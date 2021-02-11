@@ -6,8 +6,6 @@ namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
 use InvalidArgumentException;
-use function is_array;
-use function is_object;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -16,16 +14,19 @@ use Psr\Http\Message\UriInterface;
 use Yiisoft\Factory\FactoryInterface;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-
-use Yiisoft\Yii\AuthClient\Signature\BaseMethod;
+use Yiisoft\Yii\AuthClient\Signature\HmacSha;
+use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+
+use function is_array;
+use function is_object;
 
 /**
  * BaseOAuth is a base class for the OAuth clients.
  *
  * @link http://oauth.net/
  */
-abstract class BaseOAuth extends BaseClient
+abstract class OAuth extends AuthClient
 {
     /**
      * @var string API base URL.
@@ -57,7 +58,7 @@ abstract class BaseOAuth extends BaseClient
      */
     protected $accessToken;
     /**
-     * @var array|BaseMethod signature method instance or its array configuration.
+     * @var array|Signature signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
     private FactoryInterface $factory;
@@ -130,13 +131,13 @@ abstract class BaseOAuth extends BaseClient
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
-        return $request->getUri()->__toString();
+        return (string)$request->getUri();
     }
 
     /**
-     * @return array|BaseMethod signature method instance.
+     * @return array|Signature signature method instance.
      */
-    public function getSignatureMethod(): BaseMethod
+    public function getSignatureMethod(): Signature
     {
         if (!is_object($this->signatureMethod)) {
             $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
@@ -148,7 +149,7 @@ abstract class BaseOAuth extends BaseClient
     /**
      * Set signature method to be used.
      *
-     * @param array|BaseMethod $signatureMethod signature method instance or its array configuration.
+     * @param array|Signature $signatureMethod signature method instance or its array configuration.
      *
      * @throws InvalidArgumentException on wrong argument.
      */
@@ -169,12 +170,12 @@ abstract class BaseOAuth extends BaseClient
      *
      * @param array $signatureMethodConfig signature method configuration.
      *
-     * @return BaseMethod|object signature method instance.
+     * @return object|Signature signature method instance.
      */
-    protected function createSignatureMethod(array $signatureMethodConfig): BaseMethod
+    protected function createSignatureMethod(array $signatureMethodConfig): Signature
     {
         if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = Signature\HmacSha::class;
+            $signatureMethodConfig['__class'] = HmacSha::class;
             $signatureMethodConfig['__construct()'] = ['sha1'];
         }
         return $this->factory->create($signatureMethodConfig);
@@ -289,35 +290,6 @@ abstract class BaseOAuth extends BaseClient
     }
 
     /**
-     * Creates token from its configuration.
-     *
-     * @param array $tokenConfig token configuration.
-     *
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
-     *
-     * @return OAuthToken|object
-     */
-    protected function createToken(array $tokenConfig = [])
-    {
-        if (!array_key_exists('__class', $tokenConfig)) {
-            $tokenConfig['__class'] = OAuthToken::class;
-        }
-        return $this->factory->create($tokenConfig);
-    }
-
-    /**
-     * Saves token as persistent state.
-     *
-     * @param OAuthToken|null $token auth token to be saved.
-     *
-     * @return $this the object itself.
-     */
-    protected function saveAccessToken($token): self
-    {
-        return $this->setState('token', $token);
-    }
-
-    /**
      * Restores access token.
      *
      * @return OAuthToken auth token.
@@ -353,6 +325,35 @@ abstract class BaseOAuth extends BaseClient
         RequestInterface $request,
         OAuthToken $accessToken
     ): RequestInterface;
+
+    /**
+     * Creates token from its configuration.
+     *
+     * @param array $tokenConfig token configuration.
+     *
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     *
+     * @return OAuthToken|object
+     */
+    protected function createToken(array $tokenConfig = [])
+    {
+        if (!array_key_exists('__class', $tokenConfig)) {
+            $tokenConfig['__class'] = OAuthToken::class;
+        }
+        return $this->factory->create($tokenConfig);
+    }
+
+    /**
+     * Saves token as persistent state.
+     *
+     * @param OAuthToken|null $token auth token to be saved.
+     *
+     * @return $this the object itself.
+     */
+    protected function saveAccessToken($token): self
+    {
+        return $this->setState('token', $token);
+    }
 
     /**
      * @return string

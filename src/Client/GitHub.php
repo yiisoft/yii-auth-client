@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use function in_array;
-
 use Yiisoft\Yii\AuthClient\OAuth2;
+
+use function in_array;
 
 /**
  * GitHub allows authentication via GitHub OAuth.
@@ -36,9 +36,9 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 final class GitHub extends OAuth2
 {
-    private string $authUrl = 'https://github.com/login/oauth/authorize';
-    private string $tokenUrl = 'https://github.com/login/oauth/access_token';
-    private string $endpoint = 'https://api.github.com';
+    protected string $authUrl = 'https://github.com/login/oauth/authorize';
+    protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
+    protected string $endpoint = 'https://api.github.com';
 
     /**
      * @return string service name.

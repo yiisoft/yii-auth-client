@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Yiisoft\Yii\AuthClient;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Exception;
 use HttpException;
-use function in_array;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Core\AlgorithmManager;
@@ -28,9 +27,12 @@ use Yiisoft\Json\Json;
 use Yiisoft\Security\Random;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+
+use function in_array;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -243,9 +245,10 @@ final class OpenIdConnect extends OAuth2
     {
         if ($this->validateAuthNonce === null) {
             $this->validateAuthNonce = $this->validateJws && in_array(
-                'nonce',
-                $this->getConfigParam('claims_supported')
-            );
+                    'nonce',
+                    $this->getConfigParam('claims_supported'),
+                    true
+                );
         }
         return $this->validateAuthNonce;
     }

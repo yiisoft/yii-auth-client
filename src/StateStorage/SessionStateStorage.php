@@ -30,26 +30,18 @@ class SessionStateStorage implements StateStorageInterface
         $this->session = $session;
     }
 
-    public function set($key, $value)
+    public function set(string $key, $value): void
     {
-        if ($this->session !== null) {
-            $this->session->set($key, $value);
-        }
+        $this->session->set($key, $value);
     }
 
-    public function get($key)
+    public function get(string $key)
     {
-        if ($this->session !== null) {
-            return $this->session->get($key);
-        }
-        return null;
+        return $this->session->get($key);
     }
 
-    public function remove($key): bool
+    public function remove(string $key): void
     {
-        if ($this->session !== null) {
-            $this->session->remove($key);
-        }
-        return true;
+        $this->session->remove($key);
     }
 }

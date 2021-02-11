@@ -9,7 +9,7 @@ use Yiisoft\Session\SessionInterface;
 /**
  * Web session class mock.
  */
-class Session implements SessionInterface
+final class Session implements SessionInterface
 {
     private array $data = [];
 

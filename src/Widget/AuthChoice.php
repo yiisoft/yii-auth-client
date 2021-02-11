@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Widget;
 
+use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
 use Yiisoft\Json\Json;
 use Yiisoft\Router\UrlGeneratorInterface;
+use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
-use Yiisoft\Yii\AuthClient\ClientInterface;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
@@ -23,9 +25,7 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * Example:
  *
  * ```php
- * <?= Yiisoft\Yii\AuthClient\Widgets\AuthChoice::widget([
- *     'baseAuthUrl' => ['site/auth']
- * ]); ?>
+ * <?= AuthChoice::widget()->authRoute('site/auth'); ?>
  * ```
  *
  * You can customize the widget appearance by using {@see begin()} and {@see end()} syntax
@@ -36,18 +36,18 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * <?php
  * use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
  * ?>
- * <?php $authAuthChoice = AuthChoice::begin([
+ * <?php $authChoice = AuthChoice::begin([
  *     'baseAuthUrl' => ['site/auth']
  * ]); ?>
  * <ul>
- * <?php foreach ($authAuthChoice->getClients() as $client): ?>
- *     <li><?= $authAuthChoice->clientLink($client) ?></li>
+ * <?php foreach ($authChoice->getClients() as $client): ?>
+ *     <li><?= $authChoice->clientLink($client) ?></li>
  * <?php endforeach; ?>
  * </ul>
  * <?php AuthChoice::end(); ?>
  * ```
  *
- * This widget supports following keys for {@see ClientInterface::getViewOptions()} result:
+ * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
  *
  *  - popupWidth: int, width of the popup window in pixels.
  *  - popupHeight: int, height of the popup window in pixels.
@@ -58,10 +58,6 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  */
 final class AuthChoice extends Widget
 {
-    /**
-     * @var Collection auth clients collection.
-     */
-    private Collection $clientCollection;
     /**
      * @var string name of the GET param , which should be used to passed auth client id to URL
      * defined by {@see baseAuthUrl}.
@@ -88,19 +84,28 @@ final class AuthChoice extends Widget
     private bool $autoRender = true;
 
     /**
-     * @var array configuration for the external clients base authentication URL.
+     * @var string route name for the external clients authentication URL.
      */
-    private array $baseAuthUrl;
+    private string $authRoute;
     /**
-     * @var ClientInterface[] auth providers list.
+     * @var AuthClientInterface[] auth providers list.
      */
     private array $clients;
     private UrlGeneratorInterface $urlGenerator;
+    private WebView $webView;
+    private AssetManager $assetManager;
 
-    public function __construct(Collection $clientCollection, UrlGeneratorInterface $urlGenerator)
-    {
-        $this->clientCollection = $clientCollection;
+    public function __construct(
+        Collection $clientCollection,
+        UrlGeneratorInterface $urlGenerator,
+        WebView $webView,
+        AssetManager $assetManager
+    ) {
+        $this->clients = $clientCollection->getClients();
         $this->urlGenerator = $urlGenerator;
+        $this->webView = $webView;
+        $this->assetManager = $assetManager;
+        $this->init();
     }
 
     /**
@@ -108,25 +113,38 @@ final class AuthChoice extends Widget
      */
     public function init(): void
     {
-        $view = Yii::getApp()->getView();
         if ($this->popupMode) {
-            AuthChoiceAsset::register($view);
+            $this->assetManager->register(
+                [
+                    AuthChoiceAsset::class,
+                ]
+            );
             if (empty($this->clientOptions)) {
                 $options = '';
             } else {
                 $options = Json::htmlEncode($this->clientOptions);
             }
-            $view->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
+            $this->webView->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
         } else {
-            AuthChoiceStyleAsset::register($view);
+            $this->assetManager->register(
+                [
+                    AuthChoiceStyleAsset::class,
+                ]
+            );
         }
         $this->options['id'] = $this->getId();
         echo Html::beginTag('div', $this->options);
     }
 
+    public function getId(): string
+    {
+        return 'yii-auth-client';
+    }
+
     /**
      * Runs the widget.
      *
+     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
      * @return string rendered HTML.
      */
     public function run(): string
@@ -157,19 +175,15 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @return ClientInterface[] auth providers
+     * @return AuthClientInterface[] auth providers
      */
     public function getClients(): array
     {
-        if ($this->clients === null) {
-            $this->clients = $this->defaultClients();
-        }
-
         return $this->clients;
     }
 
     /**
-     * @param ClientInterface[] $clients auth providers
+     * @param AuthClientInterface[] $clients auth providers
      */
     public function setClients(array $clients): void
     {
@@ -177,19 +191,9 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Returns default auth clients list.
-     *
-     * @return ClientInterface[] auth clients list.
-     */
-    protected function defaultClients(): array
-    {
-        return $this->clientCollection->getClients();
-    }
-
-    /**
      * Outputs client auth link.
      *
-     * @param ClientInterface $client external auth client instance.
+     * @param AuthClientInterface $client external auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
      *
@@ -198,7 +202,7 @@ final class AuthChoice extends Widget
      *
      * @return string generated HTML.
      */
-    public function clientLink($client, $text = null, array $htmlOptions = []): Widget
+    public function clientLink(AuthClientInterface $client, string $text = null, array $htmlOptions = []): string
     {
         $viewOptions = $client->getViewOptions();
 
@@ -237,57 +241,33 @@ final class AuthChoice extends Widget
         unset($widgetConfig['__class']);
         $widgetConfig['client'] = $client;
         $widgetConfig['authChoice'] = $this;
-        return $widgetClass::widget($widgetConfig);
+        return $widgetClass::widget($widgetConfig)->render();
     }
 
     /**
      * Composes client auth URL.
      *
-     * @param ClientInterface $client external auth client instance.
+     * @param AuthClientInterface $client external auth client instance.
      *
      * @return string auth URL.
      */
     public function createClientUrl($client): string
     {
         $this->autoRender = false;
-        $url = $this->getBaseAuthUrl();
-        $url[$this->clientIdGetParamName] = $client->getName();
+        $params = [];
+        $params[$this->clientIdGetParamName] = $client->getName();
 
-        return Url::to($url);
+        return $this->urlGenerator->generate($this->authRoute, $params);
     }
 
     /**
-     * @return array base auth URL configuration.
-     */
-    public function getBaseAuthUrl(): array
-    {
-        if (!is_array($this->baseAuthUrl)) {
-            $this->baseAuthUrl = $this->defaultBaseAuthUrl();
-        }
-
-        return $this->baseAuthUrl;
-    }
-
-    /**
-     * @param array $baseAuthUrl base auth URL configuration.
-     */
-    public function setBaseAuthUrl(array $baseAuthUrl): void
-    {
-        $this->baseAuthUrl = $baseAuthUrl;
-    }
-
-    /**
-     * Composes default base auth URL configuration.
+     * @param string $authRoute
      *
-     * @return array base auth URL configuration.
+     * @return self
      */
-    protected function defaultBaseAuthUrl(): array
+    public function authRoute(string $authRoute): self
     {
-        $baseAuthUrl = [
-            Yii::getApp()->controller->getRoute(),
-        ];
-        $params = Yii::getApp()->getRequest()->getQueryParams();
-        unset($params[$this->clientIdGetParamName]);
-        return array_merge($baseAuthUrl, $params);
+        $this->authRoute = $authRoute;
+        return $this;
     }
 }

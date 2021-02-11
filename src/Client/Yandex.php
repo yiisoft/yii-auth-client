@@ -53,6 +53,6 @@ final class Yandex extends OAuth2
 
     protected function initUserAttributes(): array
     {
-        return $this->api('info', 'GET');
+        return $this->api('info');
     }
 }

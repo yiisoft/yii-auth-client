@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use function function_exists;
-use function is_int;
-
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
+
+use function function_exists;
+use function is_int;
 
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
  *
  * > **Note:** This class requires PHP "OpenSSL" extension({@link http://php.net/manual/en/book.openssl.php}).
  */
-final class RsaSha extends BaseMethod
+final class RsaSha extends Signature
 {
     /**
      * @var string path to the file, which holds private key certificate.
@@ -33,12 +33,12 @@ final class RsaSha extends BaseMethod
     private $algorithm;
 
     /**
-     * @var string OpenSSL private key certificate content.
+     * @var string|null OpenSSL private key certificate content.
      * This value can be fetched from file specified by {@see privateCertificateFile}.
      */
     private ?string $privateCertificate = null;
     /**
-     * @var string OpenSSL public key certificate content.
+     * @var string|null OpenSSL public key certificate content.
      * This value can be fetched from file specified by {@see publicCertificateFile}.
      */
     private ?string $publicCertificate = null;
@@ -155,7 +155,7 @@ final class RsaSha extends BaseMethod
             openssl_pkey_free($publicKeyId);
         }
 
-        return $verificationResult == 1;
+        return ($verificationResult === 1);
     }
 
     /**
@@ -187,7 +187,7 @@ final class RsaSha extends BaseMethod
                     "Public certificate file '{$this->publicCertificateFile}' does not exist!"
                 );
             }
-            $fp = fopen($this->publicCertificateFile, 'r');
+            $fp = fopen($this->publicCertificateFile, 'rb');
 
             while (!feof($fp)) {
                 $content .= fgets($fp);

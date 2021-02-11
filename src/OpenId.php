@@ -33,7 +33,7 @@ use Yiisoft\Strings\StringHelper;
  *
  * @link http://openid.net/
  */
-class OpenId extends BaseClient
+abstract class OpenId extends AuthClient
 {
     /**
      * @var string authentication base URL, which should be used to compose actual authentication URL
@@ -108,11 +108,32 @@ class OpenId extends BaseClient
     private string $trustRoot;
 
     /**
-     * @param string $claimedId claimed identifier (identity).
+     * Returns authentication URL. Usually, you want to redirect your user to it.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
+     *
+     * @param array $params
+     *
+     * @return string the authentication URL.
      */
-    public function setClaimedId(string $claimedId): void
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
     {
-        $this->claimedId = $claimedId;
+        $authUrl = $this->authUrl;
+        $claimedId = $this->getClaimedId();
+        if (empty($claimedId)) {
+            $this->setClaimedId($authUrl);
+        }
+        $serverInfo = $this->discover($authUrl);
+        if ($serverInfo['version'] === 2) {
+            if (isset($params['identifierSelect'])) {
+                $serverInfo['identifier_select'] = $params['identifierSelect'];
+            }
+
+            return $this->buildAuthUrlV2($incomingRequest, $serverInfo);
+        }
+
+        return $this->buildAuthUrlV1($incomingRequest, $serverInfo);
     }
 
     /**
@@ -132,124 +153,11 @@ class OpenId extends BaseClient
     }
 
     /**
-     * @param string $returnUrl authentication return URL.
+     * @param string $claimedId claimed identifier (identity).
      */
-    public function setReturnUrl(string $returnUrl): void
+    public function setClaimedId(string $claimedId): void
     {
-        $this->returnUrl = $returnUrl;
-    }
-
-    /**
-     * @return string authentication return URL.
-     */
-    public function getReturnUrl(ServerRequestInterface $incomingRequest): string
-    {
-        if ($this->returnUrl === null) {
-            $this->returnUrl = $this->defaultReturnUrl($incomingRequest);
-        }
-
-        return $this->returnUrl;
-    }
-
-    /**
-     * @param string $value client trust root (realm).
-     */
-    public function setTrustRoot(string $value): void
-    {
-        $this->trustRoot = $value;
-    }
-
-    /**
-     * @return string client trust root (realm).
-     */
-    public function getTrustRoot(): string
-    {
-        return $this->trustRoot;
-    }
-
-    /**
-     * Generates default {@see returnUrl} value.
-     *
-     * @param ServerRequestInterface $incomingRequest
-     *
-     * @return string default authentication return URL.
-     */
-    protected function defaultReturnUrl(ServerRequestInterface $incomingRequest): string
-    {
-        $params = $incomingRequest->getQueryParams();
-        foreach ($params as $name => $value) {
-            if (strncmp('openid', $name, 6) === 0) {
-                unset($params[$name]);
-            }
-        }
-        return $incomingRequest
-            ->getUri()
-            ->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))
-            ->__toString();
-    }
-
-    /**
-     * Combines given URLs into single one.
-     *
-     * @param string $baseUrl base URL.
-     * @param array|string $additionalUrl additional URL string or information array.
-     *
-     * @return string composed URL.
-     */
-    protected function buildUrl(string $baseUrl, $additionalUrl): string
-    {
-        $baseUrl = parse_url($baseUrl);
-        if (!is_array($additionalUrl)) {
-            $additionalUrl = parse_url($additionalUrl);
-        }
-
-        if (isset($baseUrl['query'], $additionalUrl['query'])) {
-            $additionalUrl['query'] = $baseUrl['query'] . '&' . $additionalUrl['query'];
-        }
-
-        $urlInfo = array_merge($baseUrl, $additionalUrl);
-        return $urlInfo['scheme'] . '://'
-            . (empty($urlInfo['username']) ? ''
-                : (empty($urlInfo['password']) ? "{$urlInfo['username']}@"
-                    : "{$urlInfo['username']}:{$urlInfo['password']}@"))
-            . $urlInfo['host']
-            . (empty($urlInfo['port']) ? '' : ":{$urlInfo['port']}")
-            . (empty($urlInfo['path']) ? '' : $urlInfo['path'])
-            . (empty($urlInfo['query']) ? '' : "?{$urlInfo['query']}")
-            . (empty($urlInfo['fragment']) ? '' : "#{$urlInfo['fragment']}");
-    }
-
-    /**
-     * Scans content for <meta>/<link> tags and extract information from them.
-     *
-     * @param string $content HTML content to be be parsed.
-     * @param string $tag name of the source tag.
-     * @param string $matchAttributeName name of the source tag attribute, which should contain $matchAttributeValue
-     * @param string $matchAttributeValue required value of $matchAttributeName
-     * @param string $valueAttributeName name of the source tag attribute, which should contain searched value.
-     *
-     * @return bool|string searched value, "false" on failure.
-     */
-    protected function extractHtmlTagValue(
-        string $content,
-        string $tag,
-        string $matchAttributeName,
-        string $matchAttributeValue,
-        string $valueAttributeName
-    ) {
-        preg_match_all(
-            "#<{$tag}[^>]*$matchAttributeName=['\"].*?$matchAttributeValue.*?['\"][^>]*$valueAttributeName=['\"](.+?)['\"][^>]*/?>#i",
-            $content,
-            $matches1
-        );
-        preg_match_all(
-            "#<{$tag}[^>]*$valueAttributeName=['\"](.+?)['\"][^>]*$matchAttributeName=['\"].*?$matchAttributeValue.*?['\"][^>]*/?>#i",
-            $content,
-            $matches2
-        );
-        $result = array_merge($matches1[1], $matches2[1]);
-
-        return empty($result) ? false : $result[0];
+        $this->claimedId = $claimedId;
     }
 
     /**
@@ -434,40 +342,162 @@ class OpenId extends BaseClient
     }
 
     /**
-     * Composes SREG request parameters.
+     * Combines given URLs into single one.
      *
-     * @return array SREG parameters.
+     * @param string $baseUrl base URL.
+     * @param array|string $additionalUrl additional URL string or information array.
+     *
+     * @return string composed URL.
      */
-    protected function buildSregParams(): array
+    protected function buildUrl(string $baseUrl, $additionalUrl): string
     {
-        $params = [];
-        /* We always use SREG 1.1, even if the server is advertising only support for 1.0.
-        That's because it's fully backwards compatible with 1.0, and some providers
-        advertise 1.0 even if they accept only 1.1. One such provider is myopenid.com */
-        $params['openid.ns.sreg'] = 'http://openid.net/extensions/sreg/1.1';
-        if (!empty($this->requiredAttributes)) {
-            $params['openid.sreg.required'] = [];
-            foreach ($this->requiredAttributes as $required) {
-                if (!isset($this->axToSregMap[$required])) {
-                    continue;
-                }
-                $params['openid.sreg.required'][] = $this->axToSregMap[$required];
-            }
-            $params['openid.sreg.required'] = implode(',', $params['openid.sreg.required']);
+        $baseUrl = parse_url($baseUrl);
+        if (!is_array($additionalUrl)) {
+            $additionalUrl = parse_url($additionalUrl);
         }
 
-        if (!empty($this->optionalAttributes)) {
-            $params['openid.sreg.optional'] = [];
-            foreach ($this->optionalAttributes as $optional) {
-                if (!isset($this->axToSregMap[$optional])) {
-                    continue;
-                }
-                $params['openid.sreg.optional'][] = $this->axToSregMap[$optional];
-            }
-            $params['openid.sreg.optional'] = implode(',', $params['openid.sreg.optional']);
+        if (isset($baseUrl['query'], $additionalUrl['query'])) {
+            $additionalUrl['query'] = $baseUrl['query'] . '&' . $additionalUrl['query'];
         }
 
-        return $params;
+        $urlInfo = array_merge($baseUrl, $additionalUrl);
+        return $urlInfo['scheme'] . '://'
+            . (empty($urlInfo['username']) ? ''
+                : (empty($urlInfo['password']) ? "{$urlInfo['username']}@"
+                    : "{$urlInfo['username']}:{$urlInfo['password']}@"))
+            . $urlInfo['host']
+            . (empty($urlInfo['port']) ? '' : ":{$urlInfo['port']}")
+            . (empty($urlInfo['path']) ? '' : $urlInfo['path'])
+            . (empty($urlInfo['query']) ? '' : "?{$urlInfo['query']}")
+            . (empty($urlInfo['fragment']) ? '' : "#{$urlInfo['fragment']}");
+    }
+
+    /**
+     * Scans content for <meta>/<link> tags and extract information from them.
+     *
+     * @param string $content HTML content to be be parsed.
+     * @param string $tag name of the source tag.
+     * @param string $matchAttributeName name of the source tag attribute, which should contain $matchAttributeValue
+     * @param string $matchAttributeValue required value of $matchAttributeName
+     * @param string $valueAttributeName name of the source tag attribute, which should contain searched value.
+     *
+     * @return bool|string searched value, "false" on failure.
+     */
+    protected function extractHtmlTagValue(
+        string $content,
+        string $tag,
+        string $matchAttributeName,
+        string $matchAttributeValue,
+        string $valueAttributeName
+    ) {
+        preg_match_all(
+            "#<{$tag}[^>]*$matchAttributeName=['\"].*?$matchAttributeValue.*?['\"][^>]*$valueAttributeName=['\"](.+?)['\"][^>]*/?>#i",
+            $content,
+            $matches1
+        );
+        preg_match_all(
+            "#<{$tag}[^>]*$valueAttributeName=['\"](.+?)['\"][^>]*$matchAttributeName=['\"].*?$matchAttributeValue.*?['\"][^>]*/?>#i",
+            $content,
+            $matches2
+        );
+        $result = array_merge($matches1[1], $matches2[1]);
+
+        return empty($result) ? false : $result[0];
+    }
+
+    /**
+     * Builds authentication URL for the protocol version 2.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     * @param array $serverInfo OpenID server info.
+     *
+     * @return string authentication URL.
+     */
+    protected function buildAuthUrlV2(ServerRequestInterface $incomingRequest, array $serverInfo)
+    {
+        $params = [
+            'openid.ns' => 'http://specs.openid.net/auth/2.0',
+            'openid.mode' => 'checkid_setup',
+            'openid.return_to' => $this->getReturnUrl($incomingRequest),
+            'openid.realm' => $this->getTrustRoot(),
+        ];
+        if ($serverInfo['ax']) {
+            $params = array_merge($params, $this->buildAxParams());
+        }
+        if ($serverInfo['sreg']) {
+            $params = array_merge($params, $this->buildSregParams());
+        }
+        if (!$serverInfo['ax'] && !$serverInfo['sreg']) {
+            // If OP doesn't advertise either SREG, nor AX, let's send them both in worst case we don't get anything in return.
+            $params = array_merge($this->buildSregParams(), $this->buildAxParams(), $params);
+        }
+
+        if ($serverInfo['identifier_select']) {
+            $url = 'http://specs.openid.net/auth/2.0/identifier_select';
+            $params['openid.identity'] = $url;
+            $params['openid.claimed_id'] = $url;
+        } else {
+            $params['openid.identity'] = $serverInfo['identity'];
+            $params['openid.claimed_id'] = $this->getClaimedId();
+        }
+
+        return $this->buildUrl($serverInfo['url'], $params);
+    }
+
+    /**
+     * @param ServerRequestInterface $incomingRequest
+     *
+     * @return string authentication return URL.
+     */
+    public function getReturnUrl(ServerRequestInterface $incomingRequest): string
+    {
+        if ($this->returnUrl === null) {
+            $this->returnUrl = $this->defaultReturnUrl($incomingRequest);
+        }
+
+        return $this->returnUrl;
+    }
+
+    /**
+     * @param string $returnUrl authentication return URL.
+     */
+    public function setReturnUrl(string $returnUrl): void
+    {
+        $this->returnUrl = $returnUrl;
+    }
+
+    /**
+     * Generates default {@see returnUrl} value.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     *
+     * @return string default authentication return URL.
+     */
+    protected function defaultReturnUrl(ServerRequestInterface $incomingRequest): string
+    {
+        $params = $incomingRequest->getQueryParams();
+        foreach ($params as $name => $value) {
+            if (strncmp('openid', $name, 6) === 0) {
+                unset($params[$name]);
+            }
+        }
+        return (string)$incomingRequest->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * @return string client trust root (realm).
+     */
+    public function getTrustRoot(): string
+    {
+        return $this->trustRoot;
+    }
+
+    /**
+     * @param string $value client trust root (realm).
+     */
+    public function setTrustRoot(string $value): void
+    {
+        $this->trustRoot = $value;
     }
 
     /**
@@ -522,6 +552,43 @@ class OpenId extends BaseClient
     }
 
     /**
+     * Composes SREG request parameters.
+     *
+     * @return array SREG parameters.
+     */
+    protected function buildSregParams(): array
+    {
+        $params = [];
+        /* We always use SREG 1.1, even if the server is advertising only support for 1.0.
+        That's because it's fully backwards compatible with 1.0, and some providers
+        advertise 1.0 even if they accept only 1.1. One such provider is myopenid.com */
+        $params['openid.ns.sreg'] = 'http://openid.net/extensions/sreg/1.1';
+        if (!empty($this->requiredAttributes)) {
+            $params['openid.sreg.required'] = [];
+            foreach ($this->requiredAttributes as $required) {
+                if (!isset($this->axToSregMap[$required])) {
+                    continue;
+                }
+                $params['openid.sreg.required'][] = $this->axToSregMap[$required];
+            }
+            $params['openid.sreg.required'] = implode(',', $params['openid.sreg.required']);
+        }
+
+        if (!empty($this->optionalAttributes)) {
+            $params['openid.sreg.optional'] = [];
+            foreach ($this->optionalAttributes as $optional) {
+                if (!isset($this->axToSregMap[$optional])) {
+                    continue;
+                }
+                $params['openid.sreg.optional'][] = $this->axToSregMap[$optional];
+            }
+            $params['openid.sreg.optional'] = implode(',', $params['openid.sreg.optional']);
+        }
+
+        return $params;
+    }
+
+    /**
      * Builds authentication URL for the protocol version 1.
      *
      * @param ServerRequestInterface $incomingRequest
@@ -553,72 +620,6 @@ class OpenId extends BaseClient
     }
 
     /**
-     * Builds authentication URL for the protocol version 2.
-     *
-     * @param ServerRequestInterface $incomingRequest
-     * @param array $serverInfo OpenID server info.
-     *
-     * @return string authentication URL.
-     */
-    protected function buildAuthUrlV2(ServerRequestInterface $incomingRequest, array $serverInfo)
-    {
-        $params = [
-            'openid.ns' => 'http://specs.openid.net/auth/2.0',
-            'openid.mode' => 'checkid_setup',
-            'openid.return_to' => $this->getReturnUrl($incomingRequest),
-            'openid.realm' => $this->getTrustRoot(),
-        ];
-        if ($serverInfo['ax']) {
-            $params = array_merge($params, $this->buildAxParams());
-        }
-        if ($serverInfo['sreg']) {
-            $params = array_merge($params, $this->buildSregParams());
-        }
-        if (!$serverInfo['ax'] && !$serverInfo['sreg']) {
-            // If OP doesn't advertise either SREG, nor AX, let's send them both in worst case we don't get anything in return.
-            $params = array_merge($this->buildSregParams(), $this->buildAxParams(), $params);
-        }
-
-        if ($serverInfo['identifier_select']) {
-            $url = 'http://specs.openid.net/auth/2.0/identifier_select';
-            $params['openid.identity'] = $url;
-            $params['openid.claimed_id'] = $url;
-        } else {
-            $params['openid.identity'] = $serverInfo['identity'];
-            $params['openid.claimed_id'] = $this->getClaimedId();
-        }
-
-        return $this->buildUrl($serverInfo['url'], ['query' => http_build_query($params, '', '&')]);
-    }
-
-    /**
-     * Returns authentication URL. Usually, you want to redirect your user to it.
-     *
-     * @param ServerRequestInterface $incomingRequest
-     * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
-     *
-     * @return string the authentication URL.
-     */
-    public function buildAuthUrl(ServerRequestInterface $incomingRequest, ?bool $identifierSelect = null)
-    {
-        $authUrl = $this->authUrl;
-        $claimedId = $this->getClaimedId();
-        if (empty($claimedId)) {
-            $this->setClaimedId($authUrl);
-        }
-        $serverInfo = $this->discover($authUrl);
-        if ($serverInfo['version'] == 2) {
-            if ($identifierSelect !== null) {
-                $serverInfo['identifier_select'] = $identifierSelect;
-            }
-
-            return $this->buildAuthUrlV2($incomingRequest, $serverInfo);
-        }
-
-        return $this->buildAuthUrlV1($incomingRequest, $serverInfo);
-    }
-
-    /**
      * Performs OpenID verification with the OP.
      *
      * @param bool $validateRequiredAttributes whether to validate required attributes.
@@ -642,7 +643,7 @@ class OpenId extends BaseClient
             Even though we should know location of the endpoint,
             we still need to verify it by discovery, so $server is not set here*/
             $params['openid.ns'] = 'http://specs.openid.net/auth/2.0';
-        } elseif (isset($this->data['openid_claimed_id']) && $this->data['openid_claimed_id'] != $this->data['openid_identity']) {
+        } elseif (isset($this->data['openid_claimed_id']) && $this->data['openid_claimed_id'] !== $this->data['openid_identity']) {
             // If it's an OpenID 1 provider, and we've got claimed_id,
             // we have to append it to the returnUrl, like authUrlV1 does.
             $this->returnUrl .= (strpos($this->returnUrl, '?') ? '&' : '?') . 'openid.claimed_id=' . $claimedId;
@@ -678,6 +679,33 @@ class OpenId extends BaseClient
     }
 
     /**
+     * Compares 2 URLs taking in account possible GET parameters order miss match and URL encoding inconsistencies.
+     *
+     * @param string $expectedUrl expected URL.
+     * @param string $actualUrl actual URL.
+     *
+     * @return bool whether URLs are equal.
+     */
+    protected function compareUrl(string $expectedUrl, string $actualUrl): bool
+    {
+        $expectedUrlInfo = parse_url($expectedUrl);
+        $actualUrlInfo = parse_url($actualUrl);
+        foreach ($expectedUrlInfo as $name => $expectedValue) {
+            if ($name === 'query') {
+                parse_str($expectedValue, $expectedUrlParams);
+                parse_str($actualUrlInfo[$name], $actualUrlParams);
+                $paramsDiff = array_diff_assoc($expectedUrlParams, $actualUrlParams);
+                if (!empty($paramsDiff)) {
+                    return false;
+                }
+            } elseif ($expectedValue !== $actualUrlInfo[$name]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Checks if all required attributes are present in the server response.
      *
      * @return bool whether all required attributes are present.
@@ -694,6 +722,53 @@ class OpenId extends BaseClient
         }
 
         return true;
+    }
+
+    /**
+     * Gets AX/SREG attributes provided by OP. Should be used only after successful validation.
+     * Note that it does not guarantee that any of the required/optional parameters will be present,
+     * or that there will be no other attributes besides those specified.
+     * In other words. OP may provide whatever information it wants to.
+     * SREG names will be mapped to AX names.
+     *
+     * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
+     *
+     * @see http://www.axschema.org/types/
+     */
+    public function fetchAttributes(): array
+    {
+        if (isset($this->data['openid_ns']) && $this->data['openid_ns'] === 'http://specs.openid.net/auth/2.0') {
+            // OpenID 2.0
+            // We search for both AX and SREG attributes, with AX taking precedence.
+            return array_merge($this->fetchSregAttributes(), $this->fetchAxAttributes());
+        }
+
+        return $this->fetchSregAttributes();
+    }
+
+    /**
+     * Gets SREG attributes provided by OP. SREG names will be mapped to AX names.
+     *
+     * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
+     */
+    protected function fetchSregAttributes()
+    {
+        $attributes = [];
+        $sregToAx = array_flip($this->axToSregMap);
+        foreach ($this->data as $key => $value) {
+            $keyMatch = 'openid_sreg_';
+            if (strncmp($key, $keyMatch, strlen($keyMatch))) {
+                continue;
+            }
+            $key = substr($key, strlen($keyMatch));
+            if (!isset($sregToAx[$key])) {
+                // The field name isn't part of the SREG spec, so we ignore it.
+                continue;
+            }
+            $attributes[$sregToAx[$key]] = $value;
+        }
+
+        return $attributes;
     }
 
     /**
@@ -741,85 +816,6 @@ class OpenId extends BaseClient
         return $attributes;
     }
 
-    /**
-     * Gets SREG attributes provided by OP. SREG names will be mapped to AX names.
-     *
-     * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
-     */
-    protected function fetchSregAttributes()
-    {
-        $attributes = [];
-        $sregToAx = array_flip($this->axToSregMap);
-        foreach ($this->data as $key => $value) {
-            $keyMatch = 'openid_sreg_';
-            if (strncmp($key, $keyMatch, strlen($keyMatch))) {
-                continue;
-            }
-            $key = substr($key, strlen($keyMatch));
-            if (!isset($sregToAx[$key])) {
-                // The field name isn't part of the SREG spec, so we ignore it.
-                continue;
-            }
-            $attributes[$sregToAx[$key]] = $value;
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * Gets AX/SREG attributes provided by OP. Should be used only after successful validation.
-     * Note that it does not guarantee that any of the required/optional parameters will be present,
-     * or that there will be no other attributes besides those specified.
-     * In other words. OP may provide whatever information it wants to.
-     * SREG names will be mapped to AX names.
-     *
-     * @return array array of attributes with keys being the AX schema names, e.g. 'contact/email'
-     *
-     * @see http://www.axschema.org/types/
-     */
-    public function fetchAttributes(): array
-    {
-        if (isset($this->data['openid_ns']) && $this->data['openid_ns'] === 'http://specs.openid.net/auth/2.0') {
-            // OpenID 2.0
-            // We search for both AX and SREG attributes, with AX taking precedence.
-            return array_merge($this->fetchSregAttributes(), $this->fetchAxAttributes());
-        }
-
-        return $this->fetchSregAttributes();
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return array_merge(['id' => $this->getClaimedId()], $this->fetchAttributes());
-    }
-
-    /**
-     * Compares 2 URLs taking in account possible GET parameters order miss match and URL encoding inconsistencies.
-     *
-     * @param string $expectedUrl expected URL.
-     * @param string $actualUrl actual URL.
-     *
-     * @return bool whether URLs are equal.
-     */
-    protected function compareUrl(string $expectedUrl, string $actualUrl): bool
-    {
-        $expectedUrlInfo = parse_url($expectedUrl);
-        $actualUrlInfo = parse_url($actualUrl);
-        foreach ($expectedUrlInfo as $name => $expectedValue) {
-            if ($name === 'query') {
-                parse_str($expectedValue, $expectedUrlParams);
-                parse_str($actualUrlInfo[$name], $actualUrlParams);
-                $paramsDiff = array_diff_assoc($expectedUrlParams, $actualUrlParams);
-                if (!empty($paramsDiff)) {
-                    return false;
-                }
-            } elseif ($expectedValue != $actualUrlInfo[$name]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public function getName(): string
     {
         return (new Inflector())->pascalCaseToId(StringHelper::baseName(static::class));
@@ -828,5 +824,10 @@ class OpenId extends BaseClient
     public function getTitle(): string
     {
         return StringHelper::baseName(static::class);
+    }
+
+    protected function initUserAttributes(): array
+    {
+        return array_merge(['id' => $this->getClaimedId()], $this->fetchAttributes());
     }
 }

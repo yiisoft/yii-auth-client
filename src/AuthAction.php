@@ -66,7 +66,7 @@ final class AuthAction implements MiddlewareInterface
     private string $clientIdGetParamName = 'authclient';
     /**
      * @var callable PHP callback, which should be triggered in case of successful authentication.
-     * This callback should accept {@see ClientInterface} instance as an argument.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -83,7 +83,7 @@ final class AuthAction implements MiddlewareInterface
     private $successCallback;
     /**
      * @var callable PHP callback, which should be triggered in case of authentication cancellation.
-     * This callback should accept {@see ClientInterface} instance as an argument.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
      *
      * ```php
@@ -180,7 +180,7 @@ final class AuthAction implements MiddlewareInterface
      *
      * @return ResponseInterface response instance.
      */
-    private function auth(ClientInterface $client, ServerRequestInterface $request): ResponseInterface
+    private function auth(AuthClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
@@ -244,14 +244,13 @@ final class AuthAction implements MiddlewareInterface
     /**
      * This method is invoked in case of authentication cancellation.
      *
-     * @param ClientInterface $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      *
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface response instance.
      */
-    private function authCancel(ClientInterface $client): ResponseInterface
+    private function authCancel(AuthClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->cancelCallback)) {
             throw new InvalidConfigException(
@@ -300,7 +299,7 @@ final class AuthAction implements MiddlewareInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
             $viewFile = $this->aliases->get($viewFile);
         }
@@ -319,15 +318,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * This method is invoked in case of successful authentication via auth client.
      *
-     * @param ClientInterface $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      *
      * @throws InvalidConfigException on invalid success callback.
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface response instance.
      */
-    private function authSuccess(ClientInterface $client): ResponseInterface
+    private function authSuccess(AuthClientInterface $client): ResponseInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(
@@ -346,11 +344,10 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Redirect to the URL. If URL is null, {@see successUrl} will be used.
      *
-     * @param string $url URL to redirect.
+     * @param string|null $url URL to redirect.
      *
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface response instance.
      */
     private function redirectSuccess(?string $url = null): ResponseInterface
@@ -371,7 +368,6 @@ final class AuthAction implements MiddlewareInterface
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
-     *
      * @return ResponseInterface action response.
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
@@ -392,7 +388,7 @@ final class AuthAction implements MiddlewareInterface
         // Get request token.
         $requestToken = $client->fetchRequestToken($request);
         // Get authorization URL.
-        $url = $client->buildAuthUrl($request, $requestToken);
+        $url = $client->buildAuthUrl($requestToken);
         // Redirect to authorization URL.
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
@@ -408,7 +404,6 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface action response.
      */
     private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
