@@ -39,7 +39,7 @@ class OAuth1Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
-            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
     }
 
@@ -53,7 +53,8 @@ class OAuth1Test extends TestCase
 
         /* @var $oauthSignatureMethod Signature|MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(Signature::class)
-            ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
+            ->onlyMethods(['getName', 'generateSignature'])
+            ->addMethods(['setConsumerKey', 'setConsumerSecret'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
             ->method('getName')
@@ -177,14 +178,23 @@ class OAuth1Test extends TestCase
 
     public function testBuildAuthUrl(): void
     {
-        $this->markTestSkipped('Should be fixed');
+        $requestTokenToken = 'test_request_token';
+        $content = Stream::create($requestTokenToken);
+        $response = (new \Nyholm\Psr7\Factory\Psr17Factory())->createResponse()->withBody($content);
 
-        $oauthClient = $this->createClient();
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient->method('sendRequest')->will($this->returnValue($response));
+
+        $oauthClient = $this->getMockBuilder(OAuth1::class)
+            ->setConstructorArgs(
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+            )
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->getMockForAbstractClass();
+
         $authUrl = 'http://test.auth.url';
         $oauthClient->setAuthUrl($authUrl);
         $oauthClient->setRequestTokenUrl('http://token.url');
-
-        $requestTokenToken = 'test_request_token';
         $requestToken = new OAuthToken();
         $requestToken->setToken($requestTokenToken);
         $serverRequest = new ServerRequest('GET', 'http://test.local');

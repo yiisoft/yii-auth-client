@@ -121,11 +121,9 @@ abstract class OAuth1 extends OAuth
         $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(
-            [
-                'setParams()' => [Json::decode($response->getBody()->getContents())],
-            ]
-        );
+        $content = Json::decode($response->getBody()->getContents());
+        $tokenConfig = $content ?: [];
+        $token = $this->createToken($tokenConfig);
         $this->setState('requestToken', $token);
 
         return $token;
