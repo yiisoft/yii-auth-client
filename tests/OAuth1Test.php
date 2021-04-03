@@ -184,7 +184,7 @@ class OAuth1Test extends TestCase
             Json::encode(
                 [
                     '__class' => OAuthToken::class,
-                    'setToken()' => [$requestTokenToken]
+                    'setToken()' => [$requestTokenToken],
                 ]
             )
         );
