@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Factory\Factory;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -39,7 +40,7 @@ class OAuth1Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
-            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
     }
 
@@ -53,7 +54,8 @@ class OAuth1Test extends TestCase
 
         /* @var $oauthSignatureMethod Signature|MockObject */
         $oauthSignatureMethod = $this->getMockBuilder(Signature::class)
-            ->setMethods(['getName', 'generateSignature', 'setConsumerKey', 'setConsumerSecret'])
+            ->onlyMethods(['getName', 'generateSignature'])
+            ->addMethods(['setConsumerKey', 'setConsumerSecret'])
             ->getMock();
         $oauthSignatureMethod->expects($this->any())
             ->method('getName')
@@ -177,16 +179,30 @@ class OAuth1Test extends TestCase
 
     public function testBuildAuthUrl(): void
     {
-        $this->markTestSkipped('Should be fixed');
+        $requestTokenToken = 'test_request_token';
+        $content = Stream::create(
+            Json::encode(
+                [
+                    '__class' => OAuthToken::class,
+                    'setToken()' => [$requestTokenToken],
+                ]
+            )
+        );
+        $response = $this->getRequestFactory()->createResponse()->withBody($content);
 
-        $oauthClient = $this->createClient();
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient->method('sendRequest')->willReturn($response);
+
+        $oauthClient = $this->getMockBuilder(OAuth1::class)
+            ->setConstructorArgs(
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+            )
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->getMockForAbstractClass();
+
         $authUrl = 'http://test.auth.url';
         $oauthClient->setAuthUrl($authUrl);
         $oauthClient->setRequestTokenUrl('http://token.url');
-
-        $requestTokenToken = 'test_request_token';
-        $requestToken = new OAuthToken();
-        $requestToken->setToken($requestTokenToken);
         $serverRequest = new ServerRequest('GET', 'http://test.local');
 
         $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest->withBody(Stream::create('')));

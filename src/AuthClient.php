@@ -256,8 +256,6 @@ abstract class AuthClient implements AuthClientInterface
      * Removes persistent state value.
      *
      * @param string $key state key.
-     *
-     * @return bool success.
      */
     protected function removeState(string $key): void
     {

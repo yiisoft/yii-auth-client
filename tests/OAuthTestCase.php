@@ -36,7 +36,7 @@ class OAuthTestCase extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
-            ->setMethods(
+            ->onlyMethods(
                 [
                     'composeRequestCurlOptions',
                     'refreshAccessToken',

@@ -31,7 +31,7 @@ class ClientTestCase extends TestCase
 
         return $this->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->setMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
             ->getMock();
     }
 
