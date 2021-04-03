@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Factory\Factory;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth1;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -179,7 +180,14 @@ class OAuth1Test extends TestCase
     public function testBuildAuthUrl(): void
     {
         $requestTokenToken = 'test_request_token';
-        $content = Stream::create($requestTokenToken);
+        $content = Stream::create(
+            Json::encode(
+                [
+                    '__class' => OAuthToken::class,
+                    'setToken()' => [$requestTokenToken]
+                ]
+            )
+        );
         $response = (new \Nyholm\Psr7\Factory\Psr17Factory())->createResponse()->withBody($content);
 
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
@@ -195,8 +203,6 @@ class OAuth1Test extends TestCase
         $authUrl = 'http://test.auth.url';
         $oauthClient->setAuthUrl($authUrl);
         $oauthClient->setRequestTokenUrl('http://token.url');
-        $requestToken = new OAuthToken();
-        $requestToken->setToken($requestTokenToken);
         $serverRequest = new ServerRequest('GET', 'http://test.local');
 
         $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest->withBody(Stream::create('')));
