@@ -29,7 +29,7 @@ class OAuth2Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), new Factory()]
             )
-            ->setMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
     }
 

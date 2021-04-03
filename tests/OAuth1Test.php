@@ -188,10 +188,10 @@ class OAuth1Test extends TestCase
                 ]
             )
         );
-        $response = (new \Nyholm\Psr7\Factory\Psr17Factory())->createResponse()->withBody($content);
+        $response = $this->getRequestFactory()->createResponse()->withBody($content);
 
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
-        $httpClient->method('sendRequest')->will($this->returnValue($response));
+        $httpClient->method('sendRequest')->willReturn($response);
 
         $oauthClient = $this->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(

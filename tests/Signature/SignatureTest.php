@@ -17,7 +17,7 @@ class SignatureTest extends TestCase
     protected function createTestSignatureMethod()
     {
         $signatureMethod = $this->getMockBuilder(Signature::class)
-            ->setMethods(['getName', 'generateSignature'])
+            ->onlyMethods(['getName', 'generateSignature'])
             ->getMock();
         $signatureMethod->expects($this->any())->method('getName')->willReturn('testMethodName');
         $signatureMethod->expects($this->any())->method('generateSignature')->willReturn('testSignature');
