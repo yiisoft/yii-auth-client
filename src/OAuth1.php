@@ -78,12 +78,6 @@ abstract class OAuth1 extends OAuth
         array $params = []
     ): string {
         $requestToken = $this->fetchRequestToken($incomingRequest);
-        if (!is_object($requestToken)) {
-            $requestToken = $this->getState('requestToken');
-            if (!is_object($requestToken)) {
-                throw new InvalidArgumentException('Request token is required to build authorize URL!');
-            }
-        }
         $params['oauth_token'] = $requestToken->getToken();
 
         return RequestUtil::composeUrl($this->authUrl, $params);
@@ -121,8 +115,12 @@ abstract class OAuth1 extends OAuth
         $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
-        $content = Json::decode((string) $response->getBody());
-        $tokenConfig = $content ?: [];
+        $tokenConfig = Json::decode((string) $response->getBody());
+
+        if (empty($tokenConfig)) {
+            throw new InvalidArgumentException('Request token is required to build authorize URL!');
+        }
+
         $token = $this->createToken($tokenConfig);
         $this->setState('requestToken', $token);
 
