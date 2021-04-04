@@ -312,9 +312,9 @@ abstract class OAuth1 extends OAuth
      * Fetches OAuth access token.
      *
      * @param ServerRequestInterface $incomingRequest
-     * @param string $oauthToken OAuth token returned with redirection back to client.
-     * @param OAuthToken $requestToken OAuth request token.
-     * @param string $oauthVerifier OAuth verifier.
+     * @param string|null $oauthToken OAuth token returned with redirection back to client.
+     * @param OAuthToken|null $requestToken OAuth request token.
+     * @param string|null $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
      *
      * @return OAuthToken OAuth access token.
@@ -388,7 +388,7 @@ abstract class OAuth1 extends OAuth
     /**
      * Gets new auth token to replace expired one.
      *
-     * @param OAuthToken $token expired auth token.
+     * @param OAuthToken|null $token expired auth token.
      *
      * @return OAuthToken new auth token.
      */

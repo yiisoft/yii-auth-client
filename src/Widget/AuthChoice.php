@@ -195,7 +195,7 @@ final class AuthChoice extends Widget
      * Outputs client auth link.
      *
      * @param AuthClientInterface $client external auth client instance.
-     * @param string $text link text, if not set - default value will be generated.
+     * @param string|null $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
      *
      * @throws InvalidConfigException on wrong configuration.

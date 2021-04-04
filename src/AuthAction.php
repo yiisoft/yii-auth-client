@@ -270,7 +270,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Redirect to the {@see cancelUrl} or simply close the popup window.
      *
-     * @param string $url URL to redirect.
+     * @param string|null $url URL to redirect.
      *
      * @throws Throwable
      * @throws ViewNotFoundException
