@@ -99,7 +99,7 @@ abstract class OAuth1 extends OAuth
         $defaultParams = [
             'oauth_consumer_key' => $this->consumerKey,
             'oauth_callback' => $this->getReturnUrl($incomingRequest),
-            //'xoauth_displayname' => Yii::getApp()->name,
+            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME),
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
