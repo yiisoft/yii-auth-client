@@ -140,7 +140,7 @@ class GooglePlusButton extends AuthChoiceItem
         $js = <<<JS
         function $callbackName(authResult); {
             var urlParams = [];
-        
+
             if (authResult['code']) {
                 urlParams.push('code=' + encodeURIComponent(authResult['code']));
             } else if (authResult['error']) {
@@ -157,7 +157,7 @@ class GooglePlusButton extends AuthChoiceItem
                     }
                 }
             }
-        
+
             window.location = '$url' + urlParams.join('&');
         }
         JS;
