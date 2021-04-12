@@ -34,7 +34,7 @@ final class GoogleHybrid extends Google
     {
         return [
             'widget' => [
-                '__class' => GooglePlusButton::class,
+                'class' => GooglePlusButton::class,
             ],
         ];
     }

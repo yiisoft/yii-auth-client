@@ -9,10 +9,10 @@ Application configuration example:
 ```php
 'components' => [
     'authClientCollection' => [
-        '__class' => Yiisoft\Yii\AuthClient\Collection::class,
+        'class' => Yiisoft\Yii\AuthClient\Collection::class,
         'clients' => [
             'google' => [
-                '__class' => Yiisoft\Yii\AuthClient\OpenIdConnect::class,
+                'class' => Yiisoft\Yii\AuthClient\OpenIdConnect::class,
                 'issuerUrl' => 'https://accounts.google.com',
                 'clientId' => 'google_client_id',
                 'clientSecret' => 'google_client_secret',

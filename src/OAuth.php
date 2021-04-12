@@ -174,8 +174,8 @@ abstract class OAuth extends AuthClient
      */
     protected function createSignatureMethod(array $signatureMethodConfig): Signature
     {
-        if (!array_key_exists('__class', $signatureMethodConfig)) {
-            $signatureMethodConfig['__class'] = HmacSha::class;
+        if (!array_key_exists('class', $signatureMethodConfig)) {
+            $signatureMethodConfig['class'] = HmacSha::class;
             $signatureMethodConfig['__construct()'] = ['sha1'];
         }
         return $this->factory->create($signatureMethodConfig);
@@ -337,8 +337,8 @@ abstract class OAuth extends AuthClient
      */
     protected function createToken(array $tokenConfig = [])
     {
-        if (!array_key_exists('__class', $tokenConfig)) {
-            $tokenConfig['__class'] = OAuthToken::class;
+        if (!array_key_exists('class', $tokenConfig)) {
+            $tokenConfig['class'] = OAuthToken::class;
         }
         return $this->factory->create($tokenConfig);
     }

@@ -122,12 +122,12 @@ class OAuthTestCase extends TestCase
         );
 
         $oauthSignatureMethod = [
-            '__class' => PlainText::class,
+            'class' => PlainText::class,
         ];
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
         $this->assertEquals(
-            $oauthSignatureMethod['__class'],
+            $oauthSignatureMethod['class'],
             get_class($returnedSignatureMethod),
             'Unable to setup signature method as config!'
         );

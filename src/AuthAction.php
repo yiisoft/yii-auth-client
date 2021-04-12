@@ -31,7 +31,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  *     {
  *         return [
  *             'auth' => [
- *                 '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
+ *                 'class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
  *                 'successCallback' => [$this, 'successCallback'],
  *             ],
  *         ]

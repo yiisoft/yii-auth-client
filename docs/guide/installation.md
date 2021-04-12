@@ -25,12 +25,12 @@ After extension is installed you need to setup auth client collection applicatio
 return [
     'authClients' => [
         'google' => [
-            '__class' => Yiisoft\Yii\AuthClient\Client\Google::class,
+            'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
             'setClientId' => ['google_client_id'],
             'setClientSecret' => ['google_client_secret'],
         ],
         'facebook' => [
-            '__class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+            'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
             'setClientId' => ['facebook_client_id'],
             'setClientSecret' => ['facebook_client_secret'],
         ],

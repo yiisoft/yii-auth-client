@@ -18,10 +18,10 @@ use function in_array;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
+ *         'class' => Yiisoft\Yii\AuthClient\Collection::class,
  *         'clients' => [
  *             'github' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\GitHub::class,
+ *                 'class' => Yiisoft\Yii\AuthClient\Clients\GitHub::class,
  *                 'clientId' => 'github_client_id',
  *                 'clientSecret' => 'github_client_secret',
  *             ],
