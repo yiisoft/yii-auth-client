@@ -15,7 +15,7 @@ class SiteController extends Controller
     {
         return [
             'auth' => [
-                '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
+                'class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
                 'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];

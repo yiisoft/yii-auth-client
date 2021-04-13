@@ -15,12 +15,12 @@ use RuntimeException;
  * ```php
  * 'authClients' => [
  *     'google' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
+ *         'class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
  *         'setClientId()' => ['google_client_id'],
  *         'setClientSecret()' => ['google_client_secret'],
  *      ],
  *     'facebook' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
+ *         'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
  *         'setClientId()' => ['facebook_client_id'],
  *         'setClientSecret()' => ['facebook_client_secret'],
  *     ]

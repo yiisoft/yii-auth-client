@@ -144,7 +144,7 @@ final class AuthChoice extends Widget
     /**
      * Runs the widget.
      *
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return string rendered HTML.
      */
@@ -162,7 +162,7 @@ final class AuthChoice extends Widget
      * Renders the main content, which includes all external services links.
      *
      * @throws InvalidConfigException
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return string generated HTML.
      */
@@ -199,7 +199,7 @@ final class AuthChoice extends Widget
      * @param array $htmlOptions link HTML options.
      *
      * @throws InvalidConfigException on wrong configuration.
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return string generated HTML.
      */
@@ -231,15 +231,15 @@ final class AuthChoice extends Widget
         }
 
         $widgetConfig = $viewOptions['widget'];
-        if (!isset($widgetConfig['__class'])) {
+        if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
         /* @var $widgetClass Widget */
-        $widgetClass = $widgetConfig['__class'];
+        $widgetClass = $widgetConfig['class'];
         if (!(is_subclass_of($widgetClass, AuthChoiceItem::class))) {
             throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
         }
-        unset($widgetConfig['__class']);
+        unset($widgetConfig['class']);
         $widgetConfig['client'] = $client;
         $widgetConfig['authChoice'] = $this;
         return $widgetClass::widget($widgetConfig)->render();

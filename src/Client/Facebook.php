@@ -20,10 +20,10 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * ```php
  * 'components' => [
  *     'authClientCollection' => [
- *         '__class' => Yiisoft\Yii\AuthClient\Collection::class,
+ *         'class' => Yiisoft\Yii\AuthClient\Collection::class,
  *         'clients' => [
  *             'facebook' => [
- *                 '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
+ *                 'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
  *                 'clientId' => 'facebook_client_id',
  *                 'clientSecret' => 'facebook_client_secret',
  *             ],

@@ -183,7 +183,7 @@ class OAuth1Test extends TestCase
         $content = Stream::create(
             Json::encode(
                 [
-                    '__class' => OAuthToken::class,
+                    'class' => OAuthToken::class,
                     'setToken()' => [$requestTokenToken],
                 ]
             )

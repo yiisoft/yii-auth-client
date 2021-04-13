@@ -26,19 +26,19 @@ $authClient = new Google([
 return [
     'components' => [
         'authClientCollection' => [
-            '__class' => Yiisoft\Yii\AuthClient\Collection::class,
+            'class' => Yiisoft\Yii\AuthClient\Collection::class,
             // все Auth клиенты будут использовать эту конфигурацию для HTTP клиента:
             'httpClient' => [
                 'transport' => yii\httpclient\CurlTransport::class,
             ],
             'clients' => [
                 'google' => [
-                    '__class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
+                    'class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
                     'clientId' => 'google_client_id',
                     'clientSecret' => 'google_client_secret',
                 ],
                 'facebook' => [
-                    '__class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
+                    'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
                     'clientId' => 'facebook_client_id',
                     'clientSecret' => 'facebook_client_secret',
                 ],

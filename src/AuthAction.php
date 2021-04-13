@@ -31,7 +31,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  *     {
  *         return [
  *             'auth' => [
- *                 '__class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
+ *                 'class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
  *                 'successCallback' => [$this, 'successCallback'],
  *             ],
  *         ]
@@ -176,7 +176,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws NotSupportedException on invalid client.
      * @throws Throwable
      * @throws ViewNotFoundException
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return ResponseInterface response instance.
      */
@@ -370,7 +370,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return ResponseInterface action response.
      */

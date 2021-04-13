@@ -95,7 +95,7 @@ abstract class OAuth1 extends OAuth
      * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
      *
-     * @throws \Yiisoft\Factory\Exceptions\InvalidConfigException
+     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
      *
      * @return OAuthToken request token.
      */
