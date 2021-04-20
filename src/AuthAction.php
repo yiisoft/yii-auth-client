@@ -389,10 +389,8 @@ final class AuthAction implements MiddlewareInterface
             return $this->authSuccess($client);
         }
 
-        // Get request token.
-        $requestToken = $client->fetchRequestToken($request);
         // Get authorization URL.
-        $url = $client->buildAuthUrl($requestToken);
+        $url = $client->buildAuthUrl($request);
         // Redirect to authorization URL.
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
