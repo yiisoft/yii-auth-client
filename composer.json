@@ -28,7 +28,7 @@
         "psr/http-message-implementation": "1.0",
         "psr/log-implementation": "^1.0",
         "psr/simple-cache-implementation": "^1.0",
-        "yiisoft/assets": "^1.0@dev",
+        "yiisoft/assets": "^1.0",
         "yiisoft/json": "^1.0",
         "yiisoft/session": "^1.0",
         "yiisoft/widget": "^3.0@dev",
