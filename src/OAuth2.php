@@ -9,7 +9,7 @@ use JsonException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Factory\FactoryInterface;
+use Yiisoft\Factory\Factory;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Signature\Signature;
@@ -64,7 +64,7 @@ abstract class OAuth2 extends OAuth
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         SessionInterface $session,
-        FactoryInterface $factory
+        Factory $factory
     ) {
         parent::__construct($httpClient, $requestFactory, $stateStorage, $factory);
         $this->session = $session;

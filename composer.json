@@ -80,7 +80,6 @@
         "config-plugin": {
             "common": "common.php",
             "params": "params.php",
-            "providers-web": "providers-web.php",
             "tests": "tests.php"
         }
     },
