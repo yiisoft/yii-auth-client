@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
-use Yiisoft\Factory\FactoryInterface;
+use Yiisoft\Factory\Factory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
@@ -61,7 +61,7 @@ abstract class OAuth extends AuthClient
      * @var array|Signature signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
-    private FactoryInterface $factory;
+    private Factory $factory;
 
     /**
      * BaseOAuth constructor.
@@ -69,13 +69,13 @@ abstract class OAuth extends AuthClient
      * @param PsrClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
-     * @param FactoryInterface $factory
+     * @param Factory $factory
      */
     public function __construct(
         PsrClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        FactoryInterface $factory
+        Factory $factory
     ) {
         $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
