@@ -176,7 +176,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws NotSupportedException on invalid client.
      * @throws Throwable
      * @throws ViewNotFoundException
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return ResponseInterface response instance.
      */
@@ -370,7 +370,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return ResponseInterface action response.
      */

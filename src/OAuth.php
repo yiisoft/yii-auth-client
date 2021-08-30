@@ -331,7 +331,7 @@ abstract class OAuth extends AuthClient
      *
      * @param array $tokenConfig token configuration.
      *
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return OAuthToken|object
      */

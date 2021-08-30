@@ -144,7 +144,7 @@ final class AuthChoice extends Widget
     /**
      * Runs the widget.
      *
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return string rendered HTML.
      */
@@ -162,7 +162,7 @@ final class AuthChoice extends Widget
      * Renders the main content, which includes all external services links.
      *
      * @throws InvalidConfigException
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return string generated HTML.
      */
@@ -199,7 +199,7 @@ final class AuthChoice extends Widget
      * @param array $htmlOptions link HTML options.
      *
      * @throws InvalidConfigException on wrong configuration.
-     * @throws \Yiisoft\Factory\Exception\InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      *
      * @return string generated HTML.
      */
