@@ -114,24 +114,19 @@ final class AuthChoice extends Widget
     public function init(): void
     {
         if ($this->popupMode) {
-            $this->assetManager->register(
-                [
-                    AuthChoiceAsset::class,
-                ]
-            );
+            $this->assetManager->register(AuthChoiceAsset::class);
+
             if (empty($this->clientOptions)) {
                 $options = '';
             } else {
                 $options = Json::htmlEncode($this->clientOptions);
             }
+
             $this->webView->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
         } else {
-            $this->assetManager->register(
-                [
-                    AuthChoiceStyleAsset::class,
-                ]
-            );
+            $this->assetManager->register(AuthChoiceStyleAsset::class);
         }
+
         $this->options['id'] = $this->getId();
         echo Html::beginTag('div', $this->options);
     }
