@@ -31,8 +31,7 @@
         "yiisoft/assets": "^2.0",
         "yiisoft/json": "^1.0",
         "yiisoft/session": "^1.0",
-        "yiisoft/widget": "^3.0@dev",
-        "yiisoft/yii-web": "^3.0@dev"
+        "yiisoft/widget": "^3.0@dev"
     },
     "require-dev": {
         "kriswallsmith/buzz": "^1.1",
