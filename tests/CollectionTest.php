@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Di\Container;
+use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -80,6 +81,8 @@ class CollectionTest extends TestCase
 
     private function getContainer($definitions = [])
     {
-        return new Container($definitions);
+        $config = ContainerConfig::create()
+            ->withDefinitions($definitions);
+        return new Container($config);
     }
 }
