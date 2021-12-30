@@ -12,13 +12,11 @@
     "license": "BSD-3-Clause",
     "support": {
         "issues": "https://github.com/yiisoft/yii-auth-client/issues",
-        "forum": "http://www.yiiframework.com/forum/",
-        "wiki": "http://www.yiiframework.com/wiki/",
+        "forum": "https://www.yiiframework.com/forum/",
+        "wiki": "https://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii",
         "source": "https://github.com/yiisoft/yii-auth-client"
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require": {
         "php": "^7.4|^8.0",
         "psr/http-client": "^1.0",
@@ -43,7 +41,7 @@
         "yiisoft/cache": "^1.0",
         "yiisoft/di": "^1.0",
         "yiisoft/log": "^1.0",
-        "yiisoft/router-fastroute": "^3.0@dev"
+        "yiisoft/router-fastroute": "^1.0"
     },
     "suggest": {
         "web-token/jwt-checker": "required for JWS, JWT or JWK related flows like OpenIDConnect",
