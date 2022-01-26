@@ -15,6 +15,7 @@
         "forum": "https://www.yiiframework.com/forum/",
         "wiki": "https://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii",
+        "chat": "https://t.me/yii3en",
         "source": "https://github.com/yiisoft/yii-auth-client"
     },
     "require": {
@@ -34,10 +35,10 @@
     "require-dev": {
         "kriswallsmith/buzz": "^1.1",
         "nyholm/psr7": "^1.3",
-        "phpunit/phpunit": "^9.4",
-        "roave/infection-static-analysis-plugin": "^1.14",
+        "phpunit/phpunit": "^9.5",
+        "roave/infection-static-analysis-plugin": "^1.16",
         "spatie/phpunit-watcher": "^1.23",
-        "vimeo/psalm": "^4.2",
+        "vimeo/psalm": "^4.18",
         "yiisoft/cache": "^1.0",
         "yiisoft/di": "^1.0",
         "yiisoft/log": "^1.0",
