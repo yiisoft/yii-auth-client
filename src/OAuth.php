@@ -219,7 +219,9 @@ abstract class OAuth extends AuthClient
             if (is_array($data)) {
                 $request = RequestUtil::addParams($request, $data);
             } else {
-                $request->getBody()->write($data);
+                $request
+                    ->getBody()
+                    ->write($data);
             }
         }
 
@@ -233,7 +235,9 @@ abstract class OAuth extends AuthClient
             );
         }
 
-        return Json::decode($response->getBody()->getContents());
+        return Json::decode($response
+            ->getBody()
+            ->getContents());
     }
 
     /**

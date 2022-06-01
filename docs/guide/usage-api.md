@@ -28,9 +28,12 @@ For example:
 $client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
 
 // find user to add to external service:
-$user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
+$user = User::find()
+    ->andWhere(['email' => 'johndoe@domain.com'])
+    ->one();
 
-$response = $client->createApiRequest()
+$response = $client
+    ->createApiRequest()
     ->setMethod('GET')
     ->setUrl('users')
     ->setParams([
@@ -42,7 +45,8 @@ if ($response->statusCode != 404) {
     throw new \Exception('User "johndoe@domain.com" already exist');
 }
 
-$response = $client->createApiRequest()
+$response = $client
+    ->createApiRequest()
     ->setMethod('PUT')
     ->setUrl('users')
     ->setParams($user->attributes)
@@ -71,7 +75,8 @@ For example:
 /* @var $client \Yiisoft\Yii\AuthClient\OAuth1 */
 $client = Yii::getApp()->authClientCollection->getClient('someOAuth1');
 
-$request = $client->createRequest()
+$request = $client
+    ->createRequest()
     ->setMethod('GET')
     ->setUrl('users');
 

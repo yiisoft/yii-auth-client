@@ -21,7 +21,9 @@ use Yiisoft\Json\Json;
  * $oauthClient = new MyAuthClient();
  * $requestToken = $oauthClient->fetchRequestToken(); // Get request token
  * $url = $oauthClient->buildAuthUrl($requestToken); // Get authorization URL
- * return Yii::getApp()->getResponse()->redirect($url); // Redirect to authorization URL
+ * return Yii::getApp()
+ *     ->getResponse()
+ *     ->redirect($url); // Redirect to authorization URL
  *
  * // After user returns at our site:
  * $accessToken = $oauthClient->fetchAccessToken(Yii::getApp()->request->get('oauth_token'), $requestToken); // Upgrade to access token
@@ -146,7 +148,9 @@ abstract class OAuth1 extends OAuth
             return $request;
         }
 
-        if (empty($request->getUri()->getQuery())) {
+        if (empty($request
+            ->getUri()
+            ->getQuery())) {
             $params = $this->generateCommonRequestParams();
         } else {
             $params = array_merge($this->generateCommonRequestParams(), $params);
@@ -186,7 +190,9 @@ abstract class OAuth1 extends OAuth
             }
         }
 
-        $uri = $request->getUri()->withQuery(http_build_query($params));
+        $uri = $request
+            ->getUri()
+            ->withQuery(http_build_query($params));
         return $request->withUri($uri);
     }
 
@@ -371,7 +377,9 @@ abstract class OAuth1 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [Json::decode($response->getBody()->getContents())],
+                'setParams()' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -480,6 +488,8 @@ abstract class OAuth1 extends OAuth
         $params = $request->getQueryParams();
         unset($params['oauth_token']);
 
-        return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string)$request
+            ->getUri()
+            ->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

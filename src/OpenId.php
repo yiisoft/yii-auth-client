@@ -20,7 +20,9 @@ use Yiisoft\Strings\StringHelper;
  * $client = new OpenId();
  * $client->setAuthUrl = 'https://open.id.provider.url'; // Setup provider endpoint
  * $url = $client->buildAuthUrl(); // Get authentication URL
- * return $this->responseFactory->createResponse(302)->withHeader('Location', $url); // Redirect to authentication URL
+ * return $this->responseFactory
+ *     ->createResponse(302)
+ *     ->withHeader('Location', $url); // Redirect to authentication URL
  * // After user returns at our site:
  * if ($client->validate()) { // validate response
  *     $userAttributes = $client->getUserAttributes(); // get account info
@@ -225,9 +227,16 @@ abstract class OpenId extends AuthClient
                     compatibility with anything.
                     ---
                     Found an XRDS document, now let's find the server, and optionally delegate.*/
-                    $content = $this->sendRequest(
-                        $request->withMethod('GET')->withUri($request->getUri()->withPath($url))
-                    )->getBody()->getContents();
+                    $content = $this
+                        ->sendRequest(
+                            $request
+                                ->withMethod('GET')
+                                ->withUri($request
+                                    ->getUri()
+                                    ->withPath($url))
+                        )
+                        ->getBody()
+                        ->getContents();
 
                     preg_match_all('#<Service.*?>(.*?)</Service>#s', $content, $m);
                     foreach ($m[1] as $content) {
@@ -296,9 +305,16 @@ abstract class OpenId extends AuthClient
                 }
 
                 // There are no relevant information in headers, so we search the body.
-                $content = $this->sendRequest(
-                    $request->withMethod('GET')->withUri($request->getUri()->withPath($url))
-                )->getBody()->getContents();
+                $content = $this
+                    ->sendRequest(
+                        $request
+                            ->withMethod('GET')
+                            ->withUri($request
+                                ->getUri()
+                                ->withPath($url))
+                    )
+                    ->getBody()
+                    ->getContents();
 
                 $location = $this->extractHtmlTagValue($content, 'meta', 'http-equiv', 'X-XRDS-Location', 'content');
                 if ($location) {
@@ -480,7 +496,9 @@ abstract class OpenId extends AuthClient
                 unset($params[$name]);
             }
         }
-        return (string)$incomingRequest->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string)$incomingRequest
+            ->getUri()
+            ->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 
     /**
@@ -662,7 +680,9 @@ abstract class OpenId extends AuthClient
 
         $params['openid.mode'] = 'check_authentication';
         $request = $this->createRequest('POST', $serverInfo['url']);
-        $request->getBody()->write((string)$params);
+        $request
+            ->getBody()
+            ->write((string)$params);
 
         $response = $this->sendRequest($request);
 

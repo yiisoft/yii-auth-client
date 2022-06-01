@@ -36,13 +36,17 @@ final class RequestUtil
         $currentParams = self::getParams($request);
         $newParams = array_merge($currentParams, $params);
 
-        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
+        $uri = $request
+            ->getUri()
+            ->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
         return $request->withUri($uri);
     }
 
     public static function getParams(RequestInterface $request): array
     {
-        $queryString = $request->getUri()->getQuery();
+        $queryString = $request
+            ->getUri()
+            ->getQuery();
         if ($queryString === '') {
             return [];
         }

@@ -311,7 +311,9 @@ final class AuthAction implements MiddlewareInterface
         ];
 
         $response = $this->responseFactory->createResponse();
-        $response->getBody()->write($this->view->renderFile($viewFile, $viewData));
+        $response
+            ->getBody()
+            ->write($this->view->renderFile($viewFile, $viewData));
 
         return $response;
     }
@@ -429,9 +431,11 @@ final class AuthAction implements MiddlewareInterface
                     return $this->authSuccess($client);
                 }
                 $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
-                $response->getBody()->write(
-                    'Unable to complete the authentication because the required data was not received.'
-                );
+                $response
+                    ->getBody()
+                    ->write(
+                        'Unable to complete the authentication because the required data was not received.'
+                    );
                 return $response;
             case 'cancel':
                 return $this->authCancel($client);

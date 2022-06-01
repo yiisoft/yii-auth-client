@@ -65,10 +65,12 @@ class AuthHandler
         $nickname = ArrayHelper::getValue($attributes, 'login');
 
         /* @var Auth $auth */
-        $auth = Auth::find()->where([
-            'source' => $this->client->getId(),
-            'source_id' => $id,
-        ])->one();
+        $auth = Auth::find()
+            ->where([
+                'source' => $this->client->getId(),
+                'source_id' => $id,
+            ])
+            ->one();
 
         if (Yii::getApp()->user->isGuest) {
             if ($auth) { // login
@@ -77,10 +79,14 @@ class AuthHandler
                 $this->updateUserInfo($user);
                 Yii::getApp()->user->login($user, Yii::getApp()->params['user.rememberMeDuration']);
             } else { // signup
-                if ($email !== null && User::find()->where(['email' => $email])->exists()) {
-                    Yii::getApp()->getSession()->setFlash('error', [
-                        Yii::t('app', "User with the same email as in {client} account already exists but isn't linked to it. Login using email first to link it.", ['client' => $this->client->getTitle()]),
-                    ]);
+                if ($email !== null && User::find()
+                        ->where(['email' => $email])
+                        ->exists()) {
+                    Yii::getApp()
+                        ->getSession()
+                        ->setFlash('error', [
+                            Yii::t('app', "User with the same email as in {client} account already exists but isn't linked to it. Login using email first to link it.", ['client' => $this->client->getTitle()]),
+                        ]);
                 } else {
                     $password = Yii::getApp()->security->generateRandomString(6);
                     $user = new User([
@@ -104,20 +110,24 @@ class AuthHandler
                             $transaction->commit();
                             Yii::getApp()->user->login($user, Yii::getApp()->params['user.rememberMeDuration']);
                         } else {
-                            Yii::getApp()->getSession()->setFlash('error', [
-                                Yii::t('app', 'Unable to save {client} account: {errors}', [
-                                    'client' => $this->client->getTitle(),
-                                    'errors' => json_encode($auth->getErrors()),
-                                ]),
-                            ]);
+                            Yii::getApp()
+                                ->getSession()
+                                ->setFlash('error', [
+                                    Yii::t('app', 'Unable to save {client} account: {errors}', [
+                                        'client' => $this->client->getTitle(),
+                                        'errors' => json_encode($auth->getErrors()),
+                                    ]),
+                                ]);
                         }
                     } else {
-                        Yii::getApp()->getSession()->setFlash('error', [
-                            Yii::t('app', 'Unable to save user: {errors}', [
-                                'client' => $this->client->getTitle(),
-                                'errors' => json_encode($user->getErrors()),
-                            ]),
-                        ]);
+                        Yii::getApp()
+                            ->getSession()
+                            ->setFlash('error', [
+                                Yii::t('app', 'Unable to save user: {errors}', [
+                                    'client' => $this->client->getTitle(),
+                                    'errors' => json_encode($user->getErrors()),
+                                ]),
+                            ]);
                     }
                 }
             }
@@ -132,25 +142,31 @@ class AuthHandler
                     /** @var User $user */
                     $user = $auth->user;
                     $this->updateUserInfo($user);
-                    Yii::getApp()->getSession()->setFlash('success', [
-                        Yii::t('app', 'Linked {client} account.', [
-                            'client' => $this->client->getTitle()
-                        ]),
-                    ]);
+                    Yii::getApp()
+                        ->getSession()
+                        ->setFlash('success', [
+                            Yii::t('app', 'Linked {client} account.', [
+                                'client' => $this->client->getTitle()
+                            ]),
+                        ]);
                 } else {
-                    Yii::getApp()->getSession()->setFlash('error', [
-                        Yii::t('app', 'Unable to link {client} account: {errors}', [
-                            'client' => $this->client->getTitle(),
-                            'errors' => json_encode($auth->getErrors()),
-                        ]),
-                    ]);
+                    Yii::getApp()
+                        ->getSession()
+                        ->setFlash('error', [
+                            Yii::t('app', 'Unable to link {client} account: {errors}', [
+                                'client' => $this->client->getTitle(),
+                                'errors' => json_encode($auth->getErrors()),
+                            ]),
+                        ]);
                 }
             } else { // there's existing auth
-                Yii::getApp()->getSession()->setFlash('error', [
-                    Yii::t('app',
-                        'Unable to link {client} account. There is another user using it.',
-                        ['client' => $this->client->getTitle()]),
-                ]);
+                Yii::getApp()
+                    ->getSession()
+                    ->setFlash('error', [
+                        Yii::t('app',
+                            'Unable to link {client} account. There is another user using it.',
+                            ['client' => $this->client->getTitle()]),
+                    ]);
             }
         }
     }
@@ -172,13 +188,13 @@ class AuthHandler
 
 `successCallback` method is called when user was successfully authenticated via external service. Via `$client` instance
 we can retrieve information received. In our case we'd like to:
- 
+
 - If user is guest and record found in auth then log this user in.
 - If user is guest and record not found in auth then create new user and make a record in auth table. Then log in.
 - If user is logged in and record not found in auth then try connecting additional account (save its data into auth table).
 
 > Note: different Auth clients may require different approaches while handling authentication success. For example: Twitter
-  does not allow returning of the user email, so you have to deal with this somehow.
+does not allow returning of the user email, so you have to deal with this somehow.
 
 ### Auth client basic structure
 
@@ -209,7 +225,7 @@ Defining list of attributes, which external auth provider should return, depends
   providers use different formats for the scope.
 
 > Tip: If you are using several different clients, you can unify the structure of the attributes, which they return,
-  using [[Yiisoft\Yii\AuthClient\BaseClient::$normalizeUserAttributeMap]].
+using [[Yiisoft\Yii\AuthClient\BaseClient::$normalizeUserAttributeMap]].
 
 
 ## Adding widget to login view

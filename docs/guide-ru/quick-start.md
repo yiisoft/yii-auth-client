@@ -26,20 +26,26 @@ class SiteController extends Controller
         $attributes = $client->getUserAttributes();
 
         /* @var $auth Auth */
-        $auth = Auth::find()->where([
-            'source' => $client->getId(),
-            'source_id' => $attributes['id'],
-        ])->one();
+        $auth = Auth::find()
+            ->where([
+                'source' => $client->getId(),
+                'source_id' => $attributes['id'],
+            ])
+            ->one();
         
         if (Yii::getApp()->user->isGuest) {
             if ($auth) { // авторизация
                 $user = $auth->user;
                 Yii::getApp()->user->login($user);
             } else { // регистрация
-                if (isset($attributes['email']) && User::find()->where(['email' => $attributes['email']])->exists()) {
-                    Yii::getApp()->getSession()->setFlash('error', [
-                        Yii::t('app', "Пользователь с такой электронной почтой как в {client} уже существует, но с ним не связан. Для начала войдите на сайт использую электронную почту, для того, что бы связать её.", ['client' => $client->getTitle()]),
-                    ]);
+                if (isset($attributes['email']) && User::find()
+                        ->where(['email' => $attributes['email']])
+                        ->exists()) {
+                    Yii::getApp()
+                        ->getSession()
+                        ->setFlash('error', [
+                            Yii::t('app', "Пользователь с такой электронной почтой как в {client} уже существует, но с ним не связан. Для начала войдите на сайт использую электронную почту, для того, что бы связать её.", ['client' => $client->getTitle()]),
+                        ]);
                 } else {
                     $password = Yii::getApp()->security->generateRandomString(6);
                     $user = new User([
@@ -49,7 +55,9 @@ class SiteController extends Controller
                     ]);
                     $user->generateAuthKey();
                     $user->generatePasswordResetToken();
-                    $transaction = $user->getDb()->beginTransaction();
+                    $transaction = $user
+                        ->getDb()
+                        ->beginTransaction();
                     if ($user->save()) {
                         $auth = new Auth([
                             'user_id' => $user->id,

@@ -26,9 +26,13 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
  * // assuming class MyAuthClient extends OAuth2
  * $oauthClient = new MyAuthClient();
  * $url = $oauthClient->buildAuthUrl(); // Build authorization URL
- * Yii::getApp()->getResponse()->redirect($url); // Redirect to authorization URL.
+ * Yii::getApp()
+ *     ->getResponse()
+ *     ->redirect($url); // Redirect to authorization URL.
  * // After user returns at our site:
- * $code = Yii::getApp()->getRequest()->get('code');
+ * $code = Yii::getApp()
+ *     ->getRequest()
+ *     ->get('code');
  * $accessToken = $oauthClient->fetchAccessToken($code); // Get access token
  * ```
  *
@@ -154,7 +158,9 @@ abstract class OAuth2 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
+                'setParams' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -228,7 +234,9 @@ abstract class OAuth2 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
+                'setParams' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -268,7 +276,9 @@ abstract class OAuth2 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
+                'setParams' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -311,7 +321,9 @@ abstract class OAuth2 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
+                'setParams' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -340,7 +352,7 @@ abstract class OAuth2 extends OAuth
      */
     public function authenticateUserJwt(
         string $username,
-        $signature = null,
+               $signature = null,
         array $options = [],
         array $params = []
     ): OAuthToken {
@@ -405,7 +417,9 @@ abstract class OAuth2 extends OAuth
 
         $token = $this->createToken(
             [
-                'setParams()' => [Json::decode($response->getBody()->getContents())],
+                'setParams()' => [Json::decode($response
+                    ->getBody()
+                    ->getContents())],
             ]
         );
         $this->setAccessToken($token);
@@ -469,6 +483,8 @@ abstract class OAuth2 extends OAuth
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
 
-        return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string)$request
+            ->getUri()
+            ->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

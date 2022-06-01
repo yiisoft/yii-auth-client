@@ -30,7 +30,9 @@ class CollectionTest extends TestCase
 
     private function getTestClient(): TestClient
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
         return new TestClient($httpClient, $this->getRequestFactory(), $this->getStateStorage());
     }
 
@@ -81,8 +83,7 @@ class CollectionTest extends TestCase
 
     private function getContainer($definitions = [])
     {
-        $config = ContainerConfig::create()
-            ->withDefinitions($definitions);
+        $config = ContainerConfig::create()->withDefinitions($definitions);
         return new Container($config);
     }
 }

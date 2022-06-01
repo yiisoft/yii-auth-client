@@ -30,9 +30,12 @@ class OAuthTestCase extends TestCase
      */
     protected function createClient()
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
 
-        return $this->getMockBuilder(OAuth::class)
+        return $this
+            ->getMockBuilder(OAuth::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
@@ -54,7 +57,9 @@ class OAuthTestCase extends TestCase
     public function testSetGet(): void
     {
         $oauthClient = $this->createClient();
-        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
+        $serverRequest = $this
+            ->getMockBuilder(ServerRequestInterface::class)
+            ->getMock();
 
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
@@ -117,7 +122,9 @@ class OAuthTestCase extends TestCase
         $oauthClient->setAccessToken($oauthToken);
         $this->assertEquals(
             $testToken,
-            $oauthClient->getAccessToken()->getToken(),
+            $oauthClient
+                ->getAccessToken()
+                ->getToken(),
             'Unable to setup token as config!'
         );
 
@@ -148,6 +155,8 @@ class OAuthTestCase extends TestCase
         $oauthClient->setAccessToken($accessToken);
 
         $request = $oauthClient->createApiRequest('GET', '/sub/url');
-        $this->assertEquals('http://api.base.url/sub/url', $request->getUri()->__toString());
+        $this->assertEquals('http://api.base.url/sub/url', $request
+            ->getUri()
+            ->__toString());
     }
 }

@@ -16,11 +16,18 @@ class SignatureTest extends TestCase
      */
     protected function createTestSignatureMethod()
     {
-        $signatureMethod = $this->getMockBuilder(Signature::class)
+        $signatureMethod = $this
+            ->getMockBuilder(Signature::class)
             ->onlyMethods(['getName', 'generateSignature'])
             ->getMock();
-        $signatureMethod->expects($this->any())->method('getName')->willReturn('testMethodName');
-        $signatureMethod->expects($this->any())->method('generateSignature')->willReturn('testSignature');
+        $signatureMethod
+            ->expects($this->any())
+            ->method('getName')
+            ->willReturn('testMethodName');
+        $signatureMethod
+            ->expects($this->any())
+            ->method('generateSignature')
+            ->willReturn('testSignature');
 
         return $signatureMethod;
     }

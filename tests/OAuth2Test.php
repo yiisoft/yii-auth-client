@@ -22,10 +22,15 @@ class OAuth2Test extends TestCase
      */
     protected function createClient()
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
-        $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
+        $requestFactory = $this
+            ->getMockBuilder(RequestFactoryInterface::class)
+            ->getMock();
 
-        return $this->getMockBuilder(OAuth2::class)
+        return $this
+            ->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), new Factory()]
             )
@@ -44,7 +49,9 @@ class OAuth2Test extends TestCase
         $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
         $oauthClient->setReturnUrl($returnUrl);
-        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
+        $serverRequest = $this
+            ->getMockBuilder(ServerRequestInterface::class)
+            ->getMock();
 
         $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
 

@@ -27,9 +27,12 @@ class ClientTestCase extends TestCase
      */
     protected function createClient()
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
 
-        return $this->getMockBuilder(AuthClient::class)
+        return $this
+            ->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
             ->onlyMethods(['initUserAttributes', 'getName', 'getTitle', 'buildAuthUrl'])
             ->getMock();
@@ -175,7 +178,9 @@ class ClientTestCase extends TestCase
      */
     public function testCreateRequest(): void
     {
-        $request = $this->createClient()->createRequest('GET', 'http://example.com/');
+        $request = $this
+            ->createClient()
+            ->createRequest('GET', 'http://example.com/');
         $this->assertInstanceOf(RequestInterface::class, $request);
     }
 }

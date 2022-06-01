@@ -34,9 +34,12 @@ class OAuth1Test extends TestCase
      */
     protected function createClient(): OAuth1
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
 
-        return $this->getMockBuilder(OAuth1::class)
+        return $this
+            ->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
@@ -53,18 +56,25 @@ class OAuth1Test extends TestCase
         $request = $oauthClient->createRequest('GET', 'https://example.com?s=some&a=another');
 
         /* @var $oauthSignatureMethod Signature|MockObject */
-        $oauthSignatureMethod = $this->getMockBuilder(Signature::class)
+        $oauthSignatureMethod = $this
+            ->getMockBuilder(Signature::class)
             ->onlyMethods(['getName', 'generateSignature'])
             ->addMethods(['setConsumerKey', 'setConsumerSecret'])
             ->getMock();
-        $oauthSignatureMethod->expects($this->any())
+        $oauthSignatureMethod
+            ->expects($this->any())
             ->method('getName')
             ->willReturn('test');
-        $oauthSignatureMethod->expects($this->any())
+        $oauthSignatureMethod
+            ->expects($this->any())
             ->method('generateSignature')
             ->willReturnArgument(0);
-        $oauthSignatureMethod->method('setConsumerSecret')->with('test_secret');
-        $oauthSignatureMethod->method('setConsumerKey')->with('test_key');
+        $oauthSignatureMethod
+            ->method('setConsumerSecret')
+            ->with('test_secret');
+        $oauthSignatureMethod
+            ->method('setConsumerKey')
+            ->with('test_key');
 
         $oauthClient->setSignatureMethod($oauthSignatureMethod);
 
@@ -188,12 +198,20 @@ class OAuth1Test extends TestCase
                 ]
             )
         );
-        $response = $this->getRequestFactory()->createResponse()->withBody($content);
+        $response = $this
+            ->getRequestFactory()
+            ->createResponse()
+            ->withBody($content);
 
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
-        $httpClient->method('sendRequest')->willReturn($response);
+        $httpClient = $this
+            ->getMockBuilder(ClientInterface::class)
+            ->getMock();
+        $httpClient
+            ->method('sendRequest')
+            ->willReturn($response);
 
-        $oauthClient = $this->getMockBuilder(OAuth1::class)
+        $oauthClient = $this
+            ->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(
                 [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
             )
