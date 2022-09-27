@@ -95,7 +95,7 @@ class OAuthTestCase extends TestCase
 
         $oauthClient->setAccessToken(['setToken()' => ['token-mock']]);
         $accessToken = $oauthClient->getAccessToken();
-        $this->assertTrue($accessToken instanceof OAuthToken);
+        $this->assertInstanceOf(OAuthToken::class, $accessToken);
         $this->assertEquals('token-mock', $accessToken->getToken());
 
         $oauthClient->setAccessToken(null);
@@ -128,7 +128,7 @@ class OAuthTestCase extends TestCase
         $returnedSignatureMethod = $oauthClient->getSignatureMethod();
         $this->assertEquals(
             $oauthSignatureMethod['class'],
-            get_class($returnedSignatureMethod),
+            $returnedSignatureMethod::class,
             'Unable to setup signature method as config!'
         );
     }
