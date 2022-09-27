@@ -122,10 +122,8 @@ final class Facebook extends OAuth2
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAccessToken()
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
-     *
      * @return string client auth code.
      */
     public function fetchClientAuthCode(
@@ -165,9 +163,7 @@ final class Facebook extends OAuth2
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
      * @see fetchClientAuthCode()
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param string $authCode client auth code.
-     * @param array $params
      *
      * @return OAuthToken long-live client-specific access token.
      */

@@ -100,15 +100,12 @@ final class OpenIdConnect extends OAuth2
      * @var bool|null whether to use and validate auth 'nonce' parameter in authentication flow.
      * The option is used for preventing replay attacks.
      */
-    private ?bool $validateAuthNonce;
+    private ?bool $validateAuthNonce = null;
 
     /**
      * @var array OpenID provider configuration parameters.
      */
     private array $configParams = [];
-    private CacheInterface $cache;
-    private string $name;
-    private string $title;
 
     /**
      * @var JWSLoader JSON Web Signature
@@ -132,18 +129,15 @@ final class OpenIdConnect extends OAuth2
      * @param SessionInterface $session
      */
     public function __construct(
-        $name,
-        $title,
+        private $name,
+        private $title,
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        CacheInterface $cache,
+        private CacheInterface $cache,
         StateStorageInterface $stateStorage,
         SessionInterface $session,
         Factory $factory
     ) {
-        $this->name = $name;
-        $this->title = $title;
-        $this->cache = $cache;
         parent::__construct($httpClient, $requestFactory, $stateStorage, $session, $factory);
     }
 

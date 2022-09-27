@@ -55,11 +55,6 @@ final class AuthAction implements MiddlewareInterface
 {
     public const AUTH_NAME = 'auth_displayname';
     /**
-     * @var Collection
-     * It should point to {@see Collection} instance.
-     */
-    private Collection $clientCollection;
-    /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
      */
@@ -111,26 +106,21 @@ final class AuthAction implements MiddlewareInterface
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
     private string $cancelUrl;
-    private ResponseFactoryInterface $responseFactory;
-    private Aliases $aliases;
-    private WebView $view;
 
     public function __construct(
-        Collection $clientCollection,
-        Aliases $aliases,
-        WebView $view,
-        ResponseFactoryInterface $responseFactory
-    ) {
-        $this->clientCollection = $clientCollection;
-        $this->responseFactory = $responseFactory;
-        $this->aliases = $aliases;
-        $this->view = $view;
+        /**
+         * It should point to {@see Collection} instance.
+         */
+        private Collection $clientCollection,
+        private Aliases $aliases,
+        private WebView $view,
+        private ResponseFactoryInterface $responseFactory
+    )
+    {
     }
 
     /**
      * @param string $url successful URL.
-     *
-     * @return AuthAction
      */
     public function withSuccessUrl(string $url): self
     {
@@ -141,8 +131,6 @@ final class AuthAction implements MiddlewareInterface
 
     /**
      * @param string $url cancel URL.
-     *
-     * @return AuthAction
      */
     public function withCancelUrl(string $url): self
     {
@@ -170,14 +158,12 @@ final class AuthAction implements MiddlewareInterface
      * Perform authentication for the given client.
      *
      * @param mixed $client auth client instance.
-     * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
      * @throws NotSupportedException on invalid client.
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
      * @return ResponseInterface response instance.
      */
     private function auth(AuthClientInterface $client, ServerRequestInterface $request): ResponseInterface
@@ -194,19 +180,17 @@ final class AuthAction implements MiddlewareInterface
             return $this->authOpenId($client, $request);
         }
 
-        throw new NotSupportedException('Provider "' . get_class($client) . '" is not supported.');
+        throw new NotSupportedException('Provider "' . $client::class . '" is not supported.');
     }
 
     /**
      * Performs OAuth2 auth flow.
      *
      * @param OAuth2 $client auth client instance.
-     * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface action response.
      */
     private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
@@ -365,13 +349,11 @@ final class AuthAction implements MiddlewareInterface
      * Performs OAuth1 auth flow.
      *
      * @param OAuth1 $client auth client instance.
-     * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
      * @return ResponseInterface action response.
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
@@ -403,12 +385,10 @@ final class AuthAction implements MiddlewareInterface
      * Performs OpenID auth flow.
      *
      * @param OpenId $client auth client instance.
-     * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
-     *
      * @return ResponseInterface action response.
      */
     private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface

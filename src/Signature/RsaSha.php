@@ -25,12 +25,6 @@ final class RsaSha extends Signature
      * @var string path to the file, which holds public key certificate.
      */
     private string $publicCertificateFile;
-    /**
-     * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
-     *
-     * @link http://php.net/manual/en/openssl.signature-algos.php
-     */
-    private $algorithm;
 
     /**
      * @var string|null OpenSSL private key certificate content.
@@ -43,10 +37,16 @@ final class RsaSha extends Signature
      */
     private ?string $publicCertificate = null;
 
-    public function __construct($algorithm = null)
+    /**
+     * @param int|string $algorithm
+     */
+    public function __construct(/**
+     * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
+     *
+     * @link http://php.net/manual/en/openssl.signature-algos.php
+     */
+    private $algorithm = null)
     {
-        $this->algorithm = $algorithm;
-
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
@@ -74,7 +74,7 @@ final class RsaSha extends Signature
             $constants = get_defined_constants(true);
             if (isset($constants['openssl'])) {
                 foreach ($constants['openssl'] as $name => $value) {
-                    if (strpos($name, 'OPENSSL_ALGO_') !== 0) {
+                    if (!str_starts_with($name, 'OPENSSL_ALGO_')) {
                         continue;
                     }
                     if ($value === $this->algorithm) {

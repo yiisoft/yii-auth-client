@@ -61,7 +61,6 @@ abstract class OAuth extends AuthClient
      * @var array|Signature signature method instance or its array configuration.
      */
     protected $signatureMethod = [];
-    private Factory $factory;
 
     /**
      * BaseOAuth constructor.
@@ -75,9 +74,8 @@ abstract class OAuth extends AuthClient
         PsrClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        Factory $factory
+        private Factory $factory
     ) {
-        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
@@ -102,8 +100,6 @@ abstract class OAuth extends AuthClient
     }
 
     /**
-     * @param ServerRequestInterface $request
-     *
      * @return string return URL.
      */
     public function getReturnUrl(ServerRequestInterface $request): string
@@ -125,7 +121,6 @@ abstract class OAuth extends AuthClient
     /**
      * Composes default {@see returnUrl} value.
      *
-     * @param ServerRequestInterface $request
      *
      * @return string return URL.
      */
@@ -153,7 +148,7 @@ abstract class OAuth extends AuthClient
      *
      * @throws InvalidArgumentException on wrong argument.
      */
-    public function setSignatureMethod($signatureMethod): void
+    public function setSignatureMethod(array|\Yiisoft\Yii\AuthClient\Signature\Signature $signatureMethod): void
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
@@ -210,7 +205,7 @@ abstract class OAuth extends AuthClient
      *
      * @see createApiRequest()
      */
-    public function api($apiSubUrl, $method = 'GET', $data = [], $headers = []): array
+    public function api($apiSubUrl, $method = 'GET', array|string $data = [], $headers = []): array
     {
         $request = $this->createApiRequest($method, $apiSubUrl);
         $request = RequestUtil::addHeaders($request, $headers);
@@ -241,8 +236,6 @@ abstract class OAuth extends AuthClient
      * The created request will be automatically processed adding access token parameters and signature
      * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
      *
-     * @param string $method
-     * @param string $uri
      *
      * @return RequestInterface HTTP request instance.
      *
@@ -280,7 +273,7 @@ abstract class OAuth extends AuthClient
      *
      * @param array|OAuthToken $token access token or its configuration.
      */
-    public function setAccessToken($token): void
+    public function setAccessToken(array|\Yiisoft\Yii\AuthClient\OAuthToken $token): void
     {
         if (!is_object($token) && $token !== null) {
             $token = $this->createToken($token);
@@ -335,7 +328,7 @@ abstract class OAuth extends AuthClient
      *
      * @return OAuthToken|object
      */
-    protected function createToken(array $tokenConfig = [])
+    protected function createToken(array $tokenConfig = []): \Yiisoft\Yii\AuthClient\OAuthToken|object
     {
         if (!array_key_exists('class', $tokenConfig)) {
             $tokenConfig['class'] = OAuthToken::class;
@@ -355,9 +348,6 @@ abstract class OAuth extends AuthClient
         return $this->setState('token', $token);
     }
 
-    /**
-     * @return string
-     */
     public function getScope(): string
     {
         if ($this->scope === null) {
@@ -367,9 +357,6 @@ abstract class OAuth extends AuthClient
         return $this->scope;
     }
 
-    /**
-     * @param string $scope
-     */
     public function setScope(string $scope): void
     {
         $this->scope = $scope;

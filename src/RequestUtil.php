@@ -21,7 +21,7 @@ final class RequestUtil
     public static function composeUrl(string $url, array $params = []): string
     {
         if (!empty($params)) {
-            if (strpos($url, '?') === false) {
+            if (!str_contains($url, '?')) {
                 $url .= '?';
             } else {
                 $url .= '&';

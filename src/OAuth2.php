@@ -57,25 +57,21 @@ abstract class OAuth2 extends OAuth
      * The option is used for preventing cross-site request forgery.
      */
     protected bool $validateAuthState = true;
-    private SessionInterface $session;
 
     public function __construct(
         \Psr\Http\Client\ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        SessionInterface $session,
+        private SessionInterface $session,
         Factory $factory
     ) {
         parent::__construct($httpClient, $requestFactory, $stateStorage, $factory);
-        $this->session = $session;
     }
 
     /**
      * Composes user authorization URL.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param array $params additional auth GET params.
-     *
      * @return string authorization URL.
      */
     public function buildAuthUrl(
@@ -118,10 +114,8 @@ abstract class OAuth2 extends OAuth
     /**
      * Fetches access token from authorization code.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param string $authCode authorization code, usually comes at GET parameter 'code'.
      * @param array $params additional request params.
-     *
      * @return OAuthToken access token.
      */
     public function fetchAccessToken(
@@ -167,8 +161,6 @@ abstract class OAuth2 extends OAuth
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      *
      * @param RequestInterface $request HTTP request instance.
-     *
-     * @return RequestInterface
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
@@ -340,7 +332,7 @@ abstract class OAuth2 extends OAuth
      */
     public function authenticateUserJwt(
         string $username,
-        $signature = null,
+        array|\Yiisoft\Yii\AuthClient\Signature\Signature $signature = null,
         array $options = [],
         array $params = []
     ): OAuthToken {
@@ -460,7 +452,6 @@ abstract class OAuth2 extends OAuth
     /**
      * Composes default {@see returnUrl} value.
      *
-     * @param ServerRequestInterface $request
      *
      * @return string return URL.
      */
