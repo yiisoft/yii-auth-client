@@ -110,9 +110,7 @@ abstract class OpenId extends AuthClient
     /**
      * Returns authentication URL. Usually, you want to redirect your user to it.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param bool $identifierSelect whether to request OP to select identity for an user in OpenID 2, does not affect OpenID 1.
-     * @param array $params
      *
      * @return string the authentication URL.
      */
@@ -217,8 +215,8 @@ abstract class OpenId extends AuthClient
                 }
 
                 if (isset($headers['content-type'])
-                    && (strpos($headers['content-type'], 'application/xrds+xml') !== false
-                        || strpos($headers['content-type'], 'text/xml') !== false)
+                    && (str_contains($headers['content-type'], 'application/xrds+xml')
+                        || str_contains($headers['content-type'], 'text/xml'))
                 ) {
                     /* Apparently, some providers return XRDS documents as text/html.
                     While it is against the spec, allowing this here shouldn't break
@@ -348,7 +346,7 @@ abstract class OpenId extends AuthClient
      *
      * @return string composed URL.
      */
-    protected function buildUrl(string $baseUrl, $additionalUrl): string
+    protected function buildUrl(string $baseUrl, array|string $additionalUrl): string
     {
         $baseUrl = parse_url($baseUrl);
         if (!is_array($additionalUrl)) {
@@ -388,7 +386,7 @@ abstract class OpenId extends AuthClient
         string $matchAttributeName,
         string $matchAttributeValue,
         string $valueAttributeName
-    ) {
+    ): bool|string {
         preg_match_all(
             "#<{$tag}[^>]*$matchAttributeName=['\"].*?$matchAttributeValue.*?['\"][^>]*$valueAttributeName=['\"](.+?)['\"][^>]*/?>#i",
             $content,
@@ -407,7 +405,6 @@ abstract class OpenId extends AuthClient
     /**
      * Builds authentication URL for the protocol version 2.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
      *
      * @return string authentication URL.
@@ -444,8 +441,6 @@ abstract class OpenId extends AuthClient
     }
 
     /**
-     * @param ServerRequestInterface $incomingRequest
-     *
      * @return string authentication return URL.
      */
     public function getReturnUrl(ServerRequestInterface $incomingRequest): string
@@ -467,8 +462,6 @@ abstract class OpenId extends AuthClient
 
     /**
      * Generates default {@see returnUrl} value.
-     *
-     * @param ServerRequestInterface $incomingRequest
      *
      * @return string default authentication return URL.
      */
@@ -590,7 +583,6 @@ abstract class OpenId extends AuthClient
     /**
      * Builds authentication URL for the protocol version 1.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param array $serverInfo OpenID server info.
      *
      * @return string authentication URL.
@@ -784,7 +776,7 @@ abstract class OpenId extends AuthClient
         } else {
             // 'ax' prefix is either undefined, or points to another extension, so we search for another prefix
             foreach ($this->data as $key => $value) {
-                if ($value === 'http://openid.net/srv/ax/1.0' && strncmp($key, 'openid_ns_', 10) === 0) {
+                if ($value === 'http://openid.net/srv/ax/1.0' && str_starts_with($key, 'openid_ns_')) {
                     $alias = substr($key, strlen('openid_ns_'));
                     break;
                 }

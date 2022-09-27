@@ -91,20 +91,14 @@ final class AuthChoice extends Widget
      * @var AuthClientInterface[] auth providers list.
      */
     private array $clients;
-    private UrlGeneratorInterface $urlGenerator;
-    private WebView $webView;
-    private AssetManager $assetManager;
 
     public function __construct(
         Collection $clientCollection,
-        UrlGeneratorInterface $urlGenerator,
-        WebView $webView,
-        AssetManager $assetManager
+        private UrlGeneratorInterface $urlGenerator,
+        private WebView $webView,
+        private AssetManager $assetManager
     ) {
         $this->clients = $clientCollection->getClients();
-        $this->urlGenerator = $urlGenerator;
-        $this->webView = $webView;
-        $this->assetManager = $assetManager;
         $this->init();
     }
 
@@ -256,11 +250,6 @@ final class AuthChoice extends Widget
         return $this->urlGenerator->generate($this->authRoute, $params);
     }
 
-    /**
-     * @param string $authRoute
-     *
-     * @return self
-     */
     public function authRoute(string $authRoute): self
     {
         $this->authRoute = $authRoute;

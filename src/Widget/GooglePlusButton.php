@@ -33,7 +33,7 @@ class GooglePlusButton extends AuthChoiceItem
      * You may pass an array configuration of the URL here, which will be used creating such
      * default callback.
      */
-    private $callback;
+    private array|string|null $callback = null;
 
     /**
      * Initializes the widget.
@@ -43,7 +43,7 @@ class GooglePlusButton extends AuthChoiceItem
         if (!($this->client instanceof GoogleHybrid)) {
             throw new InvalidConfigException(
                 '"' . static::class . '::$client" must be instance of "' . GoogleHybrid::class . '". "'
-                . get_class($this->client) . '" given.'
+                . $this->client::class . '" given.'
             );
         }
     }
@@ -69,7 +69,7 @@ class GooglePlusButton extends AuthChoiceItem
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
 })();
 JS;
-        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__);
+        $this->view->registerJs($js, WebView::POSITION_END, self::class);
     }
 
     /**
@@ -111,7 +111,7 @@ JS;
     /**
      * @param array|string $callback callback JavaScript function name or URL config.
      */
-    public function setCallback($callback): void
+    public function setCallback(array|string $callback): void
     {
         $this->callback = $callback;
     }
@@ -130,7 +130,7 @@ JS;
         } else {
             $url = Url::to($url);
         }
-        if (strpos($url, '?') === false) {
+        if (!str_contains($url, '?')) {
             $url .= '?';
         } else {
             $url .= '&';
@@ -161,7 +161,7 @@ function $callbackName(authResult); {
     window.location = '$url' + urlParams.join('&');
 }
 JS;
-        $this->view->registerJs($js, WebView::POSITION_END, __CLASS__ . '#' . $this->id);
+        $this->view->registerJs($js, WebView::POSITION_END, self::class . '#' . $this->id);
 
         return $callbackName;
     }

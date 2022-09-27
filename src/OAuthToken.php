@@ -53,7 +53,7 @@ final class OAuthToken
      * @param string $name param name.
      * @param mixed $value param value,
      */
-    public function setParam(string $name, $value): void
+    public function setParam(string $name, mixed $value): void
     {
         $this->params[$name] = $value;
     }
@@ -129,7 +129,7 @@ final class OAuthToken
     {
         $expireDurationParamKey = 'expires_in';
         foreach ($this->getParams() as $name => $value) {
-            if (strpos($name, 'expir') !== false) {
+            if (str_contains($name, 'expir')) {
                 $expireDurationParamKey = $name;
                 break;
             }
@@ -138,17 +138,11 @@ final class OAuthToken
         return $expireDurationParamKey;
     }
 
-    /**
-     * @return array
-     */
     public function getParams(): array
     {
         return $this->params;
     }
 
-    /**
-     * @param array $params
-     */
     public function setParams(array $params): void
     {
         $this->params = $params;

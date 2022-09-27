@@ -77,7 +77,6 @@ class TokenTest extends TestCase
      * @depends      testSetupParamsShortcuts
      * @dataProvider autoFetchExpireDurationDataProvider
      *
-     * @param array $params
      * @param $expectedExpireDuration
      */
     public function testAutoFetchExpireDuration(array $params, $expectedExpireDuration): void

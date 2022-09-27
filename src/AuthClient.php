@@ -52,23 +52,14 @@ abstract class AuthClient implements AuthClientInterface
      */
     protected array $viewOptions;
 
-    protected PsrClientInterface $httpClient;
-
-    protected RequestFactoryInterface $requestFactory;
-
-    /**
-     * @var StateStorageInterface state storage to be used.
-     */
-    private StateStorageInterface $stateStorage;
-
     public function __construct(
-        PsrClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory,
-        StateStorageInterface $stateStorage
+        protected PsrClientInterface $httpClient,
+        protected RequestFactoryInterface $requestFactory,
+        /**
+         * @var StateStorageInterface state storage to be used.
+         */
+        private StateStorageInterface $stateStorage
     ) {
-        $this->httpClient = $httpClient;
-        $this->requestFactory = $requestFactory;
-        $this->stateStorage = $stateStorage;
     }
 
     /**
@@ -224,7 +215,7 @@ abstract class AuthClient implements AuthClientInterface
      *
      * @return $this the object itself
      */
-    protected function setState(string $key, $value): self
+    protected function setState(string $key, mixed $value): self
     {
         $this->stateStorage->set($this->getStateKeyPrefix() . $key, $value);
         return $this;

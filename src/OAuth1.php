@@ -68,7 +68,6 @@ abstract class OAuth1 extends OAuth
     /**
      * Composes user authorization URL.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
      *
      * @return string authorize URL
@@ -92,7 +91,6 @@ abstract class OAuth1 extends OAuth
     /**
      * Fetches the OAuth request token.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
      *
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
@@ -134,8 +132,6 @@ abstract class OAuth1 extends OAuth
      *
      * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set {@see accessToken} will be used.
-     *
-     * @return RequestInterface
      */
     public function signRequest(RequestInterface $request, ?OAuthToken $token = null): RequestInterface
     {
@@ -211,7 +207,7 @@ abstract class OAuth1 extends OAuth
      */
     protected function generateNonce(): string
     {
-        return md5(microtime() . mt_rand());
+        return md5(microtime() . random_int(0, mt_getrandmax()));
     }
 
     /**
@@ -235,7 +231,7 @@ abstract class OAuth1 extends OAuth
      */
     protected function composeSignatureBaseString($method, $url, array $params)
     {
-        if (strpos($url, '?') !== false) {
+        if (str_contains($url, '?')) {
             [$url, $queryString] = explode('?', $url, 2);
             parse_str($queryString, $urlParams);
             $params = array_merge($urlParams, $params);
@@ -292,7 +288,7 @@ abstract class OAuth1 extends OAuth
      */
     public function composeAuthorizationHeader(array $params, $realm = '')
     {
-        $header = 'OAuth';
+        $header = \OAuth::class;
         $headerParams = [];
         if (!empty($realm)) {
             $headerParams[] = 'realm="' . rawurlencode($realm) . '"';
@@ -313,7 +309,6 @@ abstract class OAuth1 extends OAuth
     /**
      * Fetches OAuth access token.
      *
-     * @param ServerRequestInterface $incomingRequest
      * @param string $oauthToken OAuth token returned with redirection back to client.
      * @param OAuthToken $requestToken OAuth request token.
      * @param string $oauthVerifier OAuth verifier.

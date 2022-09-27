@@ -30,14 +30,12 @@ use RuntimeException;
  */
 final class Collection
 {
-    /**
-     * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
-     */
-    private array $clients;
-
-    public function __construct(array $clients)
-    {
-        $this->clients = $clients;
+    public function __construct(
+        /**
+         * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
+         */
+        private array $clients
+    ) {
     }
 
     /**
@@ -77,7 +75,7 @@ final class Collection
         $client = $this->clients[$name];
         if (!($client instanceof AuthClientInterface)) {
             throw new RuntimeException(
-                'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
+                'Client should be ClientInterface instance. "' . $client::class . '" given.'
             );
         }
         return $client;

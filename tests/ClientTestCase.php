@@ -91,9 +91,7 @@ class ClientTestCase extends TestCase
             ],
             [
                 [
-                    'name' => function ($attributes) {
-                        return $attributes['firstName'] . ' ' . $attributes['lastName'];
-                    },
+                    'name' => fn ($attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
                 ],
                 [
                     'firstName' => 'John',
