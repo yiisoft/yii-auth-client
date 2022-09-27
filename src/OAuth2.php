@@ -72,6 +72,7 @@ abstract class OAuth2 extends OAuth
      * Composes user authorization URL.
      *
      * @param array $params additional auth GET params.
+     *
      * @return string authorization URL.
      */
     public function buildAuthUrl(
@@ -116,6 +117,7 @@ abstract class OAuth2 extends OAuth
      *
      * @param string $authCode authorization code, usually comes at GET parameter 'code'.
      * @param array $params additional request params.
+     *
      * @return OAuthToken access token.
      */
     public function fetchAccessToken(
@@ -332,7 +334,7 @@ abstract class OAuth2 extends OAuth
      */
     public function authenticateUserJwt(
         string $username,
-        array|\Yiisoft\Yii\AuthClient\Signature\Signature $signature = null,
+        array|Signature $signature = null,
         array $options = [],
         array $params = []
     ): OAuthToken {
@@ -451,7 +453,6 @@ abstract class OAuth2 extends OAuth
 
     /**
      * Composes default {@see returnUrl} value.
-     *
      *
      * @return string return URL.
      */

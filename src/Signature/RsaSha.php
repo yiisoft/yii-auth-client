@@ -45,7 +45,8 @@ final class RsaSha extends Signature
      *
      * @link http://php.net/manual/en/openssl.signature-algos.php
      */
-    private $algorithm = null)
+    private $algorithm = null
+    )
     {
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');

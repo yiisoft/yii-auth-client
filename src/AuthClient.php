@@ -59,8 +59,7 @@ abstract class AuthClient implements AuthClientInterface
          * @var StateStorageInterface state storage to be used.
          */
         private StateStorageInterface $stateStorage
-    )
-    {
+    ) {
     }
 
     /**

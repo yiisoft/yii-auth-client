@@ -69,6 +69,7 @@ abstract class OAuth1 extends OAuth
      * Composes user authorization URL.
      *
      * @param array $params additional request params.
+     *
      * @return string authorize URL
      */
     public function buildAuthUrl(
@@ -93,6 +94,7 @@ abstract class OAuth1 extends OAuth
      * @param array $params additional request params.
      *
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
+     *
      * @return OAuthToken request token.
      */
     public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = []): OAuthToken
@@ -311,6 +313,7 @@ abstract class OAuth1 extends OAuth
      * @param OAuthToken $requestToken OAuth request token.
      * @param string $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
+     *
      * @return OAuthToken OAuth access token.
      */
     public function fetchAccessToken(

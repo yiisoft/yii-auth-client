@@ -115,8 +115,7 @@ final class AuthAction implements MiddlewareInterface
         private Aliases $aliases,
         private WebView $view,
         private ResponseFactoryInterface $responseFactory
-    )
-    {
+    ) {
     }
 
     /**
@@ -164,6 +163,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
+     *
      * @return ResponseInterface response instance.
      */
     private function auth(AuthClientInterface $client, ServerRequestInterface $request): ResponseInterface
@@ -191,6 +191,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
      * @return ResponseInterface action response.
      */
     private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
@@ -354,6 +355,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws Throwable
      * @throws ViewNotFoundException
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
+     *
      * @return ResponseInterface action response.
      */
     private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
@@ -389,6 +391,7 @@ final class AuthAction implements MiddlewareInterface
      * @throws InvalidConfigException
      * @throws Throwable
      * @throws ViewNotFoundException
+     *
      * @return ResponseInterface action response.
      */
     private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface

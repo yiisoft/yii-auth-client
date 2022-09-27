@@ -124,6 +124,7 @@ final class Facebook extends OAuth2
      *
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
+     *
      * @return string client auth code.
      */
     public function fetchClientAuthCode(

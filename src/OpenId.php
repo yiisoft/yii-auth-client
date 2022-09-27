@@ -406,6 +406,7 @@ abstract class OpenId extends AuthClient
      * Builds authentication URL for the protocol version 2.
      *
      * @param array $serverInfo OpenID server info.
+     *
      * @return string authentication URL.
      */
     protected function buildAuthUrlV2(ServerRequestInterface $incomingRequest, array $serverInfo)
@@ -461,7 +462,6 @@ abstract class OpenId extends AuthClient
 
     /**
      * Generates default {@see returnUrl} value.
-     *
      *
      * @return string default authentication return URL.
      */
@@ -584,6 +584,7 @@ abstract class OpenId extends AuthClient
      * Builds authentication URL for the protocol version 1.
      *
      * @param array $serverInfo OpenID server info.
+     *
      * @return string authentication URL.
      */
     protected function buildAuthUrlV1(ServerRequestInterface $incomingRequest, array $serverInfo)

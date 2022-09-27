@@ -121,7 +121,6 @@ abstract class OAuth extends AuthClient
     /**
      * Composes default {@see returnUrl} value.
      *
-     *
      * @return string return URL.
      */
     protected function defaultReturnUrl(ServerRequestInterface $request): string
@@ -148,7 +147,7 @@ abstract class OAuth extends AuthClient
      *
      * @throws InvalidArgumentException on wrong argument.
      */
-    public function setSignatureMethod(array|\Yiisoft\Yii\AuthClient\Signature\Signature $signatureMethod): void
+    public function setSignatureMethod(array|Signature $signatureMethod): void
     {
         if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
             throw new InvalidArgumentException(
@@ -236,7 +235,6 @@ abstract class OAuth extends AuthClient
      * The created request will be automatically processed adding access token parameters and signature
      * before sending. You may use {@see createRequest()} to gain full control over request composition and execution.
      *
-     *
      * @return RequestInterface HTTP request instance.
      *
      * @see createRequest()
@@ -273,7 +271,7 @@ abstract class OAuth extends AuthClient
      *
      * @param array|OAuthToken $token access token or its configuration.
      */
-    public function setAccessToken(array|\Yiisoft\Yii\AuthClient\OAuthToken $token): void
+    public function setAccessToken(array|OAuthToken $token): void
     {
         if (!is_object($token) && $token !== null) {
             $token = $this->createToken($token);
@@ -328,7 +326,7 @@ abstract class OAuth extends AuthClient
      *
      * @return OAuthToken|object
      */
-    protected function createToken(array $tokenConfig = []): \Yiisoft\Yii\AuthClient\OAuthToken|object
+    protected function createToken(array $tokenConfig = []): OAuthToken|object
     {
         if (!array_key_exists('class', $tokenConfig)) {
             $tokenConfig['class'] = OAuthToken::class;
