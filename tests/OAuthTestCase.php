@@ -95,7 +95,7 @@ class OAuthTestCase extends TestCase
 
         $oauthClient->setAccessToken(['setToken()' => ['token-mock']]);
         $accessToken = $oauthClient->getAccessToken();
-        $this->assertTrue($accessToken instanceof OAuthToken);
+        $this->assertInstanceOf(OAuthToken::class, $accessToken);
         $this->assertEquals('token-mock', $accessToken->getToken());
 
         $oauthClient->setAccessToken(null);
