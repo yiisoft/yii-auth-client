@@ -11,6 +11,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Yiisoft\Di\Container;
+use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth1;
@@ -36,9 +38,13 @@ class OAuth1Test extends TestCase
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
+        $factory = new Factory(
+            new Container(ContainerConfig::create())
+        );
+
         return $this->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(
-                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), $factory]
             )
             ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();
@@ -193,9 +199,13 @@ class OAuth1Test extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
         $httpClient->method('sendRequest')->willReturn($response);
 
+        $factory = new Factory(
+            new Container(ContainerConfig::create())
+        );
+
         $oauthClient = $this->getMockBuilder(OAuth1::class)
             ->setConstructorArgs(
-                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), new Factory()]
+                [$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session()), $factory]
             )
             ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMockForAbstractClass();

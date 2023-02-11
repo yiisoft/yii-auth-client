@@ -76,9 +76,8 @@
             "source-directory": "config"
         },
         "config-plugin": {
-            "common": "common.php",
-            "params": "params.php",
-            "tests": "tests.php"
+            "di": "di.php",
+            "params": "params.php"
         }
     },
     "config": {
