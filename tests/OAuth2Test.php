@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Di\Container;
+use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Factory\Factory;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
@@ -25,9 +27,13 @@ class OAuth2Test extends TestCase
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
 
+        $factory = new Factory(
+            new Container(ContainerConfig::create())
+        );
+
         return $this->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
-                [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), new Factory()]
+                [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), $factory]
             )
             ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
             ->getMock();
