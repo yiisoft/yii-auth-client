@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
 use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
+
 use function dirname;
 
 class RsaShaTest extends TestCase
