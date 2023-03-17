@@ -75,6 +75,7 @@ class TokenTest extends TestCase
 
     /**
      * @depends      testSetupParamsShortcuts
+     *
      * @dataProvider autoFetchExpireDurationDataProvider
      *
      * @param array $params
