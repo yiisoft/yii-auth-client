@@ -128,7 +128,7 @@ final class AuthChoice extends Widget
         }
 
         $this->options['id'] = $this->getId();
-        echo Html::beginTag('div', $this->options);
+        echo Html::tag('div', '', $this->options)->open();
     }
 
     public function getId(): string
@@ -143,13 +143,13 @@ final class AuthChoice extends Widget
      *
      * @return string rendered HTML.
      */
-    public function run(): string
+    public function render(): string
     {
         $content = '';
         if ($this->autoRender) {
             $content .= $this->renderMainContent();
         }
-        $content .= Html::endTag('div');
+        $content .= Html::tag('div')->close();
         return $content;
     }
 
@@ -167,7 +167,8 @@ final class AuthChoice extends Widget
         foreach ($this->getClients() as $externalService) {
             $items[] = Html::tag('li', $this->clientLink($externalService));
         }
-        return Html::tag('ul', implode('', $items), ['class' => 'auth-clients']);
+
+        return Html::tag('ul', implode('', $items), ['class' => 'auth-clients'])->render();
     }
 
     /**
@@ -204,7 +205,7 @@ final class AuthChoice extends Widget
 
         if (empty($viewOptions['widget'])) {
             if ($text === null) {
-                $text = Html::tag('span', '', ['class' => 'auth-icon ' . $client->getName()]);
+                $text = Html::tag('span', '', ['class' => 'auth-icon ' . $client->getName()])->render();
             }
             if (!isset($htmlOptions['class'])) {
                 $htmlOptions['class'] = $client->getName();
@@ -222,7 +223,8 @@ final class AuthChoice extends Widget
                     $htmlOptions['data-popup-height'] = $viewOptions['popupHeight'];
                 }
             }
-            return Html::a($text, $this->createClientUrl($client), $htmlOptions);
+
+            return Html::a($text, $this->createClientUrl($client), $htmlOptions)->render();
         }
 
         $widgetConfig = $viewOptions['widget'];

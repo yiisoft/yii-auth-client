@@ -39,7 +39,7 @@ abstract class OpenId extends AuthClient
      * @var string authentication base URL, which should be used to compose actual authentication URL
      * by {@see buildAuthUrl()} method.
      */
-    private string $authUrl;
+    protected string $authUrl;
     /**
      * @var array list of attributes, which always should be returned from server.
      * Attribute names should be always specified in AX format.
