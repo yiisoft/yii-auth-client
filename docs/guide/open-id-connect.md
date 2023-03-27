@@ -1,7 +1,7 @@
 OpenID Connect
 ==============
 
-This extension provides support for [OpenId Connect](http://openid.net/connect/) authentication protocol via
+This extension provides support for [OpenId Connect](https://openid.net/connect/) authentication protocol via
 [[\Yiisoft\Yii\AuthClient\OpenIdConnect]] class.
 
 Application configuration example:
@@ -27,7 +27,7 @@ Application configuration example:
 
 Authentication workflow is exactly the same as for OAuth2.
 
-**Heads up!** 'OpenID Connect' protocol uses [JWS](http://tools.ietf.org/html/draft-ietf-jose-json-web-signature) verification
+**Heads up!** 'OpenID Connect' protocol uses [JWS](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature) verification
 for the authentication process securing. You will need to install `spomky-labs/jose` library, which is not required by this
 extension by default, in order to use such verification. This can be done via composer:
 

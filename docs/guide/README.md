@@ -1,7 +1,7 @@
 AuthClient Extension for Yii
 ============================
 
-This extension adds [OAuth](http://oauth.net/) and [OAuth2](http://oauth.net/2/) consumers
+This extension adds [OAuth](https://oauth.net/) and [OAuth2](https://oauth.net/2/) consumers
 for the Yii framework 3.0.
 
 
