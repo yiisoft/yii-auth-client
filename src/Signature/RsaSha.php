@@ -13,7 +13,7 @@ use function is_int;
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
  *
- * > **Note:** This class requires PHP "OpenSSL" extension({@link http://php.net/manual/en/book.openssl.php}).
+ * > **Note:** This class requires PHP "OpenSSL" extension({@link https://php.net/manual/en/book.openssl.php}).
  */
 final class RsaSha extends Signature
 {
@@ -28,7 +28,7 @@ final class RsaSha extends Signature
     /**
      * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
      *
-     * @link http://php.net/manual/en/openssl.signature-algos.php
+     * @link https://php.net/manual/en/openssl.signature-algos.php
      */
     private $algorithm;
 

@@ -31,7 +31,7 @@ use Yiisoft\Strings\StringHelper;
  * AX and SREG extensions are supported.
  * To use them, specify {@see requiredAttributes} and/or {@see optionalAttributes}.
  *
- * @link http://openid.net/
+ * @link https://openid.net/
  */
 abstract class OpenId extends AuthClient
 {

@@ -14,10 +14,10 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 /**
  * VKontakte allows authentication via VKontakte OAuth.
  *
- * In order to use VKontakte OAuth you must register your application at <http://vk.com/editapp?act=create>.
+ * In order to use VKontakte OAuth you must register your application at <https://vk.com/editapp?act=create>.
  *
- * @link http://vk.com/editapp?act=create
- * @link http://vk.com/developers.php?oid=-1&p=users.get
+ * @link https://vk.com/editapp?act=create
+ * @link https://vk.com/developers.php?oid=-1&p=users.get
  */
 final class VKontakte extends OAuth2
 {

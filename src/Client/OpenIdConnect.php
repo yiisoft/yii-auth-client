@@ -50,7 +50,7 @@ use function in_array;
  * Note: if you are using well-trusted OpenIdConnect provider, you may disable {@see validateJws}, making installation of
  * `web-token` library redundant, however it is not recommended as it violates the protocol specification.
  *
- * @link http://openid.net/connect/
+ * @link https://openid.net/connect/
  * @see OAuth2
  */
 final class OpenIdConnect extends OAuth2

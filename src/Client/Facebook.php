@@ -34,7 +34,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * ```
  *
  * @link https://developers.facebook.com/apps
- * @link http://developers.facebook.com/docs/reference/api
+ * @link https://developers.facebook.com/docs/reference/api
  */
 final class Facebook extends OAuth2
 {
