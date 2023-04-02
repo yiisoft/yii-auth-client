@@ -27,10 +27,11 @@
         "psr/http-message-implementation": "1.0",
         "psr/log-implementation": "^1.0",
         "psr/simple-cache-implementation": "^1.0",
-        "yiisoft/assets": "^2.0",
+        "yiisoft/assets": "^4.0",
         "yiisoft/json": "^1.0",
-        "yiisoft/session": "^1.0",
-        "yiisoft/widget": "^1.0"
+        "yiisoft/session": "^2.0",
+        "yiisoft/view": "^8.0",
+        "yiisoft/widget": "^2.0"
     },
     "require-dev": {
         "kriswallsmith/buzz": "^1.1",
@@ -42,7 +43,8 @@
         "yiisoft/cache": "^1.0",
         "yiisoft/di": "^1.0",
         "yiisoft/log": "^1.0",
-        "yiisoft/router-fastroute": "^1.0"
+        "yiisoft/router-fastroute": "^1.0",
+        "yiisoft/psr-dummy-provider": "*"
     },
     "suggest": {
         "web-token/jwt-checker": "required for JWS, JWT or JWK related flows like OpenIDConnect",
