@@ -5,15 +5,15 @@
     <a href="https://oauth.net/2/" target="_blank">
         <img src="https://oauth.net/images/oauth-2-sm.png" height="80px">
     </a>
-    <a href="http://openid.net/connect/" target="_blank">
-        <img src="http://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px">
+    <a href="https://openid.net/connect/" target="_blank">
+        <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px">
     </a>
     <h1 align="center">Yii Framework External Authentication Extension</h1>
     <br>
 </p>
 
-This extension adds [OAuth](http://oauth.net/), [OAuth2](http://oauth.net/2/) and [OpenId Connect](http://openid.net/connect/)
-consumers for the [Yii framework](http://www.yiiframework.com).
+This extension adds [OAuth](https://oauth.net/), [OAuth2](https://oauth.net/2/) and [OpenId Connect](https://openid.net/connect/)
+consumers for the [Yii framework](https://www.yiiframework.com).
 
 For license information check the [LICENSE](https://github.com/yiisoft/yii-auth-client/blob/master/LICENSE.md)-file.
 
@@ -31,7 +31,7 @@ Documentation is at [docs/guide/README.md](https://github.com/yiisoft/yii-auth-c
 Installation
 ------------
 
-The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+The preferred way to install this extension is through [composer](https://getcomposer.org/download/).
 
 ```
 composer require --prefer-dist yiisoft/yii-auth-client
