@@ -15,7 +15,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * In order to use Yandex OAuth you must register your application at <https://oauth.yandex.ru/client/new>.
  *
  * @link https://oauth.yandex.ru/client/new
- * @link http://api.yandex.ru/login/doc/dg/reference/response.xml
+ * @link https://api.yandex.ru/login/doc/dg/reference/response.xml
  */
 final class Yandex extends OAuth2
 {

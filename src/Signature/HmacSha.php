@@ -11,14 +11,14 @@ use function function_exists;
 /**
  * HmacSha represents 'HMAC SHA' signature method.
  *
- * > **Note:** This class requires PHP "Hash" extension(<http://php.net/manual/en/book.hash.php>).
+ * > **Note:** This class requires PHP "Hash" extension(<https://php.net/manual/en/book.hash.php>).
  */
 final class HmacSha extends Signature
 {
     /**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
      *
-     * @link http://php.net/manual/ru/function.hash-algos.php
+     * @link https://php.net/manual/ru/function.hash-algos.php
      */
     private string $algorithm;
 

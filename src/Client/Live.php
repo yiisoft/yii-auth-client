@@ -12,7 +12,7 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  * In order to use Microsoft Live OAuth you must register your application at <https://account.live.com/developers/applications>
  *
  * @see https://account.live.com/developers/applications
- * @see http://msdn.microsoft.com/en-us/library/live/hh243647.aspx
+ * @see https://msdn.microsoft.com/en-us/library/live/hh243647.aspx
  */
 final class Live extends OAuth2
 {

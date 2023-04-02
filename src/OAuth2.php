@@ -32,7 +32,7 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
  * $accessToken = $oauthClient->fetchAccessToken($code); // Get access token
  * ```
  *
- * @see http://oauth.net/2/
+ * @see https://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
  */
 abstract class OAuth2 extends OAuth
@@ -240,7 +240,7 @@ abstract class OAuth2 extends OAuth
      * Authenticate OAuth client directly at the provider without third party (user) involved,
      * using 'client_credentials' grant type.
      *
-     * @link http://tools.ietf.org/html/rfc6749#section-4.4
+     * @link https://tools.ietf.org/html/rfc6749#section-4.4
      *
      * @param array $params additional request params.
      *

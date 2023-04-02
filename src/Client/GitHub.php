@@ -31,7 +31,7 @@ use function in_array;
  * ]
  * ```
  *
- * @link http://developer.github.com/v3/oauth/
+ * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
  */
 final class GitHub extends OAuth2

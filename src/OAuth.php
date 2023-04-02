@@ -24,7 +24,7 @@ use function is_object;
 /**
  * BaseOAuth is a base class for the OAuth clients.
  *
- * @link http://oauth.net/
+ * @link https://oauth.net/
  */
 abstract class OAuth extends AuthClient
 {
