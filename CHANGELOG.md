@@ -1,6 +1,5 @@
-# Yii Framework authentication client extension Change Log
+# Yii Framework External Authentication Extension Change Log
 
-1.1.0 under development
------------------------
+## 1.1.0 under development
 
 - Initial release.
