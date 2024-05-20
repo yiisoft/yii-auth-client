@@ -6,7 +6,7 @@ Installation
 In order to install extension use Composer. Either run:
 
 ```
-composer require --prefer-dist yiisoft/yii-auth-client "~3.0.0"
+composer require yiisoft/yii-auth-client "~3.0.0"
 ```
 
 or add

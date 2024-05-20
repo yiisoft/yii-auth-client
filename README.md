@@ -1,12 +1,12 @@
 <p align="center">
     <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://yiisoft.github.io/docs/images/yii_logo.svg" height="100px">
+        <img src="https://yiisoft.github.io/docs/images/yii_logo.svg" height="100px" alt="Yii">
     </a>
     <a href="https://oauth.net/2/" target="_blank">
-        <img src="https://oauth.net/images/oauth-2-sm.png" height="80px">
+        <img src="https://oauth.net/images/oauth-2-sm.png" height="80px" alt="Oauth">
     </a>
     <a href="https://openid.net/connect/" target="_blank">
-        <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px">
+        <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px" alt="OpenId">
     </a>
     <h1 align="center">Yii Framework External Authentication Extension</h1>
     <br>
@@ -38,7 +38,7 @@ composer require yiisoft/yii-auth-client
 
 ## Documentation
 
-- Guide: [English](docs/guide/en/README.md), [Português - Brasil](docs/guide/pt-BR/README.md), [Русский](docs/guide/ru/README.md)
+- Guide: [English](docs/guide/en/README.md), [Русский](docs/guide/ru/README.md)
 - [Internals](docs/internals.md)
 
 If you need help or have a question, the [Yii Forum](https://forum.yiiframework.com/c/yii-3-0/63) is a good place for that.

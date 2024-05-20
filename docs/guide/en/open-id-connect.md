@@ -32,7 +32,7 @@ for the authentication process securing. You will need to install `spomky-labs/j
 extension by default, in order to use such verification. This can be done via composer:
 
 ```
-composer require --prefer-dist "spomky-labs/jose:~5.0.6"
+composer require "spomky-labs/jose:~5.0.6"
 ```
 
 or add
