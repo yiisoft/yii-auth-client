@@ -8,7 +8,7 @@
     <a href="https://openid.net/connect/" target="_blank">
         <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px" alt="OpenId">
     </a>
-    <h1 align="center">Yii Framework External Authentication Extension</h1>
+    <h1 align="center">Yii External Authentication</h1>
     <br>
 </p>
 
@@ -46,7 +46,7 @@ You may also check out other [Yii Community Resources](https://www.yiiframework.
 
 ## License
 
-The Yii Framework External Authentication Extension is free software. It is released under the terms of the BSD License.
+The Yii External Authentication is free software. It is released under the terms of the BSD License.
 Please see [`LICENSE`](./LICENSE.md) for more information.
 
 Maintained by [Yii Software](https://www.yiiframework.com/).
