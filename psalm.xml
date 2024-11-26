@@ -21,10 +21,5 @@
                 <directory name="src"/>
             </errorLevel>
         </PropertyNotSetInConstructor>
-        <OverriddenPropertyAccess>
-            <errorLevel type="suppress">
-                <directory name="src"/>
-            </errorLevel>
-        </OverriddenPropertyAccess>
     </issueHandlers>
 </psalm>
