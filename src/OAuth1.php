@@ -32,7 +32,7 @@ use Yiisoft\Json\Json;
  */
 abstract class OAuth1 extends OAuth
 {
-    private const PROTOCOL_VERSION = '1.0';
+    private const string PROTOCOL_VERSION = '1.0';
 
     /**
      * @var string OAuth consumer key.
@@ -70,7 +70,7 @@ abstract class OAuth1 extends OAuth
      *
      * @param ServerRequestInterface $incomingRequest
      * @param array $params additional request params.
-     *
+     * @psalm-suppress MixedAssignment
      * @return string authorize URL
      */
     public function buildAuthUrl(
@@ -78,9 +78,9 @@ abstract class OAuth1 extends OAuth
         array $params = []
     ): string {
         $requestToken = $this->fetchRequestToken($incomingRequest);
-        if (!is_object($requestToken)) {
+        if (!($requestToken) instanceof OAuthToken) {
             $requestToken = $this->getState('requestToken');
-            if (!is_object($requestToken)) {
+            if (!($requestToken) instanceof OAuthToken) {
                 throw new InvalidArgumentException('Request token is required to build authorize URL!');
             }
         }
@@ -96,12 +96,11 @@ abstract class OAuth1 extends OAuth
      * @param array $params additional request params.
      *
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
      * @return OAuthToken request token.
      */
     public function fetchRequestToken(ServerRequestInterface $incomingRequest, array $params = []): OAuthToken
     {
-        $this->setAccessToken(null);
+        $this->setAccessToken([]);
         $defaultParams = [
             'oauth_consumer_key' => $this->consumerKey,
             'oauth_callback' => $this->getReturnUrl($incomingRequest),
@@ -119,10 +118,15 @@ abstract class OAuth1 extends OAuth
         );
 
         $request = $this->signRequest($request);
-        $response = $this->sendRequest($request);
-
+        $response = $this->sendRequest($request);        
+        
+        /** @psalm-suppress MixedAssignment **/
         $content = Json::decode((string) $response->getBody());
+        /** @psalm-suppress MixedAssignment **/
         $tokenConfig = $content ?: [];
+        /**
+         * @psalm-suppress MixedArgument $tokenConfig
+         */
         $token = $this->createToken($tokenConfig);
         $this->setState('requestToken', $token);
 
@@ -134,7 +138,7 @@ abstract class OAuth1 extends OAuth
      *
      * @param RequestInterface $request request instance.
      * @param OAuthToken|null $token OAuth token to be used for signature, if not set {@see accessToken} will be used.
-     *
+     * @psalm-suppress MixedArgument
      * @return RequestInterface
      */
     public function signRequest(RequestInterface $request, ?OAuthToken $token = null): RequestInterface
@@ -155,12 +159,18 @@ abstract class OAuth1 extends OAuth
         $url = (string)$request->getUri();
 
         $signatureMethod = $this->getSignatureMethod();
-
-        $params['oauth_signature_method'] = $signatureMethod->getName();
-        $signatureBaseString = $this->composeSignatureBaseString($request->getMethod(), $url, $params);
-        $signatureKey = $this->composeSignatureKey($token);
-        $params['oauth_signature'] = $signatureMethod->generateSignature($signatureBaseString, $signatureKey);
-
+        if (null!==$signatureMethod) {
+            /**
+             * @psalm-suppress PossiblyInvalidMethodCall $signatureMethod->getName()
+             */
+            $params['oauth_signature_method'] = $signatureMethod->getName();
+            $signatureBaseString = $this->composeSignatureBaseString($request->getMethod(), $url, $params);
+            $signatureKey = $this->composeSignatureKey($token);
+            /**
+             * @psalm-suppress PossiblyInvalidMethodCall generateSignature
+             */
+            $params['oauth_signature'] = $signatureMethod->generateSignature($signatureBaseString, $signatureKey);
+        }    
         if (
             $this->authorizationHeaderMethods === null || in_array(
                 strtoupper($request->getMethod()),
@@ -172,18 +182,16 @@ abstract class OAuth1 extends OAuth
             )
         ) {
             $authorizationHeader = $this->composeAuthorizationHeader($params);
-            if (!empty($authorizationHeader)) {
-                foreach ($authorizationHeader as $name => $value) {
-                    $request = $request->withHeader($name, $value);
-                }
-
-                // removing authorization header params, avoiding duplicate param server error :
-                foreach ($params as $key => $value) {
-                    if (substr_compare($key, 'oauth', 0, 5) === 0) {
-                        unset($params[$key]);
-                    }
-                }
+            foreach ($authorizationHeader as $name => $value) {
+                $request = $request->withHeader($name, $value);
             }
+
+            // removing authorization header params, avoiding duplicate param server error :
+            foreach ($params as $key => $value) {
+                if (substr_compare($key, 'oauth', 0, 5) === 0) {
+                    unset($params[$key]);
+                }
+            }           
         }
 
         $uri = $request->getUri()->withQuery(http_build_query($params));
@@ -193,7 +201,9 @@ abstract class OAuth1 extends OAuth
     /**
      * Generate common request params like version, timestamp etc.
      *
-     * @return array common request params.
+     * @return (int|string)[]
+     *
+     * @psalm-return array{oauth_version: '1.0', oauth_nonce: string, oauth_timestamp: int<1, max>}
      */
     protected function generateCommonRequestParams(): array
     {
@@ -218,6 +228,8 @@ abstract class OAuth1 extends OAuth
      * Generates timestamp.
      *
      * @return int timestamp.
+     *
+     * @psalm-return int<1, max>
      */
     protected function generateTimestamp(): int
     {
@@ -233,14 +245,21 @@ abstract class OAuth1 extends OAuth
      *
      * @return string base signature string.
      */
-    protected function composeSignatureBaseString($method, $url, array $params)
+    protected function composeSignatureBaseString($method, string $url, array $params): string
     {
+        
         if (strpos($url, '?') !== false) {
+            /**
+             * @psalm-suppress PossiblyUndefinedArrayOffset $queryString
+             */
             [$url, $queryString] = explode('?', $url, 2);
             parse_str($queryString, $urlParams);
             $params = array_merge($urlParams, $params);
         }
         unset($params['oauth_signature']);
+        /**
+         * @psalm-suppress MixedArgumentTypeCoercion 
+         */
         uksort(
             $params,
             'strcmp'
@@ -288,20 +307,26 @@ abstract class OAuth1 extends OAuth
      * @param array $params request params.
      * @param string $realm authorization realm.
      *
-     * @return array authorization header in format: [name => content].
+     * @return string[]
+     *
+     * @psalm-return array{Authorization: string}
      */
-    public function composeAuthorizationHeader(array $params, $realm = '')
+    public function composeAuthorizationHeader(array $params, $realm = ''): array
     {
         $header = 'OAuth';
         $headerParams = [];
         if (!empty($realm)) {
             $headerParams[] = 'realm="' . rawurlencode($realm) . '"';
         }
+        /**
+         * @var string $key
+         * @var string $value
+         */
         foreach ($params as $key => $value) {
             if (substr_compare($key, 'oauth', 0, 5)) {
                 continue;
             }
-            $headerParams[] = rawurlencode((string)$key) . '="' . rawurlencode((string)$value) . '"';
+            $headerParams[] = rawurlencode($key) . '="' . rawurlencode($value) . '"';
         }
         if (!empty($headerParams)) {
             $header .= ' ' . implode(', ', $headerParams);
@@ -318,8 +343,8 @@ abstract class OAuth1 extends OAuth
      * @param OAuthToken $requestToken OAuth request token.
      * @param string $oauthVerifier OAuth verifier.
      * @param array $params additional request params.
-     *
-     * @return OAuthToken OAuth access token.
+     * @psalm-suppress MixedReturnStatement 
+     * @return OAuthToken|array OAuth access token.
      */
     public function fetchAccessToken(
         ServerRequestInterface $incomingRequest,
@@ -327,35 +352,60 @@ abstract class OAuth1 extends OAuth
         OAuthToken $requestToken = null,
         string $oauthVerifier = null,
         array $params = []
-    ): OAuthToken {
+    ): array|OAuthToken {
         $queryParams = $incomingRequest->getQueryParams();
         $bodyParams = $incomingRequest->getParsedBody();
         if ($oauthToken === null) {
+            /**
+             * @psalm-suppress MixedAssignment
+             */
             $oauthToken = $queryParams['oauth_token'] ?? $bodyParams['oauth_token'] ?? null;
         }
 
         if (!is_object($requestToken)) {
+            /**
+             * @psalm-suppress MixedAssignment
+             */
             $requestToken = $this->getState('requestToken');
             if (!is_object($requestToken)) {
                 throw new InvalidArgumentException('Request token is required to fetch access token!');
             }
         }
-
-        if (strcmp($requestToken->getToken(), $oauthToken) !== 0) {
-            throw new InvalidArgumentException('Invalid auth state parameter.');
-        }
+        
+        /**
+         * @psalm-suppress MixedAssignment
+         * @psalm-suppress MixedArgument
+         */
+        if (null!==$oauthToken) {
+            /**
+             * @psalm-suppress MixedMethodCall
+             */
+            $getRequestToken = $requestToken->getToken();
+            if (null!==$getRequestToken) {
+                if (strcmp($getRequestToken, $oauthToken) !== 0) {
+                    throw new InvalidArgumentException('Invalid auth state parameter.');
+                }
+            }    
+        }    
 
         $this->removeState('requestToken');
-
+        
+        /**
+         * @psalm-suppress MixedMethodCall
+         */
         $defaultParams = [
-            'oauth_consumer_key' => $this->consumerKey,
+            'oauth_consumer_key' => $this->consumerKey,            
             'oauth_token' => $requestToken->getToken(),
         ];
         if ($oauthVerifier === null) {
+            /**
+             * @var string|null $queryParams['oauth_verifier']
+             * @var string $bodyParams['oauth_verifier']
+             */
             $oauthVerifier = $queryParams['oauth_verifier'] ?? $bodyParams['oauth_verifier'];
         }
-
-        if (!empty($oauthVerifier)) {
+        
+        if (strlen($oauthVerifier) > 0) {
             $defaultParams['oauth_verifier'] = $oauthVerifier;
         }
 
@@ -364,17 +414,23 @@ abstract class OAuth1 extends OAuth
             RequestUtil::composeUrl($this->accessTokenUrl, array_merge($defaultParams, $params))
         );
 
+        /**
+         * @psalm-suppress ArgumentTypeCoercion $requestToken
+         */
         $request = $this->signRequest($request, $requestToken);
 
         $request = $this->signRequest($request);
         $response = $this->sendRequest($request);
 
+        /**
+         * @psalm-suppress MixedAssignment
+         */
         $token = $this->createToken(
             [
                 'setParams()' => [Json::decode($response->getBody()->getContents())],
             ]
         );
-        $this->setAccessToken($token);
+        $this->setAccessToken($token);    
 
         return $token;
     }
@@ -394,80 +450,10 @@ abstract class OAuth1 extends OAuth
      *
      * @return OAuthToken new auth token.
      */
-    public function refreshAccessToken(?OAuthToken $token = null): OAuthToken
+    public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         // @todo
         return $token;
-    }
-
-    public function getConsumerKey(): string
-    {
-        return $this->consumerKey;
-    }
-
-    public function setConsumerKey(string $consumerKey): void
-    {
-        $this->consumerKey = $consumerKey;
-    }
-
-    public function getConsumerSecret(): string
-    {
-        return $this->consumerSecret;
-    }
-
-    public function setConsumerSecret(string $consumerSecret): void
-    {
-        $this->consumerSecret = $consumerSecret;
-    }
-
-    public function getRequestTokenUrl(): string
-    {
-        return $this->requestTokenUrl;
-    }
-
-    public function setRequestTokenUrl(string $requestTokenUrl): void
-    {
-        $this->requestTokenUrl = $requestTokenUrl;
-    }
-
-    public function getRequestTokenMethod(): string
-    {
-        return $this->requestTokenMethod;
-    }
-
-    public function setRequestTokenMethod(string $requestTokenMethod): void
-    {
-        $this->requestTokenMethod = $requestTokenMethod;
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        return $this->accessTokenUrl;
-    }
-
-    public function setAccessTokenUrl(string $accessTokenUrl): void
-    {
-        $this->accessTokenUrl = $accessTokenUrl;
-    }
-
-    public function getAccessTokenMethod(): string
-    {
-        return $this->accessTokenMethod;
-    }
-
-    public function setAccessTokenMethod(string $accessTokenMethod): void
-    {
-        $this->accessTokenMethod = $accessTokenMethod;
-    }
-
-    public function getAuthorizationHeaderMethods(): ?array
-    {
-        return $this->authorizationHeaderMethods;
-    }
-
-    public function setAuthorizationHeaderMethods(?array $authorizationHeaderMethods = null): void
-    {
-        $this->authorizationHeaderMethods = $authorizationHeaderMethods;
     }
 
     /**

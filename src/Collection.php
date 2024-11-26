@@ -41,27 +41,6 @@ final class Collection
     }
 
     /**
-     * @return AuthClientInterface[] list of auth clients.
-     */
-    public function getClients(): array
-    {
-        $clients = [];
-        foreach ($this->clients as $name => $client) {
-            $clients[$name] = $this->getClient($name);
-        }
-
-        return $clients;
-    }
-
-    /**
-     * @param array $clients list of auth clients indexed by their names
-     */
-    public function setClients(array $clients): void
-    {
-        $this->clients = $clients;
-    }
-
-    /**
      * @param string $name client name
      *
      * @throws InvalidArgumentException on non existing client request.
@@ -77,7 +56,7 @@ final class Collection
         $client = $this->clients[$name];
         if (!($client instanceof AuthClientInterface)) {
             throw new RuntimeException(
-                'Client should be ClientInterface instance. "' . get_class($client) . '" given.'
+                'The Client should be a ClientInterface.'
             );
         }
         return $client;

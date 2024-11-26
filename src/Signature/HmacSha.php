@@ -22,20 +22,17 @@ final class HmacSha extends Signature
      */
     private string $algorithm;
 
-    public function __construct(string $algorithm)
-    {
-        if (!function_exists('hash_hmac')) {
-            throw new NotSupportedException('PHP "Hash" extension is required.');
-        }
-
-        $this->algorithm = $algorithm;
-    }
-
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return 'HMAC-' . strtoupper($this->algorithm);
     }
 
+    /**
+     * @return string
+     */
     public function generateSignature(string $baseString, string $key): string
     {
         return base64_encode(hash_hmac($this->algorithm, $baseString, $key, true));

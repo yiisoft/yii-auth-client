@@ -29,11 +29,17 @@ final class TwitterOAuth2 extends OAuth2
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
-        return $request->withHeader('Authorization', 'Bearer ' . $accessToken->getToken());
+        $accessToken = $accessToken->getToken();
+        if (null!==$accessToken) {
+            return $request->withHeader('Authorization', 'Bearer ' . $accessToken);
+        }
+        return $request;
     }
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'twitter'
      */
     public function getName(): string
     {
@@ -42,6 +48,8 @@ final class TwitterOAuth2 extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'Twitter'
      */
     public function getTitle(): string
     {

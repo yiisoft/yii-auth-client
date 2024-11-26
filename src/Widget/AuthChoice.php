@@ -13,13 +13,12 @@ use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
-use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
  * It opens a popup window for the client authentication process.
- * By default this widget relies on presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
+ * By default this widget relies on the presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
  * to get auth clients information.
  *
  * Example:
@@ -47,19 +46,19 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * <?php AuthChoice::end(); ?>
  * ```
  *
- * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
+ * This widget supports the following keys for {@see AuthClientInterface::getViewOptions()} result:
  *
  *  - popupWidth: int, width of the popup window in pixels.
  *  - popupHeight: int, height of the popup window in pixels.
  *  - widget: array, configuration for the widget, which should be used to render a client link;
- *    such widget should be a subclass of {@see AuthChoiceItem}.
+ *    such a widget should be a subclass of {@see AuthChoiceItem}.
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
  */
 final class AuthChoice extends Widget
 {
     /**
-     * @var string name of the GET param , which should be used to passed auth client id to URL
+     * @var string name of the GET param , which should be used to be passed auth client id to URL
      * defined by {@see baseAuthUrl}.
      */
     private string $clientIdGetParamName = 'authclient';
@@ -94,19 +93,6 @@ final class AuthChoice extends Widget
     private UrlGeneratorInterface $urlGenerator;
     private WebView $webView;
     private AssetManager $assetManager;
-
-    public function __construct(
-        Collection $clientCollection,
-        UrlGeneratorInterface $urlGenerator,
-        WebView $webView,
-        AssetManager $assetManager
-    ) {
-        $this->clients = $clientCollection->getClients();
-        $this->urlGenerator = $urlGenerator;
-        $this->webView = $webView;
-        $this->assetManager = $assetManager;
-        $this->init();
-    }
 
     /**
      * Initializes the widget.
@@ -180,14 +166,6 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param AuthClientInterface[] $clients auth providers
-     */
-    public function setClients(array $clients): void
-    {
-        $this->clients = $clients;
-    }
-
-    /**
      * Outputs client auth link.
      *
      * @param AuthClientInterface $client external auth client instance.
@@ -217,9 +195,17 @@ final class AuthChoice extends Widget
 
             if ($this->popupMode) {
                 if (isset($viewOptions['popupWidth'])) {
+                    /**
+                     * @var int $viewOptions['popupWidth']
+                     * @var int $htmlOptions['data-popup-width']
+                     */
                     $htmlOptions['data-popup-width'] = $viewOptions['popupWidth'];
                 }
                 if (isset($viewOptions['popupHeight'])) {
+                     /**
+                     * @var int $viewOptions['popupHeight']
+                     * @var int $htmlOptions['data-popup-height']
+                     */
                     $htmlOptions['data-popup-height'] = $viewOptions['popupHeight'];
                 }
             }
@@ -227,12 +213,14 @@ final class AuthChoice extends Widget
             return Html::a($text, $this->createClientUrl($client), $htmlOptions)->render();
         }
 
-        $widgetConfig = $viewOptions['widget'];
+        $widgetConfig = (array)$viewOptions['widget'];
         if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
-        /* @var $widgetClass Widget */
         $widgetClass = $widgetConfig['class'];
+        /**
+         * @psalm-suppress MixedArgument $widgetClass
+         */
         if (!is_subclass_of($widgetClass, AuthChoiceItem::class)) {
             throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
         }
@@ -256,16 +244,5 @@ final class AuthChoice extends Widget
         $params[$this->clientIdGetParamName] = $client->getName();
 
         return $this->urlGenerator->generate($this->authRoute, $params);
-    }
-
-    /**
-     * @param string $authRoute
-     *
-     * @return self
-     */
-    public function authRoute(string $authRoute): self
-    {
-        $this->authRoute = $authRoute;
-        return $this;
     }
 }

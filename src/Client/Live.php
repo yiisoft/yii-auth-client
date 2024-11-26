@@ -22,6 +22,8 @@ final class Live extends OAuth2
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'live'
      */
     public function getName(): string
     {
@@ -30,12 +32,19 @@ final class Live extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'Live'
      */
     public function getTitle(): string
     {
         return 'Live';
     }
 
+    /**
+     * @return string
+     *
+     * @psalm-return 'wl.basic wl.emails'
+     */
     protected function getDefaultScope(): string
     {
         return 'wl.basic wl.emails';

@@ -22,11 +22,6 @@ interface AuthClientInterface
     public function getTitle(): string;
 
     /**
-     * @return array list of user attributes
-     */
-    public function getUserAttributes(): array;
-
-    /**
      * @return array view options in format: optionName => optionValue
      */
     public function getViewOptions(): array;

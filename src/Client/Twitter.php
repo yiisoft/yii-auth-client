@@ -42,6 +42,8 @@ final class Twitter extends OAuth1
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'twitter'
      */
     public function getName(): string
     {
@@ -50,6 +52,8 @@ final class Twitter extends OAuth1
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'Twitter'
      */
     public function getTitle(): string
     {

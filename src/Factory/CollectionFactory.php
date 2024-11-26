@@ -16,9 +16,18 @@ class CollectionFactory
         $this->clients = $clients;
     }
 
+    /**
+     * @param ContainerInterface $container
+     * @return Collection
+     * @throws \InvalidArgumentException
+     * @psalm-suppress MixedAssignment
+     */
     public function __invoke(ContainerInterface $container): Collection
     {
         $clients = [];
+        /**
+         * @var string $client
+         */
         foreach ($this->clients as $name => $client) {
             if (!is_string($name)) {
                 throw new \InvalidArgumentException('Client name must be set.');

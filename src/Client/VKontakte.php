@@ -24,22 +24,7 @@ final class VKontakte extends OAuth2
     protected string $authUrl = 'https://oauth.vk.com/authorize';
     protected string $tokenUrl = 'https://oauth.vk.com/access_token';
     protected string $endpoint = 'https://api.vk.com/method';
-    /**
-     * @var array list of attribute names, which should be requested from API to initialize user attributes.
-     */
-    private array $attributeNames = [
-        'uid',
-        'first_name',
-        'last_name',
-        'nickname',
-        'screen_name',
-        'sex',
-        'bdate',
-        'city',
-        'country',
-        'timezone',
-        'photo',
-    ];
+    
     /**
      * @var string the API version to send in the API request.
      *
@@ -61,6 +46,8 @@ final class VKontakte extends OAuth2
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'vkontakte'
      */
     public function getName(): string
     {
@@ -69,6 +56,8 @@ final class VKontakte extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'VKontakte'
      */
     public function getTitle(): string
     {
@@ -81,7 +70,21 @@ final class VKontakte extends OAuth2
             'users.get.json',
             'GET',
             [
-                'fields' => implode(',', $this->attributeNames),
+                'fields' => implode(',', 
+                    [
+                        'uid', 
+                        'first_name',
+                        'last_name',
+                        'nickname',
+                        'screen_name',
+                        'sex',
+                        'bdate',
+                        'city',
+                        'country',
+                        'timezone',
+                        'photo',
+                    ]
+                ),
             ]
         );
 
@@ -90,19 +93,29 @@ final class VKontakte extends OAuth2
                 'Unable to init user attributes due to unexpected response: ' . Json::encode($response)
             );
         }
-
+        /**
+         * @psalm-suppress MixedAssignment $aattributes
+         * @psalm-suppress MixedArgument $response['response']
+         */
         $attributes = array_shift($response['response']);
+        if (is_array($attributes)) {
+            $accessToken = $this->getAccessToken();
+            if (is_object($accessToken)) {
+                $accessTokenParams = $accessToken->getParams();
+                unset($accessTokenParams['access_token'], $accessTokenParams['expires_in']);
+                $attributes = array_merge($accessTokenParams, $attributes);
+            }
 
-        $accessToken = $this->getAccessToken();
-        if (is_object($accessToken)) {
-            $accessTokenParams = $accessToken->getParams();
-            unset($accessTokenParams['access_token'], $accessTokenParams['expires_in']);
-            $attributes = array_merge($accessTokenParams, $attributes);
+            return $attributes;
         }
-
-        return $attributes;
+        return [];
     }
 
+    /**
+     * @return string[]
+     *
+     * @psalm-return array{id: 'uid'}
+     */
     protected function defaultNormalizeUserAttributeMap(): array
     {
         return [

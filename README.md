@@ -5,9 +5,6 @@
     <a href="https://oauth.net/2/" target="_blank">
         <img src="https://oauth.net/images/oauth-2-sm.png" height="80px" alt="Oauth">
     </a>
-    <a href="https://openid.net/connect/" target="_blank">
-        <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px" alt="OpenId">
-    </a>
     <h1 align="center">Yii External Authentication</h1>
     <br>
 </p>
@@ -26,18 +23,31 @@ consumers for the [Yii framework](https://www.yiiframework.com).
 
 ## Requirements
 
-- PHP 7.4 or higher.
+- PHP 8.3 or higher.
 
 ## Installation
 
 The package could be installed with [Composer](https://getcomposer.org):
 
 ```shell
-composer require yiisoft/yii-auth-client
+composer require rossaddison/yii-auth-client
 ```
 
 ## Documentation
 
+26th November 2024
+Purpose for this fork: Introduce external authentication into rossaddison/invoice
+- Due to the archiving of nov/jose-php, openId Connect, has been removed from this fork
+  to allow the use and testing of other clients such as: 
+    Facebook, Google, Github, LinkedIn, 
+    Live, Twitter, TwitterOAuth2, 
+    VKontakt, and Yandex.
+- This fork is being tested currently and is psalm level 1 statically built and tested only.
+- 3 issue handlers are currently in the psalm.xml and can be removed independently to see relevant errors
+  by running e.g c:\wamp64\www\yii-auth-client\php ./vendor/bin/psalm
+- A suitable php substitute will hopefully be introduced later for nov/jose-php.
+- Due to the archiving of yiisoft/yii-jquery,  a cdn for jquery has been introduced into 
+  src/Asset/AuthChoiceAsset.php
 - Guide: [English](docs/guide/en/README.md), [Русский](docs/guide/ru/README.md)
 - [Internals](docs/internals.md)
 

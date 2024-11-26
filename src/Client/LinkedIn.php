@@ -23,17 +23,7 @@ final class LinkedIn extends OAuth2
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v1';
-    /**
-     * @var array list of attribute names, which should be requested from API to initialize user attributes.
-     */
-    private array $attributeNames = [
-        'id',
-        'email-address',
-        'first-name',
-        'last-name',
-        'public-profile-url',
-    ];
-
+    
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -46,6 +36,8 @@ final class LinkedIn extends OAuth2
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'linkedin'
      */
     public function getName(): string
     {
@@ -54,17 +46,29 @@ final class LinkedIn extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'LinkedIn'
      */
     public function getTitle(): string
     {
         return 'LinkedIn';
     }
 
+    /**
+     * @return string
+     *
+     * @psalm-return 'r_basicprofile r_emailaddress'
+     */
     protected function getDefaultScope(): string
     {
         return 'r_basicprofile r_emailaddress';
     }
 
+    /**
+     * @return string[]
+     *
+     * @psalm-return array{email: 'email-address', first_name: 'first-name', last_name: 'last-name'}
+     */
     protected function defaultNormalizeUserAttributeMap(): array
     {
         return [
@@ -76,6 +80,14 @@ final class LinkedIn extends OAuth2
 
     protected function initUserAttributes(): array
     {
-        return $this->api('people/~:(' . implode(',', $this->attributeNames) . ')', 'GET');
+        return $this->api('people/~:(' . implode(',', 
+            [
+                'id',
+                'email-address',
+                'first-name',
+                'last-name',
+                'public-profile-url'
+            ]
+        ) . ')', 'GET');
     }
 }

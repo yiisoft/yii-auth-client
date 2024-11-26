@@ -1,10 +1,9 @@
 {
-    "name": "yiisoft/yii-auth-client",
-    "description": "Yii Framework external authentication via OAuth and OpenID Extension",
+    "name": "rossaddison/yii-auth-client",
+    "description": "Yii Framework external authentication via OAuth",
     "keywords": [
         "yii",
         "OAuth",
-        "OpenID Connect",
         "auth",
         "api"
     ],
@@ -55,14 +54,6 @@
         "yiisoft/log": "^2.0",
         "yiisoft/router-fastroute": "^3.0",
         "yiisoft/psr-dummy-provider": "*"
-    },
-    "suggest": {
-        "web-token/jwt-checker": "required for JWS, JWT or JWK related flows like OpenIDConnect",
-        "web-token/jwt-key-mgmt": "required for JWS, JWT or JWK related flows like OpenIDConnect",
-        "web-token/jwt-signature": "required for JWS, JWT or JWK related flows like OpenIDConnect",
-        "web-token/jwt-signature-algorithm-hmac": "required for JWS, JWT or JWK related flows like OpenIDConnect",
-        "web-token/jwt-signature-algorithm-ecdsa": "required for JWS, JWT or JWK related flows like OpenIDConnect",
-        "web-token/jwt-signature-algorithm-rsa": "required for JWS, JWT or JWK related flows like OpenIDConnect"
     },
     "repositories": [
         {

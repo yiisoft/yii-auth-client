@@ -65,10 +65,12 @@ final class AuthAction implements MiddlewareInterface
      */
     private string $clientIdGetParamName = 'authclient';
     /**
-     * @var callable PHP callback, which should be triggered in case of successful authentication.
+     * @psalm-param TCallableString $successCallback PHP callback, which should be triggered in case of successful authentication.
+     *
+     * @see https://psalm.dev/docs/running_psalm/plugins/plugins_type_system/
      * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
-     *
+
      * ```php
      * public function onAuthSuccess(ClientInterface $client)
      * {
@@ -76,32 +78,38 @@ final class AuthAction implements MiddlewareInterface
      *     // user login or signup comes here
      * }
      * ```
-     *
+
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see successUrl} will be performed.
+     *
+     * @var callable
      */
     private $successCallback;
     /**
-     * @var callable PHP callback, which should be triggered in case of authentication cancellation.
+     * @psalm-param TCallableString $cancelCallback PHP callback, which should be triggered in case of authentication cancellation.
+     *
+     * @see https://psalm.dev/docs/running_psalm/plugins/plugins_type_system/
      * This callback should accept {@see AuthClientInterface} instance as an argument.
      * For example:
-     *
+
      * ```php
      * public function onAuthCancel(ClientInterface $client)
      * {
      *     // set flash, logging, etc.
      * }
      * ```
-     *
+
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see cancelUrl} will be performed.
+     *
+     * @var callable
      */
     private $cancelCallback;
     /**
      * @var string name or alias of the view file, which should be rendered in order to perform redirection.
      * If not set - default one will be used.
      */
-    private string $redirectView;
+    private ?string $redirectView = null;
 
     /**
      * @var string the redirect url after successful authorization.
@@ -115,46 +123,10 @@ final class AuthAction implements MiddlewareInterface
     private Aliases $aliases;
     private WebView $view;
 
-    public function __construct(
-        Collection $clientCollection,
-        Aliases $aliases,
-        WebView $view,
-        ResponseFactoryInterface $responseFactory
-    ) {
-        $this->clientCollection = $clientCollection;
-        $this->responseFactory = $responseFactory;
-        $this->aliases = $aliases;
-        $this->view = $view;
-    }
-
-    /**
-     * @param string $url successful URL.
-     *
-     * @return AuthAction
-     */
-    public function withSuccessUrl(string $url): self
-    {
-        $new = clone $this;
-        $new->successUrl = $url;
-        return $new;
-    }
-
-    /**
-     * @param string $url cancel URL.
-     *
-     * @return AuthAction
-     */
-    public function withCancelUrl(string $url): self
-    {
-        $new = clone $this;
-        $new->cancelUrl = $url;
-        return $new;
-    }
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $clientId = $request->getAttribute($this->clientIdGetParamName);
-        if (!empty($clientId)) {
+        $clientId = (string)$request->getAttribute($this->clientIdGetParamName);
+        if (strlen($clientId) > 0) {
             if (!$this->clientCollection->hasClient($clientId)) {
                 return $this->responseFactory->createResponse(Status::NOT_FOUND, "Unknown auth client '{$clientId}'");
             }
@@ -184,17 +156,12 @@ final class AuthAction implements MiddlewareInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
+        } elseif ($client instanceof OAuth1) {
+            return $this->authOAuth1($client, $request);        
+        } else { 
+            throw new NotSupportedException('Provider is not supported.');
         }
-
-        if ($client instanceof OAuth1) {
-            return $this->authOAuth1($client, $request);
-        }
-
-        if ($client instanceof OpenId) {
-            return $this->authOpenId($client, $request);
-        }
-
-        throw new NotSupportedException('Provider "' . get_class($client) . '" is not supported.');
+        
     }
 
     /**
@@ -213,13 +180,15 @@ final class AuthAction implements MiddlewareInterface
     {
         $queryParams = $request->getQueryParams();
 
-        if (isset($queryParams['error']) && ($error = $queryParams['error']) !== null) {
+        if (isset($queryParams['error']) && (strlen($error = (string)$queryParams['error']) > 0)) {
             if ($error === 'access_denied') {
                 // user denied error
                 return $this->authCancel($client);
             }
-            // request error
-            $errorMessage = $queryParams['error_description'] ?? $queryParams['error_message'] ?? null;
+            /**
+             * @var null|string $queryParams['error_description']
+             */
+            $errorMessage = $queryParams['error_description'] ?? ((string)$queryParams['error_message'] ?: null);
             if ($errorMessage === null) {
                 $errorMessage = http_build_query($queryParams);
             }
@@ -227,15 +196,14 @@ final class AuthAction implements MiddlewareInterface
         }
 
         // Get the access_token and save them to the session.
-        if (isset($queryParams['code']) && ($code = $queryParams['code']) !== null) {
+        if (isset($queryParams['code']) && (strlen($code = (string)$queryParams['code']) > 0)) {
             $token = $client->fetchAccessToken($request, $code);
-            if (!empty($token->getToken())) {
+            if (strlen($token->getToken() ?? '') > 0) {
                 return $this->authSuccess($client);
             }
             return $this->authCancel($client);
         }
-
-        $url = $client->buildAuthUrl($request);
+        $url = $client->buildAuthUrl($request, []);
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
             ->withHeader('Location', $url);
@@ -258,7 +226,9 @@ final class AuthAction implements MiddlewareInterface
                 '"' . self::class . '::$successCallback" should be a valid callback.'
             );
         }
-
+        /**
+         * @var ResponseInterface $response
+         */
         $response = ($this->cancelCallback)($client);
         if ($response instanceof ResponseInterface) {
             return $response;
@@ -311,7 +281,12 @@ final class AuthAction implements MiddlewareInterface
         ];
 
         $response = $this->responseFactory->createResponse();
-        $response->getBody()->write($this->view->renderFile($viewFile, $viewData));
+        
+        /**
+         * renderFile changes to render
+         * @see https://github.com/search?q=repo%3Ayiisoft%2Fview%20renderFIle&type=code
+         */
+        $response->getBody()->write($this->view->render($viewFile, $viewData));
 
         return $response;
     }
@@ -334,7 +309,10 @@ final class AuthAction implements MiddlewareInterface
                 '"' . self::class . '::$successCallback" should be a valid callback.'
             );
         }
-
+        
+        /**
+         * @psalm-suppress MixedAssignment
+         */
         $response = ($this->successCallback)($client);
         if ($response instanceof ResponseInterface) {
             return $response;
@@ -382,61 +360,28 @@ final class AuthAction implements MiddlewareInterface
         if (isset($queryParams['denied']) && $queryParams['denied'] !== null) {
             return $this->authCancel($client);
         }
-
-        if (($oauthToken = $queryParams['oauth_token'] ?? $request->getParsedBody()['oauth_token'] ?? null) !== null) {
-            // Upgrade to access token.
+        
+        $queryParamsOAuthToken = (string)($queryParams['oauth_token'] ?? '');
+        $parsedBodyOAuthToken = null;
+        $body = $request->getParsedBody() ?? [];
+        if (is_array($body)) {
+            $parsedBodyOAuthToken = (string)$body['oauth_token'];
+        }
+        if (strlen($queryParamsOAuthToken) > 0) {
+            $oauthToken = $queryParamsOAuthToken;            
             $client->fetchAccessToken($request, $oauthToken);
             return $this->authSuccess($client);
-        }
+        } elseif (null!==$parsedBodyOAuthToken) {
+            $oauthToken = $parsedBodyOAuthToken;            
+            $client->fetchAccessToken($request, $oauthToken);
+            return $this->authSuccess($client);
+        } 
 
-        // Get request token.
-        $requestToken = $client->fetchRequestToken($request);
         // Get authorization URL.
-        $url = $client->buildAuthUrl($requestToken);
+        $url = $client->buildAuthUrl($request);
         // Redirect to authorization URL.
         return $this->responseFactory
             ->createResponse(Status::MOVED_PERMANENTLY)
             ->withHeader('Location', $url);
-    }
-
-    /**
-     * Performs OpenID auth flow.
-     *
-     * @param OpenId $client auth client instance.
-     * @param ServerRequestInterface $request
-     *
-     * @throws InvalidConfigException
-     * @throws Throwable
-     * @throws ViewNotFoundException
-     *
-     * @return ResponseInterface action response.
-     */
-    private function authOpenId(OpenId $client, ServerRequestInterface $request): ResponseInterface
-    {
-        $queryParams = $request->getQueryParams();
-        $bodyParams = $request->getParsedBody();
-        $mode = $queryParams['openid_mode'] ?? $bodyParams['openid_mode'] ?? null;
-
-        if (empty($mode)) {
-            return $this->responseFactory
-                ->createResponse(Status::MOVED_PERMANENTLY)
-                ->withHeader('Location', $client->buildAuthUrl($request));
-        }
-
-        switch ($mode) {
-            case 'id_res':
-                if ($client->validate()) {
-                    return $this->authSuccess($client);
-                }
-                $response = $this->responseFactory->createResponse(Status::BAD_REQUEST);
-                $response->getBody()->write(
-                    'Unable to complete the authentication because the required data was not received.'
-                );
-                return $response;
-            case 'cancel':
-                return $this->authCancel($client);
-            default:
-                return $this->responseFactory->createResponse(Status::BAD_REQUEST);
-        }
     }
 }

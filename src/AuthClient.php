@@ -9,11 +9,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-
-use function is_array;
-use function is_callable;
 
 /**
  * AuthClient is a base Auth Client class.
@@ -22,10 +18,7 @@ use function is_callable;
  */
 abstract class AuthClient implements AuthClientInterface
 {
-    /**
-     * @var array authenticated user attributes.
-     */
-    protected array $userAttributes = [];
+
     /**
      * @var array map used to normalize user attributes fetched from external auth service
      * in format: normalizedAttributeName => sourceSpecification
@@ -47,8 +40,9 @@ abstract class AuthClient implements AuthClientInterface
      * ```
      */
     protected array $normalizeUserAttributeMap = [];
+    
     /**
-     * @var array view options in format: optionName => optionValue
+     * @var array $viewOptions view options in format: optionName => optionValue
      */
     protected array $viewOptions;
 
@@ -61,91 +55,12 @@ abstract class AuthClient implements AuthClientInterface
      */
     private StateStorageInterface $stateStorage;
 
-    public function __construct(
-        PsrClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory,
-        StateStorageInterface $stateStorage
-    ) {
-        $this->httpClient = $httpClient;
-        $this->requestFactory = $requestFactory;
-        $this->stateStorage = $stateStorage;
-    }
-
-    /**
-     * @throws InvalidConfigException
-     *
-     * @return array list of user attributes
-     */
-    public function getUserAttributes(): array
-    {
-        if ($this->userAttributes === null) {
-            $this->userAttributes = $this->normalizeUserAttributes($this->initUserAttributes());
-        }
-
-        return $this->userAttributes;
-    }
-
-    /**
-     * @param array $userAttributes list of user attributes
-     *
-     * @throws InvalidConfigException
-     */
-    public function setUserAttributes(array $userAttributes): void
-    {
-        $this->userAttributes = $this->normalizeUserAttributes($userAttributes);
-    }
-
-    /**
-     * Normalize given user attributes according to {@see normalizeUserAttributeMap}.
-     *
-     * @param array $attributes raw attributes.
-     *
-     * @throws InvalidConfigException on incorrect normalize attribute map.
-     *
-     * @return array normalized attributes.
-     */
-    protected function normalizeUserAttributes(array $attributes): array
-    {
-        foreach ($this->getNormalizeUserAttributeMap() as $normalizedName => $actualName) {
-            if (is_scalar($actualName)) {
-                if (array_key_exists($actualName, $attributes)) {
-                    $attributes[$normalizedName] = $attributes[$actualName];
-                }
-            } elseif (is_callable($actualName)) {
-                $attributes[$normalizedName] = $actualName($attributes);
-            } elseif (is_array($actualName)) {
-                $haystack = $attributes;
-                $searchKeys = $actualName;
-                $isFound = true;
-                while (($key = array_shift($searchKeys)) !== null) {
-                    if (is_array($haystack) && array_key_exists($key, $haystack)) {
-                        $haystack = $haystack[$key];
-                    } else {
-                        $isFound = false;
-                        break;
-                    }
-                }
-                if ($isFound) {
-                    $attributes[$normalizedName] = $haystack;
-                }
-            } else {
-                throw new InvalidConfigException(
-                    'Invalid actual name "' . gettype($actualName) . '" specified at "' . static::class
-
-                    . '::normalizeUserAttributeMap"'
-                );
-            }
-        }
-
-        return $attributes;
-    }
-
     /**
      * @return array normalize user attribute map.
      */
     public function getNormalizeUserAttributeMap(): array
     {
-        if ($this->normalizeUserAttributeMap === null) {
+        if (empty($this->normalizeUserAttributeMap)) {
             $this->normalizeUserAttributeMap = $this->defaultNormalizeUserAttributeMap();
         }
 
@@ -153,18 +68,12 @@ abstract class AuthClient implements AuthClientInterface
     }
 
     /**
-     * @param array $normalizeUserAttributeMap normalize user attribute map.
-     */
-    public function setNormalizeUserAttributeMap(array $normalizeUserAttributeMap): void
-    {
-        $this->normalizeUserAttributeMap = $normalizeUserAttributeMap;
-    }
-
-    /**
      * Returns the default {@see normalizeUserAttributeMap} value.
      * Particular client may override this method in order to provide specific default map.
      *
      * @return array normalize attribute map.
+     *
+     * @psalm-return array<never, never>
      */
     protected function defaultNormalizeUserAttributeMap(): array
     {
@@ -172,18 +81,11 @@ abstract class AuthClient implements AuthClientInterface
     }
 
     /**
-     * Initializes authenticated user attributes.
-     *
-     * @return array auth user attributes.
-     */
-    abstract protected function initUserAttributes(): array;
-
-    /**
      * @return array view options in format: optionName => optionValue
      */
     public function getViewOptions(): array
     {
-        if ($this->viewOptions === null) {
+        if (empty($this->viewOptions)) {
             $this->viewOptions = $this->defaultViewOptions();
         }
 
@@ -191,22 +93,19 @@ abstract class AuthClient implements AuthClientInterface
     }
 
     /**
-     * @param array $viewOptions view options in format: optionName => optionValue
-     */
-    public function setViewOptions(array $viewOptions): void
-    {
-        $this->viewOptions = $viewOptions;
-    }
-
-    /**
      * Returns the default {@see viewOptions} value.
      * Particular client may override this method in order to provide specific default view options.
      *
      * @return array list of default {@see viewOptions}
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
     protected function defaultViewOptions(): array
     {
-        return [];
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
     }
 
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
@@ -247,7 +146,7 @@ abstract class AuthClient implements AuthClientInterface
      *
      * @return mixed state value.
      */
-    protected function getState(string $key)
+    protected function getState(string $key) : mixed
     {
         return $this->stateStorage->get($this->getStateKeyPrefix() . $key);
     }
@@ -262,7 +161,7 @@ abstract class AuthClient implements AuthClientInterface
         $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }
 
-    protected function sendRequest(RequestInterface $request): ResponseInterface
+    protected function sendRequest(RequestInterface $request) : ResponseInterface
     {
         return $this->httpClient->sendRequest($request);
     }

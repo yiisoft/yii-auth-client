@@ -9,6 +9,11 @@ namespace Yiisoft\Yii\AuthClient\Signature;
  */
 final class PlainText extends Signature
 {
+    /**
+     * @return string
+     *
+     * @psalm-return 'PLAINTEXT'
+     */
     public function getName(): string
     {
         return 'PLAINTEXT';

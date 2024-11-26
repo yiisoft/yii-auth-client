@@ -30,7 +30,7 @@ final class RsaSha extends Signature
      *
      * @link https://php.net/manual/en/openssl.signature-algos.php
      */
-    private $algorithm;
+    private int|string $algorithm;
 
     /**
      * @var string|null OpenSSL private key certificate content.
@@ -43,7 +43,7 @@ final class RsaSha extends Signature
      */
     private ?string $publicCertificate = null;
 
-    public function __construct($algorithm = null)
+    public function __construct(int|string $algorithm)
     {
         $this->algorithm = $algorithm;
 
@@ -68,6 +68,9 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
@@ -90,7 +93,7 @@ final class RsaSha extends Signature
         } else {
             $algorithmName = strtoupper($this->algorithm);
         }
-        return 'RSA-' . $algorithmName;
+        return 'RSA-' . (string)$algorithmName;
     }
 
     public function generateSignature(string $baseString, string $key): string

@@ -24,6 +24,8 @@ class Google extends OAuth2
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'google'
      */
     public function getName(): string
     {
@@ -32,12 +34,19 @@ class Google extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'Google'
      */
     public function getTitle(): string
     {
         return 'Google';
     }
 
+    /**
+     * @return string
+     *
+     * @psalm-return 'profile email'
+     */
     protected function getDefaultScope(): string
     {
         return 'profile email';

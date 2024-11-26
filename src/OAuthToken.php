@@ -32,45 +32,10 @@ final class OAuthToken
      */
     private array $params = [];
 
-    public function __construct()
-    {
-        $this->createTimestamp = time();
-    }
-
     /**
-     * Sets token value.
-     *
-     * @param string $token token value.
-     */
-    public function setToken(string $token): void
-    {
-        $this->setParam($this->tokenParamKey, $token);
-    }
-
-    /**
-     * Sets param by name.
-     *
-     * @param string $name param name.
-     * @param mixed $value param value,
-     */
-    public function setParam(string $name, $value): void
-    {
-        $this->params[$name] = $value;
-    }
-
-    /**
-     * Sets the token secret value.
-     *
-     * @param string $tokenSecret token secret.
-     */
-    public function setTokenSecret(string $tokenSecret): void
-    {
-        $this->setParam($this->tokenSecretParamKey, $tokenSecret);
-    }
-
-    /**
-     * Returns the token secret value.
-     *
+     * Returns the token secret value.     
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
      * @return string token secret value.
      */
     public function getTokenSecret(): string
@@ -85,19 +50,9 @@ final class OAuthToken
      *
      * @return mixed param value.
      */
-    public function getParam(string $name)
+    public function getParam(string $name) : mixed
     {
         return $this->params[$name] ?? null;
-    }
-
-    /**
-     * Sets token expire duration.
-     *
-     * @param int $expireDuration token expiration duration.
-     */
-    public function setExpireDuration(int $expireDuration): void
-    {
-        $this->setParam($this->getExpireDurationParamKey(), $expireDuration);
     }
 
     /**
@@ -113,14 +68,6 @@ final class OAuthToken
     }
 
     /**
-     * @param string $expireDurationParamKey expire duration param key.
-     */
-    public function setExpireDurationParamKey(string $expireDurationParamKey): void
-    {
-        $this->expireDurationParamKey = $expireDurationParamKey;
-    }
-
-    /**
      * Fetches default expire duration param key.
      *
      * @return string expire duration param key.
@@ -128,7 +75,10 @@ final class OAuthToken
     protected function defaultExpireDurationParamKey(): string
     {
         $expireDurationParamKey = 'expires_in';
-        foreach ($this->getParams() as $name => $value) {
+        /**
+         * @var string $name
+         */
+        foreach ($this->getParams() as $name) {
             if (strpos($name, 'expir') !== false) {
                 $expireDurationParamKey = $name;
                 break;
@@ -147,14 +97,6 @@ final class OAuthToken
     }
 
     /**
-     * @param array $params
-     */
-    public function setParams(array $params): void
-    {
-        $this->params = $params;
-    }
-
-    /**
      * Checks if token is valid.
      *
      * @return bool is token valid.
@@ -163,13 +105,13 @@ final class OAuthToken
     {
         $token = $this->getToken();
 
-        return !empty($token) && !$this->getIsExpired();
+        return strlen($token ?? '') > 0 && !$this->getIsExpired();
     }
 
     /**
      * Returns token value.
-     *
-     * @return string token value.
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
      */
     public function getToken(): ?string
     {
@@ -184,7 +126,7 @@ final class OAuthToken
     public function getIsExpired(): bool
     {
         $expirationDuration = $this->getExpireDuration();
-        if ($expirationDuration === null) {
+        if (!is_int($expirationDuration)) {
             return false;
         }
 
@@ -194,15 +136,10 @@ final class OAuthToken
     /**
      * Returns the token expiration duration.
      *
-     * @return int|null token expiration duration.
+     * return mixed token expiration duration.
      */
-    public function getExpireDuration(): ?int
+    public function getExpireDuration(): mixed
     {
         return $this->getParam($this->getExpireDurationParamKey());
-    }
-
-    public function getCreateTimestamp(): int
-    {
-        return $this->createTimestamp;
     }
 }

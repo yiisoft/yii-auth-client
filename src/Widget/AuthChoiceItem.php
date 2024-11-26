@@ -13,12 +13,6 @@ use Yiisoft\Yii\AuthClient\AuthClientInterface;
  */
 abstract class AuthChoiceItem extends Widget
 {
-    /**
-     * @var AuthClientInterface auth client instance.
-     */
-    public AuthClientInterface $client;
-    /**
-     * @var AuthChoice parent AuthChoice widget
-     */
-    public AuthChoice $authChoice;
+
+
 }

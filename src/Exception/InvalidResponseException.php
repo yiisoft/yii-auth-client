@@ -18,6 +18,7 @@ class InvalidResponseException extends RuntimeException
      */
     private ResponseInterface $response;
 
+
     /**
      * Constructor.
      *
@@ -26,14 +27,9 @@ class InvalidResponseException extends RuntimeException
      * @param int $code error code
      * @param Throwable $previous The previous exception used for the exception chaining.
      */
-    public function __construct($response, $message = null, $code = 0, Throwable $previous = null)
+    public function __construct(ResponseInterface $response, string $message, $code = 0, Throwable $previous = null)
     {
         $this->response = $response;
         parent::__construct($message, $code, $previous);
-    }
-
-    public function getResponse(): ResponseInterface
-    {
-        return $this->response;
     }
 }

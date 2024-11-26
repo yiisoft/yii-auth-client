@@ -13,9 +13,13 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 /**
  * Facebook allows authentication via Facebook OAuth.
  *
- * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps>.
+ * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps> or redirect to
+ * https://business.facebook.com/business/loginpage/?next=https%3A%2F%2Fdevelopers.facebook.com%2Fapps
  *
  * Example application configuration:
+ * 
+ * config/common/params.php
+ * ['yiisoft/yii-auth-client']['clients']
  *
  * ```php
  * 'components' => [
@@ -41,13 +45,6 @@ final class Facebook extends OAuth2
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
-    /**
-     * @var array list of attribute names, which should be requested from API to initialize user attributes.
-     */
-    private array $attributeNames = [
-        'name',
-        'email',
-    ];
     protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
@@ -67,18 +64,20 @@ final class Facebook extends OAuth2
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
-
         $params = [];
-        if (($machineId = $accessToken->getParam('machine_id')) !== null) {
+        if ((!empty($machineId = (string)$accessToken->getParam('machine_id')))) {
             $params['machine_id'] = $machineId;
         }
-        $params['appsecret_proof'] = hash_hmac('sha256', $accessToken->getToken(), $this->clientSecret);
+        $token = $accessToken->getToken();
+        if (null!==$token) {
+            $params['appsecret_proof'] = hash_hmac('sha256', $token, $this->clientSecret);
+        }
         return RequestUtil::addParams($request, $params);
     }
 
-    public function fetchAccessToken(ServerRequestInterface $request, $authCode, array $params = []): OAuthToken
+    public function fetchAccessToken(ServerRequestInterface $incomingRequest, $authCode, array $params = []): OAuthToken
     {
-        $token = parent::fetchAccessToken($request, $authCode, $params);
+        $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
         if ($this->autoExchangeAccessToken) {
             $token = $this->exchangeAccessToken($token);
         }
@@ -98,7 +97,7 @@ final class Facebook extends OAuth2
      */
     public function exchangeAccessToken(OAuthToken $token): OAuthToken
     {
-        $params = [
+        [
             'grant_type' => 'fb_exchange_token',
             'fb_exchange_token' => $token->getToken(),
         ];
@@ -120,13 +119,14 @@ final class Facebook extends OAuth2
      * to avoid triggering Facebook's automated spam systems.
      *
      * @link https://developers.facebook.com/docs/facebook-login/access-tokens/expiration-and-extension
+     *
      * @see fetchClientAccessToken()
      *
      * @param ServerRequestInterface $incomingRequest
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
      *
-     * @return string client auth code.
+     * @return numeric-string client auth code.
      */
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
@@ -136,15 +136,15 @@ final class Facebook extends OAuth2
         if ($token === null) {
             $token = $this->getAccessToken();
         }
-
-        $params = array_merge(
-            [
-                'access_token' => $token->getToken(),
-                'redirect_uri' => $this->getReturnUrl($incomingRequest),
-            ],
-            $params
-        );
-
+        if (null!==$token) {
+            $params = array_merge(
+                [
+                    'access_token' => $token->getToken(),
+                    'redirect_uri' => $this->getReturnUrl($incomingRequest),
+                ],
+                $params
+            );
+        }    
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl);
         $request = RequestUtil::addParams($request, $params);
 
@@ -152,9 +152,7 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        // TODO: parse response!
-
-        return $response['code'];
+        return (string)$response->getStatusCode();
     }
 
     /**
@@ -198,6 +196,8 @@ final class Facebook extends OAuth2
 
     /**
      * @return string service name.
+     *
+     * @psalm-return 'facebook'
      */
     public function getName(): string
     {
@@ -206,6 +206,8 @@ final class Facebook extends OAuth2
 
     /**
      * @return string service title.
+     *
+     * @psalm-return 'Facebook'
      */
     public function getTitle(): string
     {
@@ -218,11 +220,16 @@ final class Facebook extends OAuth2
             'me',
             'GET',
             [
-                'fields' => implode(',', $this->attributeNames),
+                'fields' => implode(',', ['name', 'email']),
             ]
         );
     }
 
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
     protected function defaultViewOptions(): array
     {
         return [
@@ -231,6 +238,11 @@ final class Facebook extends OAuth2
         ];
     }
 
+    /**
+     * @return string
+     *
+     * @psalm-return 'email'
+     */
     protected function getDefaultScope(): string
     {
         return 'email';
