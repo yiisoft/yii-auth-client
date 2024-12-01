@@ -61,6 +61,33 @@ final class Collection
         }
         return $client;
     }
+    
+    /**
+     * @return AuthClientInterface[] list of auth clients.
+     */
+    public function getClients(): array
+    {
+        $clients = [];
+        /**
+         * @psalm-suppress MixedAssignment  Unable to determine the type that $client is being assigned to
+         */
+        foreach ($this->clients as $name => $client) {
+            /**
+             * @psalm-suppress  MixedArgumentTypeCoercion - getClient expects string, but parent type array-key provided
+             */
+            $clients[$name] = $this->getClient($name);
+        }
+
+        return $clients;
+    }
+    
+    /**
+     * @param array $clients list of auth clients indexed by their names
+     */
+    public function setClients(array $clients): void
+    {
+        $this->clients = $clients;
+    }
 
     /**
      * Checks if client exists in the hub.

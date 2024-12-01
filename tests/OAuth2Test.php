@@ -10,13 +10,15 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Di\Container;
 use Yiisoft\Di\ContainerConfig;
-use Yiisoft\Factory\Factory;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class OAuth2Test extends TestCase
 {
+    protected SessionInterface $session;
+    
     /**
      * Creates test OAuth2 client instance.
      *
@@ -25,17 +27,23 @@ class OAuth2Test extends TestCase
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+       
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
-
-        $factory = new Factory(
+        
+        $yiisoftFactory = new YiisoftFactory(
             new Container(ContainerConfig::create())
         );
-
+        
+        $session = $this->getMockBuilder(Session::class)->getMock();
+        
+        $sessionStateStorage = new SessionStateStorage($session);
+                
         return $this->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
-                [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), $factory]
+                [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
             )
-            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->addMethods(['initUserAttributes'])    
+            ->onlyMethods(['getName', 'getTitle'])
             ->getMock();
     }
 

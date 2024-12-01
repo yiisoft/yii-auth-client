@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Factory\Factory;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-use Yiisoft\Yii\AuthClient\Signature\Signature;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
 use function is_object;
@@ -52,12 +53,41 @@ abstract class OAuth extends AuthClient
      * @var array|OAuthToken|null access token instance or its array configuration.
      */
     protected $accessToken = null;
+               
+    protected YiisoftFactory $factory;
     /**
-     * @var array|Signature|null signature method instance or its array configuration.
+     * BaseOAuth constructor.
+     *
+     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
+     * @param StateStorageInterface $stateStorage
+     * @param YiisoftFactory $factory
      */
-    protected array|Signature|null $signatureMethod = null;
-    private Factory $factory;
-
+    public function __construct(
+        \Psr\Http\Client\ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage,
+        YiisoftFactory $factory
+    ) {
+        $this->factory = $factory;
+        parent::__construct($httpClient, $requestFactory, $stateStorage);
+    }
+    
+    public function setYiisoftFactory(YiisoftFactory $factory) : void
+    {
+        $this->factory = $factory;
+    }
+    
+    public function getYiisoftFactory() : YiisoftFactory
+    {
+        return $this->factory;
+    }
+    
+    public function setAuthUrl(string $authUrl): void
+    {
+        $this->authUrl = $authUrl;
+    }
+    
     /**
      * @param ServerRequestInterface $request
      *
@@ -82,46 +112,7 @@ abstract class OAuth extends AuthClient
     {
         return (string)$request->getUri();
     }
-
-    /**
-     * @return Signature|null|array signature method instance.
-     */
-    public function getSignatureMethod(): Signature|null|array
-    {
-        $signatureMethod = $this->signatureMethod;
-        if ((!($signatureMethod) instanceof Signature) && (null!== $signatureMethod)) {
-            $this->signatureMethod = $this->createSignatureMethod($signatureMethod);
-        }
-
-        return $this->signatureMethod;
-    }
-
-    /**
-     * Creates signature method instance from its configuration.
-     * @param array $signatureMethodConfig
-     * @psalm-suppress InvalidReturnType
-     */
-    protected function createSignatureMethod(array $signatureMethodConfig): Signature|null|array
-    {
-        if (!array_key_exists('class', $signatureMethodConfig)) {
-            $signatureMethodConfig['class'] = HmacSha::class;
-            $signatureMethodConfig['__construct()'] = ['sha1'];
-        }
-        /**
-         * @psalm-suppress MixedAssignment
-         */
-        $signature = $this->factory->create($signatureMethodConfig);
-        if ($signature instanceof Signature) {
-            return $signature;
-        }
-        if (is_array($signature)) {
-            return $signature;
-        }
-        if (null==$signature) {
-            return null;
-        }
-    }
-
+    
     /**
      * Performs request to the OAuth API returning response data.
      * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
@@ -209,7 +200,7 @@ abstract class OAuth extends AuthClient
      */
     public function setAccessToken(array|OAuthToken $token): void
     {
-        if (is_array($token)) {
+        if (is_array($token) && !empty($token)) {
             /**
              * @psalm-suppress MixedAssignment $newToken
              */
@@ -279,12 +270,12 @@ abstract class OAuth extends AuthClient
      * @psalm-suppress MixedReturnStatement
      * @psalm-suppress MixedInferredReturnType OAuthToken
      */
-    protected function createToken(array $tokenConfig = []) : OAuthToken
+    protected function createToken(array $tokenConfig) : OAuthToken
     {
         if (!array_key_exists('class', $tokenConfig)) {
-            $tokenConfig['class'] = OAuthToken::class;
+            $tokenConfig['class'] = '\Yiisoft\Yii\AuthClient\OAuthToken';
         }
-        return $this->factory->create($tokenConfig);
+        return $this->factory->create($tokenConfig['class']);
     }
 
     /**
@@ -294,7 +285,7 @@ abstract class OAuth extends AuthClient
      *
      * @return $this the object itself.
      */
-    protected function saveAccessToken($token): self
+    protected function saveAccessToken(OAuthToken $token = null): self
     {
         return $this->setState('token', $token);
     }

@@ -79,12 +79,16 @@ class TokenTest extends TestCase
      * @dataProvider autoFetchExpireDurationDataProvider
      *
      * @param array $params
-     * @param $expectedExpireDuration
+     * @param int $expectedExpireDuration
      */
-    public function testAutoFetchExpireDuration(array $params, $expectedExpireDuration): void
+    public function testAutoFetchExpireDuration(array $params, int $expectedExpireDuration): void
     {
         $oauthToken = new OAuthToken();
         $oauthToken->setParams($params);
+        /**
+         * If the key has at least 'expir' in it, use the key.
+         * All the different keys in the above array have expir in them so use the key
+         */
         $this->assertEquals($expectedExpireDuration, $oauthToken->getExpireDuration());
     }
 
@@ -96,9 +100,13 @@ class TokenTest extends TestCase
         $oauthToken = new OAuthToken();
         $expireDuration = 3600;
         $oauthToken->setExpireDuration($expireDuration);
-
+        /**
+         * The token cannot be expired because the expire duration has just been set
+         */
         $this->assertFalse($oauthToken->getIsExpired(), 'Not expired token check fails!');
-
+        /**
+         * A negative expire duration subtracted from the current timestamp will yield an expired token
+         */
         $oauthToken->setExpireDuration(-$expireDuration);
         $this->assertTrue($oauthToken->getIsExpired(), 'Expired token check fails!');
     }

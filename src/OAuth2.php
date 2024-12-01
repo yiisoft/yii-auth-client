@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
  *
- * In oder to acquire access token perform following sequence:
+ * In order to acquire an access token perform the following sequence:
  *
  * ```php
  * use Yiisoft\Yii\AuthClient\OAuth2;
@@ -36,6 +39,8 @@ abstract class OAuth2 extends OAuth
      * @var string OAuth client ID.
      */
     protected string $clientId;
+        
+    protected YiisoftFactory $factory;
     /**
      * @var string OAuth client secret.
      */
@@ -44,6 +49,8 @@ abstract class OAuth2 extends OAuth
      * @var string token request URL endpoint.
      */
     protected string $tokenUrl;
+    
+    protected ?string $returnUrl;
     /**
      * @var bool whether to use and validate auth 'state' parameter in authentication flow.
      * If enabled - the opaque value will be generated and applied to auth URL to maintain
@@ -52,7 +59,27 @@ abstract class OAuth2 extends OAuth
      * The option is used for preventing cross-site request forgery.
      */
     protected bool $validateAuthState = true;
-    private SessionInterface $session;
+    protected SessionInterface $session;
+    
+    /**
+     * BaseOAuth constructor.
+     *
+     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
+     * @param StateStorageInterface $stateStorage
+     * @param YiisoftFactory $factory
+     */
+    public function __construct(
+        \Psr\Http\Client\ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+        StateStorageInterface $stateStorage,
+        YiisoftFactory $factory,
+        SessionInterface $session,    
+    ) {
+        $this->factory = $factory;
+        $this->session = $session;
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $factory);
+    }
 
     /**
      * Composes user authorization URL.
@@ -192,7 +219,22 @@ abstract class OAuth2 extends OAuth
 
         return parent::createToken($tokenConfig);
     }
-
+    
+    public function setClientId(string $clientId) : void
+    {
+        $this->clientId = $clientId;
+    }
+    
+    public function getClientId() : string
+    {
+        return $this->clientId;
+    }
+    
+    public function setReturnUrl(?string $returnUrl) : void
+    {
+        $this->returnUrl = $returnUrl;
+    }
+    
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(

@@ -31,7 +31,12 @@ final class OAuthToken
      * @var array token parameters.
      */
     private array $params = [];
-
+    
+    public function __construct()
+    {
+        $this->createTimestamp = time();
+    }
+    
     /**
      * Returns the token secret value.     
      * @psalm-suppress MixedReturnStatement
@@ -40,7 +45,17 @@ final class OAuthToken
      */
     public function getTokenSecret(): string
     {
-        return $this->getParam($this->tokenSecretParamKey);
+        return $this->getParam($this->tokenSecretParamKey ?: 'oauth_token_secret');
+    }   
+    
+    /**
+     * Sets token value.
+     *
+     * @param string $token token value.
+     */
+    public function setToken(string $token): void
+    {
+        $this->setParam($this->tokenParamKey  ?: 'oauth_token', $token);
     }
 
     /**
@@ -55,6 +70,16 @@ final class OAuthToken
         return $this->params[$name] ?? null;
     }
 
+    /**
+     * Sets token expire duration.
+     *
+     * @param int $expireDuration token expiration duration.
+     */
+    public function setExpireDuration(int $expireDuration): void
+    {
+        $this->setParam($this->getExpireDurationParamKey(), $expireDuration);
+    }
+    
     /**
      * @return string expire duration param key.
      */
@@ -76,15 +101,15 @@ final class OAuthToken
     {
         $expireDurationParamKey = 'expires_in';
         /**
-         * @var string $name
+         * @var mixed $value
          */
-        foreach ($this->getParams() as $name) {
-            if (strpos($name, 'expir') !== false) {
-                $expireDurationParamKey = $name;
+        foreach ($this->getParams() as $name => $value) {
+            if (strpos((string)$name, 'expir') === false) {
+            } else {
+                $expireDurationParamKey = (string)$name;
                 break;
             }
         }
-
         return $expireDurationParamKey;
     }
 
@@ -94,6 +119,35 @@ final class OAuthToken
     public function getParams(): array
     {
         return $this->params;
+    }
+    
+    /**
+     * Sets param by name.
+     *
+     * @param string $name param name.
+     * @param mixed $value param value,
+     */
+    public function setParam(string $name, mixed $value): void
+    {
+        $this->params[$name] = $value;
+    }
+    
+    /**
+     * Sets the token secret value.
+     *
+     * @param string $tokenSecret token secret.
+     */
+    public function setTokenSecret(string $tokenSecret): void
+    {
+        $this->setParam($this->tokenSecretParamKey ?: 'oauth_token_secret', $tokenSecret);
+    }
+    
+    /**
+     * @param array $params
+     */
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
     }
 
     /**
@@ -140,6 +194,6 @@ final class OAuthToken
      */
     public function getExpireDuration(): mixed
     {
-        return $this->getParam($this->getExpireDurationParamKey());
+            return $this->getParam($this->getExpireDurationParamKey());
     }
 }

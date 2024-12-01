@@ -54,6 +54,26 @@ abstract class AuthClient implements AuthClientInterface
      * @var StateStorageInterface state storage to be used.
      */
     private StateStorageInterface $stateStorage;
+    
+    public function __construct(
+        PsrClientInterface $httpClient, 
+        RequestFactoryInterface $requestFactory, 
+        StateStorageInterface $stateStorage
+    ){
+        $this->httpClient = $httpClient;
+        $this->requestFactory = $requestFactory;
+        $this->stateStorage = $stateStorage;
+    }
+    
+    public function setRequestFactory(RequestFactoryInterface $requestFactory) : void 
+    {
+        $this->requestFactory = $requestFactory;
+    }    
+    
+    public function getRequestFactory() : RequestFactoryInterface
+    {
+        return $this->requestFactory;
+    }    
 
     /**
      * @return array normalize user attribute map.

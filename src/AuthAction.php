@@ -156,8 +156,6 @@ final class AuthAction implements MiddlewareInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
-        } elseif ($client instanceof OAuth1) {
-            return $this->authOAuth1($client, $request);        
         } else { 
             throw new NotSupportedException('Provider is not supported.');
         }
@@ -337,51 +335,5 @@ final class AuthAction implements MiddlewareInterface
             $url = $this->successUrl;
         }
         return $this->redirect($url);
-    }
-
-    /**
-     * Performs OAuth1 auth flow.
-     *
-     * @param OAuth1 $client auth client instance.
-     * @param ServerRequestInterface $request
-     *
-     * @throws InvalidConfigException
-     * @throws Throwable
-     * @throws ViewNotFoundException
-     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
-     * @return ResponseInterface action response.
-     */
-    private function authOAuth1(OAuth1 $client, ServerRequestInterface $request): ResponseInterface
-    {
-        $queryParams = $request->getQueryParams();
-
-        // user denied error
-        if (isset($queryParams['denied']) && $queryParams['denied'] !== null) {
-            return $this->authCancel($client);
-        }
-        
-        $queryParamsOAuthToken = (string)($queryParams['oauth_token'] ?? '');
-        $parsedBodyOAuthToken = null;
-        $body = $request->getParsedBody() ?? [];
-        if (is_array($body)) {
-            $parsedBodyOAuthToken = (string)$body['oauth_token'];
-        }
-        if (strlen($queryParamsOAuthToken) > 0) {
-            $oauthToken = $queryParamsOAuthToken;            
-            $client->fetchAccessToken($request, $oauthToken);
-            return $this->authSuccess($client);
-        } elseif (null!==$parsedBodyOAuthToken) {
-            $oauthToken = $parsedBodyOAuthToken;            
-            $client->fetchAccessToken($request, $oauthToken);
-            return $this->authSuccess($client);
-        } 
-
-        // Get authorization URL.
-        $url = $client->buildAuthUrl($request);
-        // Redirect to authorization URL.
-        return $this->responseFactory
-            ->createResponse(Status::MOVED_PERMANENTLY)
-            ->withHeader('Location', $url);
-    }
+    }    
 }
