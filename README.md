@@ -9,11 +9,7 @@
     <br>
 </p>
 
-[![Latest Stable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v/stable.png)](https://packagist.org/packages/rossaddison/yii-auth-client)
-[![Total Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/downloads.png)](https://packagist.org/packages/rossaddison/yii-auth-client)
 [![Build status](https://github.com/rossaddison/yii-auth-client/workflows/build/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3Abuild)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/rossaddison/yii-auth-client/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/rossaddison/yii-auth-client/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/rossaddison/yii-auth-client/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/rossaddison/yii-auth-client/?branch=master)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Frossaddison%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/rossaddison/yii-auth-client/master)
 [![static analysis](https://github.com/rossaddison/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
 ![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)
