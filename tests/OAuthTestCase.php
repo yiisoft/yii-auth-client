@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests;
 
+use GuzzleHttp\Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory;
@@ -30,7 +30,7 @@ class OAuthTestCase extends TestCase
      */
     protected function createClient()
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient = $this->getMockBuilder(Client::class)->getMock();
 
         return $this->getMockBuilder(OAuth::class)
             ->setConstructorArgs(

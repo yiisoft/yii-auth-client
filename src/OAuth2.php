@@ -38,7 +38,7 @@ abstract class OAuth2 extends OAuth
     /**
      * @var string OAuth client ID.
      */
-    protected string $clientId;
+    protected string $clientId = '';
         
     protected YiisoftFactory $factory;
     /**
@@ -50,7 +50,7 @@ abstract class OAuth2 extends OAuth
      */
     protected string $tokenUrl;
     
-    protected ?string $returnUrl;
+    protected string $returnUrl = '';
     /**
      * @var bool whether to use and validate auth 'state' parameter in authentication flow.
      * If enabled - the opaque value will be generated and applied to auth URL to maintain
@@ -64,13 +64,13 @@ abstract class OAuth2 extends OAuth
     /**
      * BaseOAuth constructor.
      *
-     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param \GuzzleHttp\Client $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
      * @param YiisoftFactory $factory
      */
     public function __construct(
-        \Psr\Http\Client\ClientInterface $httpClient,
+        \GuzzleHttp\Client $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         YiisoftFactory $factory,
@@ -230,7 +230,17 @@ abstract class OAuth2 extends OAuth
         return $this->clientId;
     }
     
-    public function setReturnUrl(?string $returnUrl) : void
+     public function setClientSecret(string $clientSecret) : void
+    {
+        $this->clientSecret = $clientSecret;
+    }
+    
+    public function getClientSecret() : string
+    {
+        return $this->clientSecret;
+    }
+    
+    public function setReturnUrl(string $returnUrl) : void
     {
         $this->returnUrl = $returnUrl;
     }
@@ -260,6 +270,7 @@ abstract class OAuth2 extends OAuth
         $params = array_merge($token->getParams(), $params);
 
         $request = $this->createRequest('POST', $this->tokenUrl);
+        
         $request = RequestUtil::addParams($request, $params);
 
         $request = $this->applyClientCredentialsToRequest($request);

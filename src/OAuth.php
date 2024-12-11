@@ -48,7 +48,7 @@ abstract class OAuth extends AuthClient
      * Note: this should be absolute URL (with http:// or https:// leading).
      * By default current URL will be used.
      */
-    protected ?string $returnUrl = null;
+    protected string $returnUrl = '';
     /**
      * @var array|OAuthToken|null access token instance or its array configuration.
      */
@@ -58,13 +58,13 @@ abstract class OAuth extends AuthClient
     /**
      * BaseOAuth constructor.
      *
-     * @param \Psr\Http\Client\ClientInterface $httpClient
+     * @param \GuzzleHttp\Client $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
      * @param YiisoftFactory $factory
      */
     public function __construct(
-        \Psr\Http\Client\ClientInterface $httpClient,
+        \GuzzleHttp\Client $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         YiisoftFactory $factory
@@ -95,7 +95,7 @@ abstract class OAuth extends AuthClient
      */
     public function getReturnUrl(ServerRequestInterface $request): string
     {
-        if ($this->returnUrl === null) {
+        if ($this->returnUrl === '') {
             $this->returnUrl = $this->defaultReturnUrl($request);
         }
         return $this->returnUrl;

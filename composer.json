@@ -29,6 +29,7 @@
     ],
     "require": {
         "php": "^8.3",
+        "guzzlehttp/guzzle": "^7.2", 
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
         "psr/http-factory-implementation": "1.0",
