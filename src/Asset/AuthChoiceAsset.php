@@ -14,6 +14,10 @@ use Yiisoft\Assets\AssetBundle;
 class AuthChoiceAsset extends AssetBundle
 {
     public ?string $sourcePath = __DIR__ . '../../resources/assets';
+    
+    /**
+     * @psalm-suppress NonInvariantDocblockPropertyType $js
+     */
     public array $js = [
         'authchoice.js',
         // omit the version completely to get the latest one
