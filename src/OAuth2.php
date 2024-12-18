@@ -9,26 +9,13 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
-use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
- *
- * In order to acquire an access token perform the following sequence:
- *
- * ```php
- * use Yiisoft\Yii\AuthClient\OAuth2;
- *
- * // assuming class MyAuthClient extends OAuth2
- * $oauthClient = new MyAuthClient();
- * $url = $oauthClient->buildAuthUrl(); // Build authorization URL
- * Yii::getApp()->getResponse()->redirect($url); // Redirect to authorization URL.
- * // After user returns at our site:
- * $code = Yii::getApp()->getRequest()->get('code');
- * $accessToken = $oauthClient->fetchAccessToken($code); // Get access token
- * ```
  *
  * @see https://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
@@ -47,10 +34,12 @@ abstract class OAuth2 extends OAuth
     protected string $clientSecret;
     /**
      * @var string token request URL endpoint.
+     * @see e.g. 'https://github.com/login/oauth/access_token'
      */
     protected string $tokenUrl;
     
     protected string $returnUrl = '';
+    
     /**
      * @var bool whether to use and validate auth 'state' parameter in authentication flow.
      * If enabled - the opaque value will be generated and applied to auth URL to maintain
@@ -96,13 +85,12 @@ abstract class OAuth2 extends OAuth
         $defaultParams = [
             'client_id' => $this->clientId,
             'response_type' => 'code',
-            'redirect_uri' => $this->getReturnUrl($incomingRequest),
+            'redirect_uri' => $this->getOauth2ReturnUrl(),
             'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME),
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
         }
-
         if ($this->validateAuthState) {
             $authState = $this->generateAuthState();
             $this->setState('authState', $authState);
@@ -150,6 +138,9 @@ abstract class OAuth2 extends OAuth
             $authState = $this->getState('authState');
             $queryParams = $incomingRequest->getQueryParams();
             $bodyParams = $incomingRequest->getParsedBody();
+            /**
+             * @psalm-suppress MixedAssignment
+             */
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
             
             if (is_string($incomingState)) {
@@ -157,7 +148,7 @@ abstract class OAuth2 extends OAuth
                     throw new InvalidArgumentException('Invalid auth state parameter.');
                 }
             }
-            if ($incomingState !== null) {
+            if ($incomingState === null) {
                 throw new InvalidArgumentException('Invalid auth state parameter.');
             }
             if (empty($authState)) {
@@ -169,25 +160,27 @@ abstract class OAuth2 extends OAuth
         $defaultParams = [
             'code' => $authCode,
             'grant_type' => 'authorization_code',
-            'redirect_uri' => $this->getReturnUrl($incomingRequest),
-        ];
-
+            'redirect_uri' => $this->getOauth2ReturnUrl(),
+        ];        
+       
         $request = $this->createRequest('POST', $this->tokenUrl);
         $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
 
         $response = $this->sendRequest($request);
-
-        $token = $this->createToken(
-            [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
-            ]
-        );
-        $this->setAccessToken($token);
-
+        $contents = $response->getBody()->getContents();
+        parse_str($contents, $output);
+        $token = new OAuthToken();
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($output as $key => $value) {
+            $token->setParam($key, $value);    
+        }
         return $token;
     }
-
+    
     /**
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
@@ -240,7 +233,12 @@ abstract class OAuth2 extends OAuth
         return $this->clientSecret;
     }
     
-    public function setReturnUrl(string $returnUrl) : void
+    public function getOauth2ReturnUrl() : string
+    {
+        return $this->returnUrl;
+    }
+    
+    public function setOauth2ReturnUrl(string $returnUrl) : void
     {
         $this->returnUrl = $returnUrl;
     }
@@ -277,13 +275,16 @@ abstract class OAuth2 extends OAuth
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(
-            [
-                'setParams' => [Json::decode($response->getBody()->getContents())],
-            ]
-        );
-        $this->setAccessToken($token);
-
+        $contents = $response->getBody()->getContents();
+        parse_str($contents, $output);
+        $token = new OAuthToken();
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($output as $key => $value) {
+            $token->setParam($key, $value);    
+        }
         return $token;
     }
 

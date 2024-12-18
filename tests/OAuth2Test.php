@@ -57,7 +57,7 @@ class OAuth2Test extends TestCase
         $clientId = 'test_client_id';
         $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
-        $oauthClient->setReturnUrl($returnUrl);
+        $oauthClient->setOauth2ReturnUrl($returnUrl);
         $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
         $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
