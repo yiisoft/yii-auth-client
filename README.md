@@ -1,13 +1,3 @@
-<p align="center">
-    <a href="https://github.com/yiisoft" target="_blank">
-        <img src="https://yiisoft.github.io/docs/images/yii_logo.svg" height="100px" alt="Yii">
-    </a>
-    <a href="https://oauth.net/2/" target="_blank">
-        <img src="https://oauth.net/images/oauth-2-sm.png" height="80px" alt="Oauth">
-    </a>
-    <h1 align="center">Yii External Authentication</h1>
-    <br>
-</p>
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fyii-auth-client)](https://dashboard.stryker-mutator.io/reports/yii-auth-client)
 [![Build status](https://github.com/rossaddison/yii-auth-client/workflows/build/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3Abuild)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Frossaddison%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/rossaddison/yii-auth-client/master)
