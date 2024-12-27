@@ -46,12 +46,14 @@ final class Facebook extends OAuth2
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
     protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
+    
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
      *
      * @see exchangeToken()
      */
     private bool $autoExchangeAccessToken = false;
+    
     /**
      * @var string URL endpoint for the client auth code generation.
      *
@@ -60,6 +62,40 @@ final class Facebook extends OAuth2
      * @see fetchClientAccessToken()
      */
     private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
+    
+    public function getCurrentUserJsonArray(OAuthToken $token) : array
+    {
+        $params = $token->getParams();
+        $finalValue = '';
+        
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($params as $key => $value) {
+            $finalValue = $key;
+        }
+        
+        /**
+         * @var string $finalValue
+         * @var array $array
+         */ 
+        $array = json_decode($finalValue, true);
+        $tokenString = (string)($array['access_token'] ?? '');
+        
+        if (strlen($tokenString) > 0) {
+            
+            $request = $this->createRequest('GET', 'https://graph.facebook.com/v21.0/me?fields=id,name,first_name,last_name');
+            $request = RequestUtil::addHeaders($request, 
+                    [
+                        'Authorization' => 'Bearer '. $tokenString
+                    ]);
+            $response = $this->sendRequest($request);
+            $user = [];
+            return (array)json_decode($response->getBody()->getContents(), true);
+        }
+        return [];
+    }
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
@@ -214,17 +250,22 @@ final class Facebook extends OAuth2
         return 'Facebook';
     }
 
+    /**
+     * Using Meta's Graph API Explorer with User Token and Permission public profile which is the default scope here
+     * @link https://developers.facebook.com/tools/explorer/YOUR_APP_ID/?method=GET&path=me%3Ffields%3Did%2Cname%2Cfirst_name%2Clast_name&version=v21.0
+     * @return array
+     */
     protected function initUserAttributes(): array
     {
+        $userAttributesFromGraphApiExplorer = ['id', 'name', 'first_name', 'last_name'];
         return $this->api(
             'me',
             'GET',
             [
-                'fields' => implode(',', ['name', 'email']),
+                'fields' => implode(',', $userAttributesFromGraphApiExplorer),
             ]
         );
     }
-
     /**
      * @return int[]
      *
@@ -241,10 +282,10 @@ final class Facebook extends OAuth2
     /**
      * @return string
      *
-     * @psalm-return 'email'
+     * @psalm-return 'public_profile'
      */
     protected function getDefaultScope(): string
     {
-        return 'email';
+        return 'public_profile';
     }
 }
