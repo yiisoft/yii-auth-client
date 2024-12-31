@@ -142,7 +142,6 @@ abstract class OAuth2 extends OAuth
              * @psalm-suppress MixedAssignment
              */
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
-            
             if (is_string($incomingState)) {
                 if (strcmp($incomingState, (string)$authState) !== 0) {
                     throw new InvalidArgumentException('Invalid auth state parameter.');
@@ -166,10 +165,9 @@ abstract class OAuth2 extends OAuth
         $request = $this->createRequest('POST', $this->tokenUrl);
         $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
-
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
-        parse_str($contents, $output);
+        $output = $this->parse_str_clean($contents);
         $token = new OAuthToken();
         /**
          * @var string $key
@@ -255,7 +253,9 @@ abstract class OAuth2 extends OAuth
 
     /**
      * Gets new auth token to replace expired one.
-     *
+     * 
+     * @see https://developers.google.com/oauthplayground
+     * 
      * @param OAuthToken $token expired auth token.
      *
      * @return OAuthToken new auth token.
@@ -276,7 +276,9 @@ abstract class OAuth2 extends OAuth
         $response = $this->sendRequest($request);
 
         $contents = $response->getBody()->getContents();
-        parse_str($contents, $output);
+        
+        $output = $this->parse_str_clean($contents);
+        
         $token = new OAuthToken();
         /**
          * @var string $key
@@ -306,5 +308,63 @@ abstract class OAuth2 extends OAuth
         unset($params['code'], $params['state']);
 
         return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+    }
+    
+    /**
+     * Purpose: Prevent, inter alia, underscores in keys of an array 
+     * @see https://www.php.net/manual/en/function.parse-str.php#126789
+     */
+    private function parse_str_clean(string $querystr): array {
+        $qquerystr = str_ireplace(['.','%2E','+',' ','%20'], ['QQleQPunT', 'QQleQPunT', 'QQleQSpaTIE', 'QQleQSpaTIE', 'QQleQSpaTIE'], $querystr);
+        $arr = null; 
+        parse_str($qquerystr, $arr);
+        $sanitizedArray = $this->sanitizeKeys($arr, $querystr);
+        return $sanitizedArray;
+    }
+    
+    private function sanitizeKeys(array &$arr, string $querystr) : array {
+        
+        /**
+         * @var string $key
+         * @var array|string $val
+         */
+        foreach($arr as $key => $val) {
+            // restore values to original
+            
+            $newval = $val;
+            
+            if (is_string($val)) {
+                $newval = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], $val);
+            }
+    
+            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], $key);
+            
+            if (str_contains($newkey, '_')) { 
+    
+                // periode of space or [ or ] converted to _. Restore with querystring
+                $regex = '/&('.str_replace('_', '[ \.\[\]]', preg_quote($newkey, '/')).')=/';
+                $matches = null ;
+                if (preg_match_all($regex, "&".urldecode($querystr), $matches) > 0) {
+    
+                    if (count(array_unique($matches[1])) === 1 && $key != $matches[1][0]) {
+                        $newkey = $matches[1][0] ;
+                    }
+                }
+            }
+            
+            if ($newkey !== $key) {
+                unset($arr[$key]);
+                $arr[$newkey] = $newval ;
+            } elseif( $val !== $newval) 
+                $arr[$key] = $newval;
+    
+            if (is_array($val)) {
+                /**
+                 * @psalm-suppress MixedArgument $arr[$newkey]
+                 */
+                $this->sanitizeKeys($arr[$newkey], $querystr);
+            }
+        }
+        return $arr;
     }
 }
