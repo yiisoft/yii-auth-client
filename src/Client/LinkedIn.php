@@ -24,6 +24,55 @@ final class LinkedIn extends OAuth2
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v1';
     
+    public function getCurrentUserJsonArray(OAuthToken $token) : array
+    {
+        /**
+         * e.g. '{all the params}' => ''
+         * @var array $params
+         */
+        $tokenParams = $token->getParams();
+        
+        /**
+         * e.g. convert the above key, namely '{all the params}', into an array 
+         * @var array $tokenArray
+         */
+        $tokenArray = array_keys($tokenParams);
+        
+        /**
+         * @var string $jsonString
+         */
+        $jsonString = $tokenArray[0];
+        
+        /**
+         * @var array $finalArray
+         */
+        $finalArray = json_decode($jsonString, true);
+        
+        /**
+         * @var string $tokenString
+         */
+        $tokenString = $finalArray['access_token'] ?? '';
+        
+        if (strlen($tokenString) > 0) {
+            
+            $request = $this->createRequest('GET', 'https://api.linkedin.com/v1/user');
+            
+            $request = RequestUtil::addHeaders($request, 
+                    [
+                        'Authorization' => 'Bearer '.$tokenString
+                    ]);
+            
+            $response = $this->sendRequest($request);
+            
+            $user = [];
+            
+            return (array)json_decode($response->getBody()->getContents(), true);
+        }
+        
+        return [];
+        
+    }
+    
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
