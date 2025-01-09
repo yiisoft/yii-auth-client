@@ -86,7 +86,7 @@ abstract class OAuth2 extends OAuth
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->getOauth2ReturnUrl(),
-            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME),
+            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME)
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
@@ -158,7 +158,6 @@ abstract class OAuth2 extends OAuth
 
         $defaultParams = [
             'code' => $authCode,
-            'grant_type' => 'authorization_code',
             'redirect_uri' => $this->getOauth2ReturnUrl(),
         ];        
        
@@ -169,6 +168,86 @@ abstract class OAuth2 extends OAuth
         $contents = $response->getBody()->getContents();
         $output = $this->parse_str_clean($contents);
         $token = new OAuthToken();
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($output as $key => $value) {
+            $token->setParam($key, $value);    
+        }
+        return $token;
+    }
+    
+    /**
+     * Fetches access token from authorization code.
+     *
+     * @param ServerRequestInterface $incomingRequest
+     * @param string $authCode authorization code, usually comes at GET parameter 'code'.
+     * @param array $params additional request params.
+     *
+     * @return OAuthToken access token.
+     */
+    public function fetchAccessTokenWithCurl(
+        ServerRequestInterface $incomingRequest,
+        string $authCode,
+        array $params = [],
+    ): OAuthToken {
+        if ($this->validateAuthState) {
+            /**
+             * @psalm-suppress MixedAssignment
+             */
+            $authState = $this->getState('authState');
+            $queryParams = $incomingRequest->getQueryParams();
+            $bodyParams = $incomingRequest->getParsedBody();
+            /**
+             * @psalm-suppress MixedAssignment
+             */
+            $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
+            if (is_string($incomingState)) {
+                if (strcmp($incomingState, (string)$authState) !== 0) {
+                    throw new InvalidArgumentException('Invalid auth state parameter.');
+                }
+            }
+            if ($incomingState === null) {
+                throw new InvalidArgumentException('Invalid auth state parameter.');
+            }
+            if (empty($authState)) {
+                throw new InvalidArgumentException('Invalid auth state parameter.');
+            }
+            $this->removeState('authState');
+        }
+
+        $requestBody = [
+            'grant_type' => 'authorization_code',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'code' => $authCode,
+            'redirect_uri' => $params['redirect_uri']
+        ];
+        
+        // Convert the request body to a URL-encoded query string
+        $requestBodyString = http_build_query($requestBody);
+        
+        // Create a POST request with the request body
+        $curl = curl_init($this->tokenUrl);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/x-www-form-urlencoded'
+        ]);
+        
+        $response = curl_exec($curl);
+        curl_close($curl);
+        
+        // Handle the response
+        if (is_string($response) && (strlen($response) > 0)) {
+            $output = (array)json_decode($response, true);
+        } else {
+            $output = [];
+        }
+        $token = new OAuthToken();
+        
         /**
          * @var string $key
          * @var string $value
@@ -193,7 +272,7 @@ abstract class OAuth2 extends OAuth
             $request,
             [
                 'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
+                'client_secret' => $this->clientSecret
             ]
         );
     }
@@ -325,7 +404,6 @@ abstract class OAuth2 extends OAuth
     private function sanitizeKeys(array &$arr, string $querystr) : array {
         
         /**
-         * @var string $key
          * @var array|string $val
          */
         foreach($arr as $key => $val) {
@@ -337,7 +415,7 @@ abstract class OAuth2 extends OAuth
                 $newval = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], $val);
             }
     
-            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], $key);
+            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], (string)$key);
             
             if (str_contains($newkey, '_')) { 
     
@@ -346,7 +424,7 @@ abstract class OAuth2 extends OAuth
                 $matches = null ;
                 if (preg_match_all($regex, "&".urldecode($querystr), $matches) > 0) {
     
-                    if (count(array_unique($matches[1])) === 1 && $key != $matches[1][0]) {
+                    if (count(array_unique($matches[1])) === 1 && (string)$key != $matches[1][0]) {
                         $newkey = $matches[1][0] ;
                     }
                 }

@@ -6,9 +6,13 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 
 /**
+ * Tested 09/01/2025
+ * @see https://learn.microsoft.com/en-gb/entra/identity/authentication/how-to-authentication-methods-manage?WT.mc_id=Portal-Microsoft_AAD_IAM
+ * Note if you are to use this client, you will have to migrate to the converged Authentication methods policy.
+ * Please migrate your authentication methods off the legacy MFA and SSPR policies by September 2025 to avoid any service impact.
+ * 
  * MicrosoftOnline allows authentication via the Microsoft Identity Platform.
  *
  * In order to use the Microsoft Identity Platform, you must register your application at 
@@ -27,7 +31,7 @@ final class MicrosoftOnline extends OAuth2
     
     protected string $tokenUrl = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token';
     
-    protected string $endpoint = 'https://graph.microsoft.com';
+    protected string $endpoint = 'https://graph.microsoft.com/v1.0/me';
     
     /**
      * tentant can be one of 'common', 'organisation', 'consumers', or the actual TenantID.
@@ -65,50 +69,25 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/'.$tenant.'/oauth2/v2.0/token';
     }
     
-    public function getCurrentUserJsonArray(OAuthToken $token) : array
+    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token) : array
     {
-        /**
-         * e.g. '{all the params}' => ''
-         * @var array $params
-         */
-        $tokenParams = $token->getParams();
-        
-        /**
-         * e.g. convert the above key, namely '{all the params}', into an array 
-         * @var array $tokenArray
-         */
-        $tokenArray = array_keys($tokenParams);
-        
-        /**
-         * @var string $jsonString
-         */
-        $jsonString = $tokenArray[0];
-        
-        /**
-         * @var array $finalArray
-         */
-        $finalArray = json_decode($jsonString, true);
-        
-        /**
-         * @var string $tokenString
-         */
-        $tokenString = $finalArray['access_token'] ?? '';
-        
+        $tokenString = (string)$token->getParam('access_token');
         if (strlen($tokenString) > 0) {
             
-            $request = $this->createRequest('GET', 'graph.microsoft.com');
-            
-            $request = RequestUtil::addHeaders($request, 
-                    [
-                        'Authorization' => 'Bearer '.$tokenString,
-                        'Host' => 'graph.microsoft.com'
-                    ]);
-            
-            $response = $this->sendRequest($request);
-            
-            $user = [];
-            
-            return (array)json_decode($response->getBody()->getContents(), true);
+            // Create a GET request to a Microsoft Graph API endpoint
+            $ch = curl_init('https://graph.microsoft.com/v1.0/me');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $tokenString,
+                'Content-Type: application/json'
+            ]);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            if (is_string($response) && strlen($response) > 0) {
+                return (array)json_decode($response, true);
+            } else {
+                return [];
+            }    
         }
         
         return [];
@@ -136,13 +115,14 @@ final class MicrosoftOnline extends OAuth2
     }
 
     /**
+     * Purpose: Use this scope to be able to get the User's id and to build a suitable login using a sub string of the user id  
      * @return string
      *
-     * @psalm-return 'https://graph.microsoft.com/mail.read'
+     * @psalm-return 'offline_access User.Read'
      */
     protected function getDefaultScope(): string
     {
-        return 'https://graph.microsoft.com/mail.read';
+        return 'offline_access User.Read';
     }
 
     protected function initUserAttributes(): array
