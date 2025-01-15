@@ -179,7 +179,7 @@ abstract class OAuth2 extends OAuth
     }
     
     /**
-     * Fetches access token from authorization code.
+     * Fetches access token from authorization code using cURL.
      *
      * @param ServerRequestInterface $incomingRequest
      * @param string $authCode authorization code, usually comes at GET parameter 'code'.
@@ -246,6 +246,93 @@ abstract class OAuth2 extends OAuth
         } else {
             $output = [];
         }
+        $token = new OAuthToken();
+        
+        /**
+         * @var string $key
+         * @var string $value
+         */
+        foreach ($output as $key => $value) {
+            $token->setParam($key, $value);    
+        }
+        return $token;
+    }
+    
+    /**
+     * Note: This function will be adapted later to accomodate the 'confidential client'.
+     * @see https://docs.x.com/resources/fundamentals/authentication/oauth-2-0/authorization-code
+     * Used specifically for the X i.e. Twitter OAuth2.0 Authorization code with PKCE and public client i.e. 
+     * client id included in request body;  
+     * and NOT Confidential Client i.e. Client id not included in the request body
+     * @param ServerRequestInterface $incomingRequest
+     * @param string $authCode
+     * @param array $params
+     * @return OAuthToken
+     * @throws InvalidArgumentException
+     */
+    public function fetchAccessTokenWithCurlAndCodeVerifier(
+        ServerRequestInterface $incomingRequest,
+        string $authCode,
+        array $params = [],
+    ): OAuthToken {
+        if ($this->validateAuthState) {
+            /**
+             * @psalm-suppress MixedAssignment
+             */
+            $authState = $this->getState('authState');
+            
+            $queryParams = $incomingRequest->getQueryParams();
+            
+            $bodyParams = $incomingRequest->getParsedBody();
+            /**
+             * @psalm-suppress MixedAssignment
+             */
+            $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
+            if (is_string($incomingState)) {
+                if (strcmp($incomingState, (string)$authState) !== 0) {
+                    throw new InvalidArgumentException('Invalid auth state parameter.');
+                }
+            }
+            if ($incomingState === null) {
+                throw new InvalidArgumentException('Invalid auth state parameter.');
+            }
+            if (empty($authState)) {
+                throw new InvalidArgumentException('Invalid auth state parameter.');
+            }
+            $this->removeState('authState');
+        }
+
+        $requestBody = [
+            'code' => $authCode,
+            'grant_type' => 'authorization_code',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'redirect_uri' => $params['redirect_uri'],
+            'code_verifier' => $params['code_verifier']
+        ];
+        
+        // Convert the request body to a URL-encoded query string
+        $requestBodyString = http_build_query($requestBody);
+        
+        // Create a POST request with the request body
+        $curl = curl_init($this->tokenUrl);
+       
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        
+        curl_setopt($curl, CURLOPT_POST, true);
+        
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
+        
+        $response = curl_exec($curl);
+        
+        curl_close($curl);
+        
+        if (is_string($response) && strlen($response) > 0) {
+            $output = (array)json_decode($response, true);
+        } else {
+            $output = [];
+        } 
+        
         $token = new OAuthToken();
         
         /**
