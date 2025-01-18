@@ -222,7 +222,7 @@ abstract class OAuth2 extends OAuth
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'code' => $authCode,
-            'redirect_uri' => $params['redirect_uri']
+            'redirect_uri' => $params['redirect_uri'] ?? ''
         ];
         
         // Convert the request body to a URL-encoded query string
@@ -307,8 +307,8 @@ abstract class OAuth2 extends OAuth
             'grant_type' => 'authorization_code',
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'redirect_uri' => $params['redirect_uri'],
-            'code_verifier' => $params['code_verifier']
+            'redirect_uri' => $params['redirect_uri'] ?? '',
+            'code_verifier' => $params['code_verifier'] ?? ''
         ];
         
         // Convert the request body to a URL-encoded query string
