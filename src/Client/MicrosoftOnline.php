@@ -34,7 +34,7 @@ final class MicrosoftOnline extends OAuth2
     protected string $endpoint = 'https://graph.microsoft.com/v1.0/me';
     
     /**
-     * tentant can be one of 'common', 'organisation', 'consumers', or the actual TenantID.
+     * tenant can be one of 'common', 'organisation', 'consumers', or the actual TenantID.
      * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#request-an-authorization-code
      */
     protected string $tenant = 'common';

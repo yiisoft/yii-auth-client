@@ -19,8 +19,10 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class Yandex extends OAuth2
 {
-    protected string $authUrl = 'https://oauth.yandex.ru/authorize';
-    protected string $tokenUrl = 'https://oauth.yandex.ru/token';
+    protected string $authUrl = 'https://oauth.yandex.com/authorize';
+    
+    protected string $tokenUrl = 'https://oauth.yandex.com/token';
+    
     protected string $endpoint = 'https://login.yandex.ru';
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
@@ -28,13 +30,73 @@ final class Yandex extends OAuth2
         $params = RequestUtil::getParams($request);
 
         $paramsToAdd = [];
+        
         if (!isset($params['format'])) {
+        
             $paramsToAdd['format'] = 'json';
+                    
         }
+        
         $paramsToAdd['oauth_token'] = $accessToken->getToken();
+        
         return RequestUtil::addParams($request, $paramsToAdd);
     }
+    
+    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token) : array {
+        
+        /**
+         * @see https://yandex.com/dev/id/doc/en/codes/code-url
+         */
+        
+        $url = 'https://login.yandex.ru/info';
+        
+        $tokenString = (string)$token->getParam('access_token');
+        
+        if (strlen($tokenString) > 0) {
+            
+            $headers = [
+                "Authorization: OAuth $tokenString"
+            ];
+            
+            $ch = curl_init();
 
+            curl_setopt($ch, CURLOPT_URL, $url);
+            
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            $response = curl_exec($ch);
+            
+            curl_close($ch);
+
+            if (is_string($response) && strlen($response) > 0) {
+                
+                $data = (array)json_decode($response, true); 
+                
+                return $data;
+            
+            } else {
+                
+                return [];
+            }
+        }
+        
+        return [];
+    }
+    
+   /**
+    * @see https://oauth.yandex.com/client/<client_id>/info
+    * @see https://yandex.com/dev/id/doc/en/user-information#common
+    * @return string
+    *
+    * @psalm-return 'login:info'
+    */
+    protected function getDefaultScope(): string
+    {
+        return 'login:info';
+    }
+    
     /**
      * @return string service name.
      *
@@ -53,10 +115,5 @@ final class Yandex extends OAuth2
     public function getTitle(): string
     {
         return 'Yandex';
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('info');
     }
 }
