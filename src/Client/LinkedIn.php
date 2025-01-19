@@ -13,7 +13,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * LinkedIn allows authentication via LinkedIn OAuth.
  *
  * In order to use linkedIn OAuth you must register your application at <https://www.linkedin.com/secure/developer>.
- *
+ * @link https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?source=recommendations&tabs=HTTPS1
  * @link https://developer.linkedin.com/docs/oauth2
  * @link https://www.linkedin.com/secure/developer
  * @link https://developer.linkedin.com/docs/rest-api
@@ -22,67 +22,31 @@ final class LinkedIn extends OAuth2
 {
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
-    protected string $endpoint = 'https://api.linkedin.com/v1';
+    protected string $endpoint = 'https://api.linkedin.com/v2';
     
-    public function getCurrentUserJsonArray(OAuthToken $token) : array
+    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token) : array
     {
-        /**
-         * e.g. '{all the params}' => ''
-         * @var array $params
-         */
-        $tokenParams = $token->getParams();
-        
-        /**
-         * e.g. convert the above key, namely '{all the params}', into an array 
-         * @var array $tokenArray
-         */
-        $tokenArray = array_keys($tokenParams);
-        
-        /**
-         * @var string $jsonString
-         */
-        $jsonString = $tokenArray[0];
-        
-        /**
-         * @var array $finalArray
-         */
-        $finalArray = json_decode($jsonString, true);
-        
-        /**
-         * @var string $tokenString
-         */
-        $tokenString = $finalArray['access_token'] ?? '';
-        
+        $tokenString = (string)$token->getParam('access_token');
         if (strlen($tokenString) > 0) {
             
-            $request = $this->createRequest('GET', 'https://api.linkedin.com/v1/user');
-            
-            $request = RequestUtil::addHeaders($request, 
-                    [
-                        'Authorization' => 'Bearer '.$tokenString
-                    ]);
-            
-            $response = $this->sendRequest($request);
-            
-            $user = [];
-            
-            return (array)json_decode($response->getBody()->getContents(), true);
+            /** https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2#api-request-to-retreive-member-details */
+            $ch = curl_init('https://api.linkedin.com/v2/userinfo');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $tokenString
+            ]);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            if (is_string($response) && strlen($response) > 0) {
+                return (array)json_decode($response, true);
+            } else {
+                return [];
+            }    
         }
         
         return [];
         
     }
-    
-    public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
-    {
-        return RequestUtil::addParams(
-            $request,
-            [
-                'oauth2_access_token' => $accessToken->getToken(),
-            ]
-        );
-    }
-
     /**
      * @return string service name.
      *
@@ -104,39 +68,17 @@ final class LinkedIn extends OAuth2
     }
 
     /**
+     * openid - Use your name and photo
+     * profile - Use your name and photo
+     * email - Use the primary email address associated with your LinkedIn account
+     * w_member_social - Create, modify, and delete posts, comments, and reactions on your behalf
+     * 
      * @return string
      *
-     * @psalm-return 'r_basicprofile r_emailaddress'
+     * @psalm-return 'openid profile email w_member_social'
      */
     protected function getDefaultScope(): string
     {
-        return 'r_basicprofile r_emailaddress';
-    }
-
-    /**
-     * @return string[]
-     *
-     * @psalm-return array{email: 'email-address', first_name: 'first-name', last_name: 'last-name'}
-     */
-    protected function defaultNormalizeUserAttributeMap(): array
-    {
-        return [
-            'email' => 'email-address',
-            'first_name' => 'first-name',
-            'last_name' => 'last-name',
-        ];
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('people/~:(' . implode(',', 
-            [
-                'id',
-                'email-address',
-                'first-name',
-                'last-name',
-                'public-profile-url'
-            ]
-        ) . ')', 'GET');
+        return 'openid profile email w_member_social';
     }
 }
