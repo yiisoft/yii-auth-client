@@ -132,10 +132,5 @@ class Google extends OAuth2
      * 1. https://www.googleapis.com/auth/userinfo.email  See your Primary Google Email Address
      * 2. https://www.googleapis.com/auth/userinfo.profile  See your personal info, including any personal info you've made publicly available
      * 
-     * @return array
      */
-    protected function initUserAttributes(): array
-    {
-        return $this->api('auth', 'GET');
-    }
 }

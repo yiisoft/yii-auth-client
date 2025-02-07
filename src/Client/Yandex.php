@@ -59,27 +59,36 @@ final class Yandex extends OAuth2
             ];
             
             $ch = curl_init();
-
-            curl_setopt($ch, CURLOPT_URL, $url);
             
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            if ($ch <> false) {
 
-            $response = curl_exec($ch);
-            
-            curl_close($ch);
+                curl_setopt($ch, CURLOPT_URL, $url);
 
-            if (is_string($response) && strlen($response) > 0) {
-                
-                $data = (array)json_decode($response, true); 
-                
-                return $data;
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+
+                curl_close($ch);
+
+                if (is_string($response) && strlen($response) > 0) {
+
+                    $data = (array)json_decode($response, true); 
+
+                    return $data;
+
+                } else {
+
+                    return [];
+                }
             
             } else {
                 
                 return [];
-            }
+                
+            }    
+            
         }
         
         return [];

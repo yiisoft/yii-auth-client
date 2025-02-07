@@ -72,40 +72,48 @@ final class VKontakte extends OAuth2
         
         $ch = curl_init($url);
         
-        curl_setopt($ch, CURLOPT_POST, 1);
+        if ($ch <> false) {
         
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-        
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
-        /**
-         * $response is json array string e.g. '{data}' 
-         */
-        $response = curl_exec($ch);
-        
-        if (curl_errno($ch)) {
-            
-            return [
-                'error' =>  'Error:' . curl_error($ch)
-            ];
-            
-        }
-        
-        curl_close($ch);
-        
-        if (is_string($response) && strlen($response) > 0) {
-                
-            $data = (array)json_decode($response, true); 
-                
-            return $data;
+            curl_setopt($ch, CURLOPT_POST, 1);
+
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            /**
+             * $response is json array string e.g. '{data}' 
+             */
+            $response = curl_exec($ch);
+
+            if (curl_errno($ch)) {
+
+                return [
+                    'error' =>  'Error:' . curl_error($ch)
+                ];
+
+            }
+
+            curl_close($ch);
+
+            if (is_string($response) && strlen($response) > 0) {
+
+                $data = (array)json_decode($response, true); 
+
+                return $data;
+
+            } else {
+
+                return [];
+
+            }
             
         } else {
             
             return [];
             
-        }
+        }    
         
         return [];
     }
@@ -126,26 +134,34 @@ final class VKontakte extends OAuth2
         if (strlen($tokenString) > 0) {
             
             $ch = curl_init();
-
-            curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId.'&access_token='.$tokenString);
             
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            if ($ch <> false) {
 
-            $response = curl_exec($ch);
-            
-            curl_close($ch);
+                curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId.'&access_token='.$tokenString);
 
-            if (is_string($response) && strlen($response) > 0) {
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+
+                curl_close($ch);
+
+                if (is_string($response) && strlen($response) > 0) {
+
+                    $data = (array)json_decode($response, true); 
+
+                    return $data;
+
+                } else {
+
+                    return [];
+                }
                 
-                $data = (array)json_decode($response, true); 
-                
-                return $data;
-            
             } else {
                 
                 return [];
+                
             }
-        }
+        }    
         
         return [];
     }
@@ -182,27 +198,36 @@ final class VKontakte extends OAuth2
             ];
             
             $ch = curl_init();
-
-            curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId);
             
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            if ($ch <> false) {
 
-            $response = curl_exec($ch);
-            
-            curl_close($ch);
+                curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId);
 
-            if (is_string($response) && strlen($response) > 0) {
-                
-                $data = (array)json_decode($response, true); 
-                
-                return $data;
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+
+                curl_close($ch);
+
+                if (is_string($response) && strlen($response) > 0) {
+
+                    $data = (array)json_decode($response, true); 
+
+                    return $data;
+
+                } else {
+
+                    return [];
+                }
             
             } else {
                 
                 return [];
-            }
+                
+            }    
+            
         }
         
         return [];
@@ -239,26 +264,35 @@ final class VKontakte extends OAuth2
             
             $ch = curl_init();
 
-            curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId);
+            if ($ch <> false) {
             
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_URL, $url.'?client_id=' . $clientId);
 
-            $response = curl_exec($ch);
-            
-            curl_close($ch);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-            if (is_string($response) && strlen($response) > 0) {
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+
+                curl_close($ch);
+
+                if (is_string($response) && strlen($response) > 0) {
+
+                    $data = (array)json_decode($response, true); 
+
+                    return $data;
+
+                } else {
+
+                    return [];
+                }
                 
-                $data = (array)json_decode($response, true); 
-                
-                return $data;
-            
             } else {
                 
                 return [];
+                
             }
+                
         }
         
         return [];

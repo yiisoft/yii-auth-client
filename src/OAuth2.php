@@ -48,6 +48,7 @@ abstract class OAuth2 extends OAuth
      * The option is used for preventing cross-site request forgery.
      */
     protected bool $validateAuthState = true;
+    
     protected SessionInterface $session;
     
     /**
@@ -98,6 +99,22 @@ abstract class OAuth2 extends OAuth
         }
 
         return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
+    }
+    
+    /**
+     * Compare a callback query parameter 'state' with the saved Auth Client's 'authState'  parameter
+     * in order to prevent CSRF attacks
+     * 
+     * Use: Typically used in a AuthController's callback function specifically  for an Identity Provider e.g. Facebook
+     * 
+     * @return mixed
+     */
+    public function getSessionAuthState() : mixed 
+    {
+        /**
+         * @see src\AuthClient protected function getState('authState')
+         */
+        return $this->getState('authState');
     }
 
     /**
@@ -230,24 +247,34 @@ abstract class OAuth2 extends OAuth
         
         // Create a POST request with the request body
         $curl = curl_init($this->tokenUrl);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/x-www-form-urlencoded'
-        ]);
         
-        $response = curl_exec($curl);
-        curl_close($curl);
+        if ($curl <> false) {
         
-        // Handle the response
-        if (is_string($response) && (strlen($response) > 0)) {
-            $output = (array)json_decode($response, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/x-www-form-urlencoded'
+            ]);
+
+            $response = curl_exec($curl);
+            curl_close($curl);
+
+            // Handle the response
+            if (is_string($response) && (strlen($response) > 0)) {
+                $output = (array)json_decode($response, true);
+            } else {
+                $output = [];
+            }
+            
         } else {
+            
             $output = [];
-        }
+            
+        } 
+                
         $token = new OAuthToken();
-        
+
         /**
          * @var string $key
          * @var string $value
@@ -255,7 +282,9 @@ abstract class OAuth2 extends OAuth
         foreach ($output as $key => $value) {
             $token->setParam($key, $value);    
         }
+        
         return $token;
+        
     }
     
     /**
@@ -317,22 +346,30 @@ abstract class OAuth2 extends OAuth
         // Create a POST request with the request body
         $curl = curl_init($this->tokenUrl);
        
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        if ($curl <> false) {
         
-        curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            curl_setopt($curl, CURLOPT_POST, true);
+
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+
+            if (is_string($response) && strlen($response) > 0) {
+                $output = (array)json_decode($response, true);
+            } else {
+                $output = [];
+            } 
         
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
-        
-        $response = curl_exec($curl);
-        
-        curl_close($curl);
-        
-        if (is_string($response) && strlen($response) > 0) {
-            $output = (array)json_decode($response, true);
         } else {
+            
             $output = [];
-        } 
-        
+            
+        }    
+            
         $token = new OAuthToken();
         
         /**

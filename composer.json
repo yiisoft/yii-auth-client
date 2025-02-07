@@ -28,7 +28,7 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "8.3.*||8.4.*",
         "guzzlehttp/guzzle": "^7.2", 
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
@@ -39,22 +39,22 @@
         "psr/simple-cache-implementation": "^1.0",
         "yiisoft/assets": "^5.0",
         "yiisoft/json": "^1.0",
-        "yiisoft/session": "^2.0",
+        "yiisoft/session": "^2.1",
         "yiisoft/view": "^12.0",
-        "yiisoft/widget": "^2.1"
+        "yiisoft/widget": "^2.2"
     },
     "require-dev": {
         "kriswallsmith/buzz": "^1.1",
-        "nyholm/psr7": "^1.3",
-        "phpunit/phpunit": "^9.6.3",
-        "roave/infection-static-analysis-plugin": "^1.25",
-        "spatie/phpunit-watcher": "^1.24",
-        "vimeo/psalm": "^5.26",
+        "nyholm/psr7": "^1.8",
+        "phpunit/phpunit": "^10.5||^11.5||^12.0",
+        "roave/infection-static-analysis-plugin": "^1.35||^1.36",
+        "spatie/phpunit-watcher": "^1.23||^1.24",
+        "vimeo/psalm": "^5.26||^6.2||^6.3||^6.4",
         "yiisoft/cache": "^3.0",
         "yiisoft/di": "^1.3",
         "yiisoft/log": "^2.0",
         "yiisoft/router-fastroute": "^3.0",
-        "yiisoft/psr-dummy-provider": "*"
+        "yiisoft/psr-dummy-provider": "^1.0"
     },
     "repositories": [
         {
@@ -92,7 +92,7 @@
         }
     },
     "scripts": {
-        "test": "phpunit --testdox --no-interaction",
+        "test": "phpunit --stop-on-notice --display-phpunit-deprecations --testdox",
         "test-watch": "phpunit-watcher watch"
     }
 }

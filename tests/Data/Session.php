@@ -82,8 +82,11 @@ class Session implements SessionInterface
         return isset($this->data[$key]);
     }
 
-    public function pull(string $key, $default = null)
+    public function pull(string $key, $default = '')  
     {
+        /**
+         * @psalm-suppress MixedAssignment
+         */
         $value = $this->data[$key] ?? $default;
         $this->remove($key);
         return $value;

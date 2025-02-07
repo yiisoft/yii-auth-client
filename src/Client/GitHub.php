@@ -106,37 +106,4 @@ final class GitHub extends OAuth2
     {
         return 'user';
     }
-
-    /**
-     * @return array
-     */
-    protected function initUserAttributes(): array
-    {
-        $attributes = $this->api('user', 'GET') ?: ['email', 'name'];
-
-        if (empty($attributes['email'])) {
-            // in case user set 'Keep my email address private' in GitHub profile, email should be retrieved via extra API request
-            $scopes = explode(' ', $this->getScope());
-            if (in_array('user:email', $scopes, true) || in_array('user', $scopes, true)) {
-                $emails = $this->api('user/emails', 'GET');
-                if (!empty($emails)) {
-                    /**
-                     * @var array $emails
-                     * @var array $email
-                     */
-                    foreach ($emails as $email) {
-                        if ($email['primary'] && $email['verified']) {
-                            /**
-                             * @var string $email['email']
-                             * @var string $attributes['email']
-                             */
-                            $attributes['email'] = $email['email'];
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return $attributes;
-    }
 }

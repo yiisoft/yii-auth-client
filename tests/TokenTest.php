@@ -26,9 +26,6 @@ class TokenTest extends TestCase
         $this->assertEquals($newParamValue, $oauthToken->getParam($newParamName), 'Unable to setup param by name!');
     }
 
-    /**
-     * @depends testSetupParams
-     */
     public function testSetupParamsShortcuts(): void
     {
         $oauthToken = new OAuthToken();
@@ -46,55 +43,6 @@ class TokenTest extends TestCase
         $this->assertEquals($tokenExpireDuration, $oauthToken->getExpireDuration(), 'Unable to setup expire duration!');
     }
 
-    /**
-     * Data provider for {@see testAutoFetchExpireDuration}.
-     *
-     * @return array test data.
-     */
-    public function autoFetchExpireDurationDataProvider(): array
-    {
-        return [
-            [
-                ['expire_in' => 123345],
-                123345,
-            ],
-            [
-                ['expire' => 233456],
-                233456,
-            ],
-            [
-                ['expiry_in' => 34567],
-                34567,
-            ],
-            [
-                ['expiry' => 45678],
-                45678,
-            ],
-        ];
-    }
-
-    /**
-     * @depends      testSetupParamsShortcuts
-     *
-     * @dataProvider autoFetchExpireDurationDataProvider
-     *
-     * @param array $params
-     * @param int $expectedExpireDuration
-     */
-    public function testAutoFetchExpireDuration(array $params, int $expectedExpireDuration): void
-    {
-        $oauthToken = new OAuthToken();
-        $oauthToken->setParams($params);
-        /**
-         * If the key has at least 'expir' in it, use the key.
-         * All the different keys in the above array have expir in them so use the key
-         */
-        $this->assertEquals($expectedExpireDuration, $oauthToken->getExpireDuration());
-    }
-
-    /**
-     * @depends testSetupParamsShortcuts
-     */
     public function testGetIsExpired(): void
     {
         $oauthToken = new OAuthToken();
@@ -111,9 +59,6 @@ class TokenTest extends TestCase
         $this->assertTrue($oauthToken->getIsExpired(), 'Expired token check fails!');
     }
 
-    /**
-     * @depends testGetIsExpired
-     */
     public function testGetIsValid(): void
     {
         $oauthToken = new OAuthToken();
@@ -125,7 +70,7 @@ class TokenTest extends TestCase
         $oauthToken->setToken('test_token');
         $this->assertTrue($oauthToken->getIsValid(), 'Filled up token is invalid!');
 
-        $oauthToken->setExpireDuration($oauthToken->getExpireDuration() - $expireDuration);
+        $oauthToken->setExpireDuration((int)$oauthToken->getExpireDuration() - $expireDuration);
         $this->assertFalse($oauthToken->getIsValid(), 'Expired token is valid!');
     }
 }

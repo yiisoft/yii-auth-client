@@ -179,10 +179,7 @@ final class OAuthToken
      */
     public function getIsExpired(): bool
     {
-        $expirationDuration = $this->getExpireDuration();
-        if (!is_int($expirationDuration)) {
-            return false;
-        }
+        $expirationDuration = (int)$this->getExpireDuration();
 
         return time() >= ($this->createTimestamp + $expirationDuration);
     }

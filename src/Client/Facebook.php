@@ -251,22 +251,6 @@ final class Facebook extends OAuth2
     }
 
     /**
-     * Using Meta's Graph API Explorer with User Token and Permission public profile which is the default scope here
-     * @link https://developers.facebook.com/tools/explorer/YOUR_APP_ID/?method=GET&path=me%3Ffields%3Did%2Cname%2Cfirst_name%2Clast_name&version=v21.0
-     * @return array
-     */
-    protected function initUserAttributes(): array
-    {
-        $userAttributesFromGraphApiExplorer = ['id', 'name', 'first_name', 'last_name'];
-        return $this->api(
-            'me',
-            'GET',
-            [
-                'fields' => implode(',', $userAttributesFromGraphApiExplorer),
-            ]
-        );
-    }
-    /**
      * @return int[]
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}

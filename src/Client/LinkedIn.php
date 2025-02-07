@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
@@ -31,17 +29,21 @@ final class LinkedIn extends OAuth2
             
             /** https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2#api-request-to-retreive-member-details */
             $ch = curl_init('https://api.linkedin.com/v2/userinfo');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $tokenString
-            ]);
-            $response = curl_exec($ch);
-            curl_close($ch);
-            if (is_string($response) && strlen($response) > 0) {
-                return (array)json_decode($response, true);
+            if ($ch <> false) {
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Authorization: Bearer ' . $tokenString
+                ]);
+                $response = curl_exec($ch);
+                curl_close($ch);
+                if (is_string($response) && strlen($response) > 0) {
+                    return (array)json_decode($response, true);
+                } else {
+                    return [];
+                }
             } else {
                 return [];
-            }    
+            }   
         }
         
         return [];

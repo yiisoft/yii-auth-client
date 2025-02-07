@@ -76,15 +76,19 @@ final class MicrosoftOnline extends OAuth2
             
             // Create a GET request to a Microsoft Graph API endpoint
             $ch = curl_init('https://graph.microsoft.com/v1.0/me');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $tokenString,
-                'Content-Type: application/json'
-            ]);
-            $response = curl_exec($ch);
-            curl_close($ch);
-            if (is_string($response) && strlen($response) > 0) {
-                return (array)json_decode($response, true);
+            if ($ch <> false) {
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Authorization: Bearer ' . $tokenString,
+                    'Content-Type: application/json'
+                ]);
+                $response = curl_exec($ch);
+                curl_close($ch);
+                if (is_string($response) && strlen($response) > 0) {
+                    return (array)json_decode($response, true);
+                } else {
+                    return [];
+                }
             } else {
                 return [];
             }    
@@ -123,10 +127,5 @@ final class MicrosoftOnline extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'offline_access User.Read';
-    }
-
-    protected function initUserAttributes(): array
-    {
-        return $this->api('me', 'GET');
     }
 }

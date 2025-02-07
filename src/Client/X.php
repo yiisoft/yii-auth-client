@@ -63,21 +63,34 @@ final class X extends OAuth2
             
             $ch = curl_init($url);
             
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            if ($ch <> false) {
             
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $tokenString,
-            ]);
-            
-            $response = curl_exec($ch);
-            
-            curl_close($ch);
-            
-            if (is_string($response) && strlen($response) > 0) {
-                return (array)json_decode($response, true);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Authorization: Bearer ' . $tokenString,
+                ]);
+
+                $response = curl_exec($ch);
+
+                curl_close($ch);
+
+                if (is_string($response) && strlen($response) > 0) {
+                    
+                    return (array)json_decode($response, true);
+                                    
+                } else {
+                    
+                    return [];
+                                    
+                }
+                
             } else {
+                
                 return [];
+                
             }    
+                
         }
         
         return [];

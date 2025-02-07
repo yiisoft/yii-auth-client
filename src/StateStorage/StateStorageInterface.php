@@ -31,7 +31,7 @@ interface StateStorageInterface
      *
      * @return mixed the variable value, or `null` if the variable does not exist.
      */
-    public function get(string $key);
+    public function get(string $key) : mixed;
 
     /**
      * Removes a state variable.

@@ -8,8 +8,6 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 use Psr\Http\Message\RequestFactoryInterface;
-use Yiisoft\Di\Container;
-use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -46,43 +44,28 @@ class CollectionTest extends TestCase
         $this->assertEquals($clients, $collection->getClients(), 'Unable to setup clients!');
     }
 
-    /**
-     * @depends testSetGet
-     */
-    public function testGetProviderByName()
+    public function testGetProviderByName() : void
     {
         $clientId = 'testClientId';
         $client = $this->getTestClient();
         $clients = [
             $clientId => $client,
         ];
-        $collection = new Collection($clients, $this->getContainer());
+        $collection = new Collection($clients);
 
         $this->assertEquals($client, $collection->getClient($clientId), 'Unable to get client by id!');
     }
 
-    /**
-     * @depends testSetGet
-     */
-    public function testHasProvider()
+    public function testHasProvider() : void
     {
         $clientName = 'testClientName';
         $collection = new Collection(
             [
                 $clientName => $this->getTestClient(),
-            ],
-            $this->getContainer()
+            ]
         );
-
-
+        
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
         $this->assertFalse($collection->hasClient('nonExistingClientName'), 'Not existing client check fails!');
-    }
-
-    private function getContainer($definitions = [])
-    {
-        $config = ContainerConfig::create()
-            ->withDefinitions($definitions);
-        return new Container($config);
     }
 }

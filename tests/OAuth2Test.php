@@ -17,8 +17,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 class OAuth2Test extends TestCase
 {
-    protected SessionInterface $session;
-    
     /**
      * Creates test OAuth2 client instance.
      *
@@ -42,7 +40,6 @@ class OAuth2Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
             )
-            ->addMethods(['initUserAttributes'])    
             ->onlyMethods(['getName', 'getTitle'])
             ->getMock();
     }
