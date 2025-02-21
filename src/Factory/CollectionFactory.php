@@ -18,8 +18,8 @@ class CollectionFactory
 
     /**
      * @param ContainerInterface $container
-     * @return Collection
      * @throws \InvalidArgumentException
+     * @return Collection
      * @psalm-suppress MixedAssignment
      */
     public function __invoke(ContainerInterface $container): Collection

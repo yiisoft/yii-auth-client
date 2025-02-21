@@ -13,11 +13,10 @@ use Yiisoft\Yii\AuthClient\AuthClient;
 final class TestClient extends AuthClient
 {
     /**
-     * 
      * @psalm-suppress PropertyNotSetInConstructor
      */
     protected array $viewOptions;
-    
+
     protected function initUserAttributes(): array
     {
         return [];

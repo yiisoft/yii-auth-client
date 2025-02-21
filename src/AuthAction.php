@@ -156,10 +156,8 @@ final class AuthAction implements MiddlewareInterface
     {
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
-        } else { 
-            throw new NotSupportedException('Provider is not supported.');
         }
-        
+        throw new NotSupportedException('Provider is not supported.');
     }
 
     /**
@@ -184,7 +182,7 @@ final class AuthAction implements MiddlewareInterface
                 return $this->authCancel($client);
             }
             /**
-             * @var null|string $queryParams['error_description']
+             * @var string|null $queryParams['error_description']
              */
             $errorMessage = $queryParams['error_description'] ?? ((string)$queryParams['error_message'] ?: null);
             if ($errorMessage === null) {
@@ -279,7 +277,7 @@ final class AuthAction implements MiddlewareInterface
         ];
 
         $response = $this->responseFactory->createResponse();
-        
+
         /**
          * renderFile changes to render
          * @see https://github.com/search?q=repo%3Ayiisoft%2Fview%20renderFIle&type=code
@@ -307,7 +305,7 @@ final class AuthAction implements MiddlewareInterface
                 '"' . self::class . '::$successCallback" should be a valid callback.'
             );
         }
-        
+
         /**
          * @psalm-suppress MixedAssignment
          */
@@ -335,5 +333,5 @@ final class AuthAction implements MiddlewareInterface
             $url = $this->successUrl;
         }
         return $this->redirect($url);
-    }    
+    }
 }

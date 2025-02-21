@@ -61,7 +61,7 @@ final class Collection
         }
         return $client;
     }
-    
+
     /**
      * @return AuthClientInterface[] list of auth clients.
      */
@@ -80,7 +80,7 @@ final class Collection
 
         return $clients;
     }
-    
+
     /**
      * @param array $clients list of auth clients indexed by their names
      */

@@ -14,7 +14,7 @@ use Yiisoft\Assets\AssetBundle;
 class AuthChoiceAsset extends AssetBundle
 {
     public ?string $sourcePath = __DIR__ . '../../resources/assets';
-    
+
     /**
      * @psalm-suppress NonInvariantDocblockPropertyType $js
      */
@@ -22,9 +22,9 @@ class AuthChoiceAsset extends AssetBundle
         'authchoice.js',
         // omit the version completely to get the latest one
         // you should NOT use this in production
-        '//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js'
+        '//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js',
     ];
     public array $depends = [
-        AuthChoiceStyleAsset::class
+        AuthChoiceStyleAsset::class,
     ];
 }

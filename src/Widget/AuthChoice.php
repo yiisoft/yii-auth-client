@@ -202,10 +202,10 @@ final class AuthChoice extends Widget
                     $htmlOptions['data-popup-width'] = $viewOptions['popupWidth'];
                 }
                 if (isset($viewOptions['popupHeight'])) {
-                     /**
-                     * @var int $viewOptions['popupHeight']
-                     * @var int $htmlOptions['data-popup-height']
-                     */
+                    /**
+                    * @var int $viewOptions['popupHeight']
+                    * @var int $htmlOptions['data-popup-height']
+                    */
                     $htmlOptions['data-popup-height'] = $viewOptions['popupHeight'];
                 }
             }
