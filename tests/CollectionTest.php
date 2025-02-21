@@ -44,7 +44,7 @@ class CollectionTest extends TestCase
         $this->assertEquals($clients, $collection->getClients(), 'Unable to setup clients!');
     }
 
-    public function testGetProviderByName() : void
+    public function testGetProviderByName(): void
     {
         $clientId = 'testClientId';
         $client = $this->getTestClient();
@@ -56,7 +56,7 @@ class CollectionTest extends TestCase
         $this->assertEquals($client, $collection->getClient($clientId), 'Unable to get client by id!');
     }
 
-    public function testHasProvider() : void
+    public function testHasProvider(): void
     {
         $clientName = 'testClientName';
         $collection = new Collection(
@@ -64,7 +64,7 @@ class CollectionTest extends TestCase
                 $clientName => $this->getTestClient(),
             ]
         );
-        
+
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
         $this->assertFalse($collection->hasClient('nonExistingClientName'), 'Not existing client check fails!');
     }

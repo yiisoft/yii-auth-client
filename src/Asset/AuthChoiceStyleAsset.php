@@ -12,7 +12,7 @@ use Yiisoft\Assets\AssetBundle;
 class AuthChoiceStyleAsset extends AssetBundle
 {
     public ?string $sourcePath = __DIR__ . '../../resources/assets';
-    
+
     /**
      * @psalm-suppress NonInvariantDocblockPropertyType $css
      */

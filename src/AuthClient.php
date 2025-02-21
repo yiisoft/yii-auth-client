@@ -18,7 +18,6 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
  */
 abstract class AuthClient implements AuthClientInterface
 {
-
     /**
      * @var array map used to normalize user attributes fetched from external auth service
      * in format: normalizedAttributeName => sourceSpecification
@@ -40,7 +39,7 @@ abstract class AuthClient implements AuthClientInterface
      * ```
      */
     protected array $normalizeUserAttributeMap = [];
-    
+
     /**
      * @var array $viewOptions view options in format: optionName => optionValue
      */
@@ -54,26 +53,26 @@ abstract class AuthClient implements AuthClientInterface
      * @var StateStorageInterface state storage to be used.
      */
     private StateStorageInterface $stateStorage;
-    
+
     public function __construct(
-        PsrClientInterface $httpClient, 
-        RequestFactoryInterface $requestFactory, 
+        PsrClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage
-    ){
+    ) {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
         $this->stateStorage = $stateStorage;
     }
-    
-    public function setRequestFactory(RequestFactoryInterface $requestFactory) : void 
+
+    public function setRequestFactory(RequestFactoryInterface $requestFactory): void
     {
         $this->requestFactory = $requestFactory;
-    }    
-    
-    public function getRequestFactory() : RequestFactoryInterface
+    }
+
+    public function getRequestFactory(): RequestFactoryInterface
     {
         return $this->requestFactory;
-    }    
+    }
 
     /**
      * @return array normalize user attribute map.
@@ -166,7 +165,7 @@ abstract class AuthClient implements AuthClientInterface
      *
      * @return mixed state value.
      */
-    protected function getState(string $key) : mixed
+    protected function getState(string $key): mixed
     {
         return $this->stateStorage->get($this->getStateKeyPrefix() . $key);
     }
@@ -181,7 +180,7 @@ abstract class AuthClient implements AuthClientInterface
         $this->stateStorage->remove($this->getStateKeyPrefix() . $key);
     }
 
-    protected function sendRequest(RequestInterface $request) : ResponseInterface
+    protected function sendRequest(RequestInterface $request): ResponseInterface
     {
         return $this->httpClient->sendRequest($request);
     }

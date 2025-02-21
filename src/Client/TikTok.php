@@ -14,25 +14,24 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 final class TikTok extends OAuth2
 {
     protected string $authUrl = '';
-    
+
     protected string $tokenUrl = '';
-    
+
     protected string $endpoint = '';
 
-    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token) : array {
+    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array
+    {
         /**
          * @see ... useful endpoints
          */
         $url = '';
-        
+
         $tokenString = (string)$token->getParam('access_token');
-        
+
         if (strlen($tokenString) > 0) {
-            
             $ch = curl_init($url);
-            
-            if ($ch <> false) {
-            
+
+            if ($ch != false) {
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -44,25 +43,18 @@ final class TikTok extends OAuth2
                 curl_close($ch);
 
                 if (is_string($response) && strlen($response) > 0) {
-                    
                     return (array)json_decode($response, true);
-                    
-                } else {
-                    
-                    return [];
-                    
                 }
-                
-            } else {
-                
+
                 return [];
-                
-            }    
+            }
+
+            return [];
         }
-        
+
         return [];
     }
-    
+
     /**
      * @return string
      *
@@ -82,7 +74,7 @@ final class TikTok extends OAuth2
     {
         return 'tiktok';
     }
-   
+
     /**
      * @return string service title.
      *

@@ -10,8 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
-use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 /**
@@ -26,7 +24,7 @@ abstract class OAuth2 extends OAuth
      * @var string OAuth client ID.
      */
     protected string $clientId = '';
-        
+
     protected YiisoftFactory $factory;
     /**
      * @var string OAuth client secret.
@@ -37,9 +35,9 @@ abstract class OAuth2 extends OAuth
      * @see e.g. 'https://github.com/login/oauth/access_token'
      */
     protected string $tokenUrl;
-    
+
     protected string $returnUrl = '';
-    
+
     /**
      * @var bool whether to use and validate auth 'state' parameter in authentication flow.
      * If enabled - the opaque value will be generated and applied to auth URL to maintain
@@ -48,9 +46,9 @@ abstract class OAuth2 extends OAuth
      * The option is used for preventing cross-site request forgery.
      */
     protected bool $validateAuthState = true;
-    
+
     protected SessionInterface $session;
-    
+
     /**
      * BaseOAuth constructor.
      *
@@ -64,7 +62,7 @@ abstract class OAuth2 extends OAuth
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
         YiisoftFactory $factory,
-        SessionInterface $session,    
+        SessionInterface $session,
     ) {
         $this->factory = $factory;
         $this->session = $session;
@@ -87,7 +85,7 @@ abstract class OAuth2 extends OAuth
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->getOauth2ReturnUrl(),
-            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME)
+            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME),
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
@@ -100,16 +98,16 @@ abstract class OAuth2 extends OAuth
 
         return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
     }
-    
+
     /**
      * Compare a callback query parameter 'state' with the saved Auth Client's 'authState'  parameter
      * in order to prevent CSRF attacks
-     * 
+     *
      * Use: Typically used in a AuthController's callback function specifically  for an Identity Provider e.g. Facebook
-     * 
+     *
      * @return mixed
      */
-    public function getSessionAuthState() : mixed 
+    public function getSessionAuthState(): mixed
     {
         /**
          * @see src\AuthClient protected function getState('authState')
@@ -126,7 +124,7 @@ abstract class OAuth2 extends OAuth
     {
         $baseString = static::class . '-' . time();
         $sessionId = $this->session->getId();
-        if (null!==$sessionId) {
+        if (null !== $sessionId) {
             if ($this->session->isActive()) {
                 $baseString .= '-' . $sessionId;
             }
@@ -176,8 +174,8 @@ abstract class OAuth2 extends OAuth
         $defaultParams = [
             'code' => $authCode,
             'redirect_uri' => $this->getOauth2ReturnUrl(),
-        ];        
-       
+        ];
+
         $request = $this->createRequest('POST', $this->tokenUrl);
         $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
@@ -190,11 +188,11 @@ abstract class OAuth2 extends OAuth
          * @var string $value
          */
         foreach ($output as $key => $value) {
-            $token->setParam($key, $value);    
+            $token->setParam($key, $value);
         }
         return $token;
     }
-    
+
     /**
      * Fetches access token from authorization code using cURL.
      *
@@ -239,22 +237,21 @@ abstract class OAuth2 extends OAuth
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'code' => $authCode,
-            'redirect_uri' => $params['redirect_uri'] ?? ''
+            'redirect_uri' => $params['redirect_uri'] ?? '',
         ];
-        
+
         // Convert the request body to a URL-encoded query string
         $requestBodyString = http_build_query($requestBody);
-        
+
         // Create a POST request with the request body
         $curl = curl_init($this->tokenUrl);
-        
-        if ($curl <> false) {
-        
+
+        if ($curl != false) {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBodyString);
             curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/x-www-form-urlencoded'
+                'Content-Type: application/x-www-form-urlencoded',
             ]);
 
             $response = curl_exec($curl);
@@ -266,13 +263,10 @@ abstract class OAuth2 extends OAuth
             } else {
                 $output = [];
             }
-            
         } else {
-            
             $output = [];
-            
-        } 
-                
+        }
+
         $token = new OAuthToken();
 
         /**
@@ -280,24 +274,23 @@ abstract class OAuth2 extends OAuth
          * @var string $value
          */
         foreach ($output as $key => $value) {
-            $token->setParam($key, $value);    
+            $token->setParam($key, $value);
         }
-        
+
         return $token;
-        
     }
-    
+
     /**
      * Note: This function will be adapted later to accomodate the 'confidential client'.
      * @see https://docs.x.com/resources/fundamentals/authentication/oauth-2-0/authorization-code
-     * Used specifically for the X i.e. Twitter OAuth2.0 Authorization code with PKCE and public client i.e. 
-     * client id included in request body;  
+     * Used specifically for the X i.e. Twitter OAuth2.0 Authorization code with PKCE and public client i.e.
+     * client id included in request body;
      * and NOT Confidential Client i.e. Client id not included in the request body
      * @param ServerRequestInterface $incomingRequest
      * @param string $authCode
      * @param array $params
-     * @return OAuthToken
      * @throws InvalidArgumentException
+     * @return OAuthToken
      */
     public function fetchAccessTokenWithCurlAndCodeVerifier(
         ServerRequestInterface $incomingRequest,
@@ -309,9 +302,9 @@ abstract class OAuth2 extends OAuth
              * @psalm-suppress MixedAssignment
              */
             $authState = $this->getState('authState');
-            
+
             $queryParams = $incomingRequest->getQueryParams();
-            
+
             $bodyParams = $incomingRequest->getParsedBody();
             /**
              * @psalm-suppress MixedAssignment
@@ -337,17 +330,16 @@ abstract class OAuth2 extends OAuth
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'redirect_uri' => $params['redirect_uri'] ?? '',
-            'code_verifier' => $params['code_verifier'] ?? ''
+            'code_verifier' => $params['code_verifier'] ?? '',
         ];
-        
+
         // Convert the request body to a URL-encoded query string
         $requestBodyString = http_build_query($requestBody);
-        
+
         // Create a POST request with the request body
         $curl = curl_init($this->tokenUrl);
-       
-        if ($curl <> false) {
-        
+
+        if ($curl != false) {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
             curl_setopt($curl, CURLOPT_POST, true);
@@ -362,26 +354,23 @@ abstract class OAuth2 extends OAuth
                 $output = (array)json_decode($response, true);
             } else {
                 $output = [];
-            } 
-        
+            }
         } else {
-            
             $output = [];
-            
-        }    
-            
+        }
+
         $token = new OAuthToken();
-        
+
         /**
          * @var string $key
          * @var string $value
          */
         foreach ($output as $key => $value) {
-            $token->setParam($key, $value);    
+            $token->setParam($key, $value);
         }
         return $token;
     }
-    
+
     /**
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
@@ -396,7 +385,7 @@ abstract class OAuth2 extends OAuth
             $request,
             [
                 'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret
+                'client_secret' => $this->clientSecret,
             ]
         );
     }
@@ -413,37 +402,37 @@ abstract class OAuth2 extends OAuth
 
         return parent::createToken($tokenConfig);
     }
-    
-    public function setClientId(string $clientId) : void
+
+    public function setClientId(string $clientId): void
     {
         $this->clientId = $clientId;
     }
-    
-    public function getClientId() : string
+
+    public function getClientId(): string
     {
         return $this->clientId;
     }
-    
-     public function setClientSecret(string $clientSecret) : void
+
+    public function setClientSecret(string $clientSecret): void
     {
         $this->clientSecret = $clientSecret;
     }
-    
-    public function getClientSecret() : string
+
+    public function getClientSecret(): string
     {
         return $this->clientSecret;
     }
-    
-    public function getOauth2ReturnUrl() : string
+
+    public function getOauth2ReturnUrl(): string
     {
         return $this->returnUrl;
     }
-    
-    public function setOauth2ReturnUrl(string $returnUrl) : void
+
+    public function setOauth2ReturnUrl(string $returnUrl): void
     {
         $this->returnUrl = $returnUrl;
     }
-    
+
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -456,9 +445,9 @@ abstract class OAuth2 extends OAuth
 
     /**
      * Gets new auth token to replace expired one.
-     * 
+     *
      * @see https://developers.google.com/oauthplayground
-     * 
+     *
      * @param OAuthToken $token expired auth token.
      *
      * @return OAuthToken new auth token.
@@ -471,7 +460,7 @@ abstract class OAuth2 extends OAuth
         $params = array_merge($token->getParams(), $params);
 
         $request = $this->createRequest('POST', $this->tokenUrl);
-        
+
         $request = RequestUtil::addParams($request, $params);
 
         $request = $this->applyClientCredentialsToRequest($request);
@@ -479,16 +468,16 @@ abstract class OAuth2 extends OAuth
         $response = $this->sendRequest($request);
 
         $contents = $response->getBody()->getContents();
-        
+
         $output = $this->parse_str_clean($contents);
-        
+
         $token = new OAuthToken();
         /**
          * @var string $key
          * @var string $value
          */
         foreach ($output as $key => $value) {
-            $token->setParam($key, $value);    
+            $token->setParam($key, $value);
         }
         return $token;
     }
@@ -512,54 +501,53 @@ abstract class OAuth2 extends OAuth
 
         return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
-    
+
     /**
-     * Purpose: Prevent, inter alia, underscores in keys of an array 
+     * Purpose: Prevent, inter alia, underscores in keys of an array
      * @see https://www.php.net/manual/en/function.parse-str.php#126789
      */
-    private function parse_str_clean(string $querystr): array {
+    private function parse_str_clean(string $querystr): array
+    {
         $qquerystr = str_ireplace(['.','%2E','+',' ','%20'], ['QQleQPunT', 'QQleQPunT', 'QQleQSpaTIE', 'QQleQSpaTIE', 'QQleQSpaTIE'], $querystr);
-        $arr = null; 
+        $arr = null;
         parse_str($qquerystr, $arr);
-        $sanitizedArray = $this->sanitizeKeys($arr, $querystr);
-        return $sanitizedArray;
+        return $this->sanitizeKeys($arr, $querystr);
     }
-    
-    private function sanitizeKeys(array &$arr, string $querystr) : array {
-        
+
+    private function sanitizeKeys(array &$arr, string $querystr): array
+    {
         /**
          * @var array|string $val
          */
-        foreach($arr as $key => $val) {
+        foreach ($arr as $key => $val) {
             // restore values to original
-            
+
             $newval = $val;
-            
+
             if (is_string($val)) {
-                $newval = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], $val);
+                $newval = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ['.',' '], $val);
             }
-    
-            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ["."," "], (string)$key);
-            
-            if (str_contains($newkey, '_')) { 
-    
+
+            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ['.',' '], (string)$key);
+
+            if (str_contains($newkey, '_')) {
                 // periode of space or [ or ] converted to _. Restore with querystring
-                $regex = '/&('.str_replace('_', '[ \.\[\]]', preg_quote($newkey, '/')).')=/';
+                $regex = '/&(' . str_replace('_', '[ \.\[\]]', preg_quote($newkey, '/')) . ')=/';
                 $matches = null ;
-                if (preg_match_all($regex, "&".urldecode($querystr), $matches) > 0) {
-    
+                if (preg_match_all($regex, '&' . urldecode($querystr), $matches) > 0) {
                     if (count(array_unique($matches[1])) === 1 && (string)$key != $matches[1][0]) {
                         $newkey = $matches[1][0] ;
                     }
                 }
             }
-            
+
             if ($newkey !== $key) {
                 unset($arr[$key]);
                 $arr[$newkey] = $newval ;
-            } elseif( $val !== $newval) 
+            } elseif ($val !== $newval) {
                 $arr[$key] = $newval;
-    
+            }
+
             if (is_array($val)) {
                 /**
                  * @psalm-suppress MixedArgument $arr[$newkey]

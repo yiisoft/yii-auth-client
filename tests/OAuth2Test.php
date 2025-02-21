@@ -25,17 +25,17 @@ class OAuth2Test extends TestCase
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(Client::class)->getMock();
-       
+
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
-        
+
         $yiisoftFactory = new YiisoftFactory(
             new Container(ContainerConfig::create())
         );
-        
+
         $session = $this->getMockBuilder(Session::class)->getMock();
-        
+
         $sessionStateStorage = new SessionStateStorage($session);
-                
+
         return $this->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
