@@ -11,7 +11,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
@@ -53,8 +52,9 @@ abstract class OAuth extends AuthClient
      * @var array|OAuthToken|null access token instance or its array configuration.
      */
     protected $accessToken = null;
-               
+
     protected YiisoftFactory $factory;
+
     /**
      * BaseOAuth constructor.
      *
@@ -72,22 +72,22 @@ abstract class OAuth extends AuthClient
         $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
-    
-    public function setYiisoftFactory(YiisoftFactory $factory) : void
+
+    public function setYiisoftFactory(YiisoftFactory $factory): void
     {
         $this->factory = $factory;
     }
-    
-    public function getYiisoftFactory() : YiisoftFactory
+
+    public function getYiisoftFactory(): YiisoftFactory
     {
         return $this->factory;
     }
-    
+
     public function setAuthUrl(string $authUrl): void
     {
         $this->authUrl = $authUrl;
     }
-    
+
     /**
      * @param ServerRequestInterface $request
      *
@@ -112,7 +112,7 @@ abstract class OAuth extends AuthClient
     {
         return (string)$request->getUri();
     }
-    
+
     /**
      * Performs request to the OAuth API returning response data.
      * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
@@ -223,7 +223,7 @@ abstract class OAuth extends AuthClient
     /**
      * Restores access token.
      *
-     * @return null|OAuthToken 
+     * @return OAuthToken|null
      */
     protected function restoreAccessToken(): ?OAuthToken
     {
@@ -232,9 +232,8 @@ abstract class OAuth extends AuthClient
          */
         if (($token = $this->getState('token')) instanceof OAuthToken) {
             if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
-                $refreshedToken = $this->refreshAccessToken($token);
-                return $refreshedToken;
-            }            
+                return $this->refreshAccessToken($token);
+            }
             return $token;
         }
         return null;
@@ -270,7 +269,7 @@ abstract class OAuth extends AuthClient
      * @psalm-suppress MixedReturnStatement
      * @psalm-suppress MixedInferredReturnType OAuthToken
      */
-    protected function createToken(array $tokenConfig) : OAuthToken
+    protected function createToken(array $tokenConfig): OAuthToken
     {
         if (!array_key_exists('class', $tokenConfig)) {
             $tokenConfig['class'] = '\Yiisoft\Yii\AuthClient\OAuthToken';

@@ -31,14 +31,14 @@ final class OAuthToken
      * @var array token parameters.
      */
     private array $params = [];
-    
+
     public function __construct()
     {
         $this->createTimestamp = time();
     }
-    
+
     /**
-     * Returns the token secret value.     
+     * Returns the token secret value.
      * @psalm-suppress MixedReturnStatement
      * @psalm-suppress MixedInferredReturnType
      * @return string token secret value.
@@ -46,8 +46,8 @@ final class OAuthToken
     public function getTokenSecret(): string
     {
         return $this->getParam($this->tokenSecretParamKey ?: 'oauth_token_secret');
-    }   
-    
+    }
+
     /**
      * Sets token value.
      *
@@ -55,7 +55,7 @@ final class OAuthToken
      */
     public function setToken(string $token): void
     {
-        $this->setParam($this->tokenParamKey  ?: 'oauth_token', $token);
+        $this->setParam($this->tokenParamKey ?: 'oauth_token', $token);
     }
 
     /**
@@ -65,7 +65,7 @@ final class OAuthToken
      *
      * @return mixed param value.
      */
-    public function getParam(string $name) : mixed
+    public function getParam(string $name): mixed
     {
         return $this->params[$name] ?? null;
     }
@@ -79,7 +79,7 @@ final class OAuthToken
     {
         $this->setParam($this->getExpireDurationParamKey(), $expireDuration);
     }
-    
+
     /**
      * @return string expire duration param key.
      */
@@ -120,7 +120,7 @@ final class OAuthToken
     {
         return $this->params;
     }
-    
+
     /**
      * Sets param by name.
      *
@@ -131,7 +131,7 @@ final class OAuthToken
     {
         $this->params[$name] = $value;
     }
-    
+
     /**
      * Sets the token secret value.
      *
@@ -141,7 +141,7 @@ final class OAuthToken
     {
         $this->setParam($this->tokenSecretParamKey ?: 'oauth_token_secret', $tokenSecret);
     }
-    
+
     /**
      * @param array $params
      */
@@ -191,6 +191,6 @@ final class OAuthToken
      */
     public function getExpireDuration(): mixed
     {
-            return $this->getParam($this->getExpireDurationParamKey());
+        return $this->getParam($this->getExpireDurationParamKey());
     }
 }

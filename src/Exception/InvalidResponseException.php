@@ -18,7 +18,6 @@ class InvalidResponseException extends RuntimeException
      */
     private ResponseInterface $response;
 
-
     /**
      * Constructor.
      *

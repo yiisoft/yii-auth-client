@@ -41,7 +41,7 @@ final class RequestUtil
     }
 
     /**
-     * @return ((null|string)[]|null|string)[]
+     * @return ((string|null)[]|string|null)[]
      *
      * @psalm-return array<string, list{0: null|string, 1?: null|string,...}|null|string>
      */
@@ -72,11 +72,11 @@ final class RequestUtil
 
     public static function addHeaders(RequestInterface $request, array $headers): RequestInterface
     {
-        /** 
+        /**
          * @see Psr\Http\Message\withHeader
          * @var string $header Case-insensitive header field name.
-         * @var string|string[] $value Header value(s). 
-         */     
+         * @var string|string[] $value Header value(s).
+         */
         foreach ($headers as $header => $value) {
             $request = $request->withHeader($header, $value);
         }

@@ -17,7 +17,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * https://business.facebook.com/business/loginpage/?next=https%3A%2F%2Fdevelopers.facebook.com%2Fapps
  *
  * Example application configuration:
- * 
+ *
  * config/common/params.php
  * ['yiisoft/yii-auth-client']['clients']
  *
@@ -46,14 +46,14 @@ final class Facebook extends OAuth2
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
     protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
-    
+
     /**
      * @var bool whether to automatically upgrade short-live (2 hours) access token to long-live (60 days) one, after fetching it.
      *
      * @see exchangeToken()
      */
     private bool $autoExchangeAccessToken = false;
-    
+
     /**
      * @var string URL endpoint for the client auth code generation.
      *
@@ -62,12 +62,12 @@ final class Facebook extends OAuth2
      * @see fetchClientAccessToken()
      */
     private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
-    
-    public function getCurrentUserJsonArray(OAuthToken $token) : array
+
+    public function getCurrentUserJsonArray(OAuthToken $token): array
     {
         $params = $token->getParams();
         $finalValue = '';
-        
+
         /**
          * @var string $key
          * @var string $value
@@ -75,21 +75,22 @@ final class Facebook extends OAuth2
         foreach ($params as $key => $value) {
             $finalValue = $key;
         }
-        
+
         /**
          * @var string $finalValue
          * @var array $array
-         */ 
+         */
         $array = json_decode($finalValue, true);
         $tokenString = (string)($array['access_token'] ?? '');
-        
+
         if (strlen($tokenString) > 0) {
-            
             $request = $this->createRequest('GET', 'https://graph.facebook.com/v21.0/me?fields=id,name,first_name,last_name');
-            $request = RequestUtil::addHeaders($request, 
-                    [
-                        'Authorization' => 'Bearer '. $tokenString
-                    ]);
+            $request = RequestUtil::addHeaders(
+                $request,
+                [
+                    'Authorization' => 'Bearer ' . $tokenString,
+                ]
+            );
             $response = $this->sendRequest($request);
             $user = [];
             return (array)json_decode($response->getBody()->getContents(), true);
@@ -101,11 +102,11 @@ final class Facebook extends OAuth2
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
         $params = [];
-        if ((!empty($machineId = (string)$accessToken->getParam('machine_id')))) {
+        if (!empty($machineId = (string)$accessToken->getParam('machine_id'))) {
             $params['machine_id'] = $machineId;
         }
         $token = $accessToken->getToken();
-        if (null!==$token) {
+        if (null !== $token) {
             $params['appsecret_proof'] = hash_hmac('sha256', $token, $this->clientSecret);
         }
         return RequestUtil::addParams($request, $params);
@@ -172,7 +173,7 @@ final class Facebook extends OAuth2
         if ($token === null) {
             $token = $this->getAccessToken();
         }
-        if (null!==$token) {
+        if (null !== $token) {
             $params = array_merge(
                 [
                     'access_token' => $token->getToken(),
@@ -180,7 +181,7 @@ final class Facebook extends OAuth2
                 ],
                 $params
             );
-        }    
+        }
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl);
         $request = RequestUtil::addParams($request, $params);
 
