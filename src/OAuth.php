@@ -147,7 +147,7 @@ abstract class OAuth extends AuthClient
         if ($response->getStatusCode() !== 200) {
             throw new InvalidResponseException(
                 $response,
-                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . (string)$response->getBody()
             );
         }
 

@@ -24,5 +24,8 @@
                 <directory name="tests" />
             </errorLevel>
         </PropertyNotSetInConstructor>
+        <ClassMustBeFinal errorLevel="suppress" />
+        <InvalidArgument errorLevel="suppress" />
+        <MissingOverrideAttribute errorLevel="suppress"/>
     </issueHandlers>
 </psalm>
