@@ -15,7 +15,7 @@
 [![static analysis](https://github.com/rossaddison/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
 [![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)](https://psalm.dev)
 [![type-coverage](https://shepherd.dev/github/rossaddison/yii-auth-client/coverage.svg)](https://shepherd.dev/github/rossaddison/yii-auth-client)
-[![Latest Stable Version](http://poser.pugx.org/rossaddison/yii-auth-client/v)](https://packagist.org/packages/rossaddison/yii-auth-client) 
+[![Latest Stable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v)](https://packagist.org/packages/rossaddison/yii-auth-client) 
 [![Latest Unstable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v/unstable)](https://packagist.org/packages/rossaddison/yii-auth-client) 
 [![Total Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/downloads)](https://packagist.org/packages/rossaddison/yii-auth-client) 
 [![Monthly Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/d/monthly)](https://packagist.org/packages/rossaddison/yii-auth-client)
