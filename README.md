@@ -16,12 +16,12 @@
 [![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)](https://psalm.dev)
 [![type-coverage](https://shepherd.dev/github/rossaddison/yii-auth-client/coverage.svg)](https://shepherd.dev/github/rossaddison/yii-auth-client)
 [![Latest Stable Version](http://poser.pugx.org/rossaddison/yii-auth-client/v)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Latest Unstable Version](http://poser.pugx.org/rossaddison/yii-auth-client/v/unstable)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Total Downloads](http://poser.pugx.org/rossaddison/yii-auth-client/downloads)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Monthly Downloads](http://poser.pugx.org/rossaddison/yii-auth-client/d/monthly)](https://packagist.org/packages/rossaddison/yii-auth-client)
-[![Daily Downloads](http://poser.pugx.org/rossaddison/yii-auth-client/d/daily)](https://packagist.org/packages/rossaddison/yii-auth-client)
-[![License](http://poser.pugx.org/rossaddison/yii-auth-client/license)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![PHP Version Require](http://poser.pugx.org/rossaddison/yii-auth-client/require/php)](https://packagist.org/packages/rossaddison/yii-auth-client)
+[![Latest Unstable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v/unstable)](https://packagist.org/packages/rossaddison/yii-auth-client) 
+[![Total Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/downloads)](https://packagist.org/packages/rossaddison/yii-auth-client) 
+[![Monthly Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/d/monthly)](https://packagist.org/packages/rossaddison/yii-auth-client)
+[![Daily Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/d/daily)](https://packagist.org/packages/rossaddison/yii-auth-client)
+[![License](https://poser.pugx.org/rossaddison/yii-auth-client/license)](https://packagist.org/packages/rossaddison/yii-auth-client) 
+[![PHP Version Require](https://poser.pugx.org/rossaddison/yii-auth-client/require/php)](https://packagist.org/packages/rossaddison/yii-auth-client)
 
 This extension adds [OAuth2](https://oauth.net/2/) 
 consumers for the [Yii framework](https://www.yiiframework.com).
