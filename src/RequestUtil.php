@@ -41,7 +41,7 @@ final class RequestUtil
     }
 
     /**
-     * @return ((string|null)[]|string|null)[]
+     * @return (string|(string|null)[]|null)[]
      *
      * @psalm-return array<string, list{0: null|string, 1?: null|string,...}|null|string>
      */
