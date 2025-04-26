@@ -65,8 +65,7 @@ final class GitHub extends OAuth2
             );
 
             $response = $this->sendRequest($request);
-
-            $user = [];
+            
             // the array returns basic info of the user including login i.e. username, and github id
             // which will be used later to concatenate or build-up a username for our purposes.
             return (array)json_decode($response->getBody()->getContents(), true);
