@@ -28,6 +28,13 @@ class GovUk extends OAuth2
     protected string $sessionEndEndPoint = 'https://oidc.integration.account.gov.uk/logout';
     protected string $endPoint = 'https://oidc.integration.account.gov.uk';
 
+    /**
+     * Beta: This function is untested.
+     * @see https://www.sign-in.service.gov.uk/register
+     * @see oidc vs oauth2
+     * @param OAuthToken $token
+     * @return array
+     */
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
         /**
