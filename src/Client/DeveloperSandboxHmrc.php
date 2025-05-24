@@ -208,6 +208,42 @@ final class DeveloperSandboxHmrc extends OAuth2
         return $user;
     }
     
+    public function createTestUserIndividual(OAuthToken $token, array $requestBody): array
+    {
+        // Retrieve the access token string from the OAuth token
+        $tokenString = (string)$token->getParam('access_token');
+    
+        if (strlen($tokenString) > 0) {
+            // Define the URL for the create-test-user/individuals endpoint
+            $url = 'https://test-api.service.hmrc.gov.uk/create-test-user/individuals';
+    
+            // Create a POST request
+            $request = $this->createRequest('POST', $url);
+    
+            // Add necessary headers, including the access token
+            $request = RequestUtil::addHeaders(
+                $request,
+                [
+                    'Authorization' => 'Bearer ' . $tokenString,
+                    'Content-Type' => 'application/json',
+                ]
+            );
+    
+            // Add the JSON payload to the request body
+            $request = $request->withBody(
+                \GuzzleHttp\Psr7\Utils::streamFor(json_encode($requestBody))
+            );
+    
+            // Send the request and retrieve the response
+            $response = $this->sendRequest($request);
+    
+            // Decode the JSON response into an array and return it
+            return (array)json_decode($response->getBody()->getContents(), true);
+        }
+    
+        return [];
+    }
+    
     /**
      * Date Received: 01 May 2025
      */
