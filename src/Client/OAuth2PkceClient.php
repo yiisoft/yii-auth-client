@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
@@ -18,10 +20,9 @@ final class OAuth2PkceClient extends OAuth2
      * @param string $authCode The authorization code received from the authorization server.
      * @param array<array-key, mixed> $params Additional parameters such as 'redirect_uri' and 'code_verifier'.
      *
-     * @return OAuthToken The generated OAuth token.
-     *
      * @throws InvalidArgumentException If the state validation fails.
      * @throws RuntimeException If the cURL request fails or the token response is invalid.
+     * @return OAuthToken The generated OAuth token.
      */
     public function fetchAccessTokenWithCurlAndCodeVerifier(
         ServerRequestInterface $incomingRequest,
@@ -108,7 +109,7 @@ final class OAuth2PkceClient extends OAuth2
     {
         return 'oauth2pkceclient';
     }
-    
+
     /**
      * @return string service title.
      *
@@ -118,10 +119,9 @@ final class OAuth2PkceClient extends OAuth2
     {
         return 'OAuth2PkceClient';
     }
-    
+
     protected function getDefaultScope(): string
     {
         return '';
     }
-
 }
