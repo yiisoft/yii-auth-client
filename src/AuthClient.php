@@ -52,8 +52,7 @@ abstract class AuthClient implements AuthClientInterface
          * @var StateStorageInterface state storage to be used.
          */
         private readonly StateStorageInterface $stateStorage
-    )
-    {
+    ) {
     }
 
     public function setRequestFactory(RequestFactoryInterface $requestFactory): void

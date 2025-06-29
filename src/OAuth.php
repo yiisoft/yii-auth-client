@@ -269,7 +269,7 @@ abstract class OAuth extends AuthClient
     protected function createToken(array $tokenConfig): OAuthToken
     {
         if (!array_key_exists('class', $tokenConfig)) {
-            $tokenConfig['class'] = \Yiisoft\Yii\AuthClient\OAuthToken::class;
+            $tokenConfig['class'] = OAuthToken::class;
         }
         return $this->factory->create($tokenConfig['class']);
     }
