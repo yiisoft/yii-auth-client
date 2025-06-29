@@ -35,8 +35,7 @@ final class Collection
          * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
          */
         private array $clients
-    )
-    {
+    ) {
     }
 
     /**

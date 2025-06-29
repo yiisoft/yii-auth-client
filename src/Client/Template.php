@@ -50,9 +50,9 @@ class Template extends OAuth2
                 $request,
                 [
                     'Authorization' => 'Bearer ' . $tokenString,
-                    
+
                     'Host' => '',
-                    
+
                     'Content-length' => 0,
                 ]
             );
@@ -86,7 +86,7 @@ class Template extends OAuth2
     {
         return '';
     }
-    
+
     #[\Override]
     protected function getDefaultScope(): string
     {

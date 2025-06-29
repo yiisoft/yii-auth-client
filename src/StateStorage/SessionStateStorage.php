@@ -25,8 +25,7 @@ class SessionStateStorage implements StateStorageInterface
          * otherwise - no session will be used and no data saving will be performed.
          */
         private readonly SessionInterface $session
-    )
-    {
+    ) {
     }
 
     public function set(string $key, $value): void
