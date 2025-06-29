@@ -60,6 +60,7 @@ final class TikTok extends OAuth2
      *
      * @psalm-return 'user.info.profile'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'user.info.profile';

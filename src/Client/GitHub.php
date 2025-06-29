@@ -99,6 +99,7 @@ final class GitHub extends OAuth2
      *
      * @psalm-return 'user'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'user';

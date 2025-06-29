@@ -104,6 +104,7 @@ class Google extends OAuth2
      * @see https://www.googleapis.com/auth/userinfo.email will output userinfo.email
      * @psalm-return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';

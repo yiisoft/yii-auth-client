@@ -76,6 +76,7 @@ final class LinkedIn extends OAuth2
      *
      * @psalm-return 'openid profile email w_member_social'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'openid profile email w_member_social';

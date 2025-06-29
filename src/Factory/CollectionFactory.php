@@ -9,11 +9,8 @@ use Yiisoft\Yii\AuthClient\Collection;
 
 class CollectionFactory
 {
-    private array $clients;
-
-    public function __construct(array $clients = [])
+    public function __construct(private readonly array $clients = [])
     {
-        $this->clients = $clients;
     }
 
     /**

@@ -256,6 +256,7 @@ final class VKontakte extends OAuth2
      *
      * @psalm-return 'email phone'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'email phone';

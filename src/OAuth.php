@@ -53,8 +53,6 @@ abstract class OAuth extends AuthClient
      */
     protected $accessToken = null;
 
-    protected YiisoftFactory $factory;
-
     /**
      * BaseOAuth constructor.
      *
@@ -67,9 +65,8 @@ abstract class OAuth extends AuthClient
         \GuzzleHttp\Client $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        YiisoftFactory $factory
+        protected YiisoftFactory $factory
     ) {
-        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
@@ -272,7 +269,7 @@ abstract class OAuth extends AuthClient
     protected function createToken(array $tokenConfig): OAuthToken
     {
         if (!array_key_exists('class', $tokenConfig)) {
-            $tokenConfig['class'] = '\Yiisoft\Yii\AuthClient\OAuthToken';
+            $tokenConfig['class'] = \Yiisoft\Yii\AuthClient\OAuthToken::class;
         }
         return $this->factory->create($tokenConfig['class']);
     }

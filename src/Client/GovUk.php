@@ -380,6 +380,7 @@ class GovUk extends OAuth2
      *
      * @psalm-return 'openid'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'openid';

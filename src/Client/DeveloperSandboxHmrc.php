@@ -20,7 +20,7 @@ final class DeveloperSandboxHmrc extends OAuth2
     /**
      * @var array<string, array<string, string>> Environment configuration for URLs.
      */
-    private const ENVIRONMENTS = [
+    private const array ENVIRONMENTS = [
         'dev' => [
             'authUrl' => 'https://test-api.service.hmrc.gov.uk/oauth/authorize',
             'tokenUrl' => 'https://test-api.service.hmrc.gov.uk/oauth/token',
@@ -297,6 +297,7 @@ final class DeveloperSandboxHmrc extends OAuth2
      *
      * @psalm-return 'read:self-assessment write:self-assessment'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'read:self-assessment write:self-assessment';

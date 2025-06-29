@@ -85,14 +85,14 @@ final class AuthChoice extends Widget
     /**
      * @var string route name for the external clients authentication URL.
      */
-    private string $authRoute;
+    private readonly string $authRoute;
     /**
      * @var AuthClientInterface[] auth providers list.
      */
-    private array $clients;
-    private UrlGeneratorInterface $urlGenerator;
-    private WebView $webView;
-    private AssetManager $assetManager;
+    private readonly array $clients;
+    private readonly UrlGeneratorInterface $urlGenerator;
+    private readonly WebView $webView;
+    private readonly AssetManager $assetManager;
 
     /**
      * Initializes the widget.

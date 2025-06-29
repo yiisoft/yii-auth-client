@@ -30,14 +30,13 @@ use RuntimeException;
  */
 final class Collection
 {
-    /**
-     * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
-     */
-    private array $clients;
-
-    public function __construct(array $clients)
+    public function __construct(
+        /**
+         * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
+         */
+        private array $clients
+    )
     {
-        $this->clients = $clients;
     }
 
     /**

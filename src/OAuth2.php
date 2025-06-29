@@ -24,8 +24,6 @@ abstract class OAuth2 extends OAuth
      * @var string OAuth client ID.
      */
     protected string $clientId = '';
-
-    protected YiisoftFactory $factory;
     /**
      * @var string OAuth client secret.
      */
@@ -47,8 +45,6 @@ abstract class OAuth2 extends OAuth
      */
     protected bool $validateAuthState = true;
 
-    protected SessionInterface $session;
-
     /**
      * BaseOAuth constructor.
      *
@@ -61,12 +57,10 @@ abstract class OAuth2 extends OAuth
         \GuzzleHttp\Client $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        YiisoftFactory $factory,
-        SessionInterface $session,
+        protected YiisoftFactory $factory,
+        protected SessionInterface $session,
     ) {
-        $this->factory = $factory;
-        $this->session = $session;
-        parent::__construct($httpClient, $requestFactory, $stateStorage, $factory);
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $this->factory);
     }
 
     /**
@@ -396,6 +390,7 @@ abstract class OAuth2 extends OAuth
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
+    #[\Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $tokenConfig['tokenParamKey'] = 'access_token';
@@ -494,6 +489,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return string return URL.
      */
+    #[\Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();

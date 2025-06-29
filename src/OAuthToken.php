@@ -20,7 +20,7 @@ final class OAuthToken
     /**
      * @var int object creation timestamp.
      */
-    private int $createTimestamp;
+    private readonly int $createTimestamp;
 
     /**
      * @var string|null key in {@see params} array, which stores token expiration duration.
@@ -104,7 +104,7 @@ final class OAuthToken
          * @var mixed $value
          */
         foreach ($this->getParams() as $name => $value) {
-            if (strpos((string)$name, 'expir') === false) {
+            if (!str_contains((string)$name, 'expir')) {
             } else {
                 $expireDurationParamKey = (string)$name;
                 break;

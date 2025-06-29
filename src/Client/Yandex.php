@@ -25,6 +25,7 @@ final class Yandex extends OAuth2
 
     protected string $endpoint = 'https://login.yandex.ru';
 
+    #[\Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $params = RequestUtil::getParams($request);
@@ -88,6 +89,7 @@ final class Yandex extends OAuth2
      *
      * @psalm-return 'login:info'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'login:info';

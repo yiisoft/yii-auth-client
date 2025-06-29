@@ -49,6 +49,7 @@ final class MicrosoftOnline extends OAuth2
         return $this->tenant;
     }
 
+    #[\Override]
     public function setAuthUrl(string $authUrl): void
     {
         $this->authUrl = $authUrl;
@@ -120,6 +121,7 @@ final class MicrosoftOnline extends OAuth2
      *
      * @psalm-return 'offline_access User.Read'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'offline_access User.Read';

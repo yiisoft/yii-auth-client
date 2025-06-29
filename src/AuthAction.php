@@ -53,12 +53,12 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  */
 final class AuthAction implements MiddlewareInterface
 {
-    public const AUTH_NAME = 'auth_displayname';
+    public const string AUTH_NAME = 'auth_displayname';
     /**
      * @var Collection
      * It should point to {@see Collection} instance.
      */
-    private Collection $clientCollection;
+    private readonly Collection $clientCollection;
     /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
@@ -114,14 +114,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * @var string the redirect url after successful authorization.
      */
-    private string $successUrl;
+    private readonly string $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
-    private string $cancelUrl;
-    private ResponseFactoryInterface $responseFactory;
-    private Aliases $aliases;
-    private WebView $view;
+    private readonly string $cancelUrl;
+    private readonly ResponseFactoryInterface $responseFactory;
+    private readonly Aliases $aliases;
+    private readonly WebView $view;
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

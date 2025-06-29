@@ -92,6 +92,7 @@ final class X extends OAuth2
      *
      * @psalm-return 'users.read tweet.read offline.access'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'users.read tweet.read offline.access';

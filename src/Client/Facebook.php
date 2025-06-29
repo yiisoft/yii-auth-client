@@ -98,6 +98,7 @@ final class Facebook extends OAuth2
         return [];
     }
 
+    #[\Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -112,6 +113,7 @@ final class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
+    #[\Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, $authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
@@ -256,6 +258,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
+    #[\Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -269,6 +272,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return 'public_profile'
      */
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return 'public_profile';

@@ -24,6 +24,7 @@ final class OAuth2PkceClient extends OAuth2
      * @throws RuntimeException If the cURL request fails or the token response is invalid.
      * @return OAuthToken The generated OAuth token.
      */
+    #[\Override]
     public function fetchAccessTokenWithCurlAndCodeVerifier(
         ServerRequestInterface $incomingRequest,
         string $authCode,
@@ -120,6 +121,7 @@ final class OAuth2PkceClient extends OAuth2
         return 'OAuth2PkceClient';
     }
 
+    #[\Override]
     protected function getDefaultScope(): string
     {
         return '';
