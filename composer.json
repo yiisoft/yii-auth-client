@@ -35,7 +35,7 @@
         "guzzlehttp/guzzle": "^7.9.3",
         "guzzlehttp/psr7": "^2.7.1",
         "maglnet/composer-require-checker": "^4.16.1",
-        "phpseclib/phpseclib": ">=3.0.45",
+        "phpseclib/phpseclib": ">=3.0.46",
         "psr/container": "^2.0.2",
         "psr/http-client": "^1.0.3",
         "psr/http-factory": "^1.1",
