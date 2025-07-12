@@ -9,14 +9,53 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
 /**
- * OpenBanking OAuth2 client for UK
+ * OpenBanking OAuth2 client for UK and other providers.
+ * The endpoints and scope must be set by the consuming controller before usage.
  */
 final class OpenBanking extends OAuth2
 {
     /**
-     * @var string|null
+     * @var string
+     * These must match the parent's type exactly for Psalm invariance.
      */
-    protected ?string $scope = 'openid accounts payments';
+    protected string $authUrl = '';
+
+    /**
+     * @var string
+     */
+    protected string $tokenUrl = '';
+
+    /**
+     * @var null|string
+     */
+    protected ?string $scope = null;
+
+    /**
+     * Set the authorization URL (for the current provider).
+     * @param string $authUrl
+     */
+    public function setAuthUrl(string $authUrl): void
+    {
+        $this->authUrl = $authUrl;
+    }
+
+    /**
+     * Set the token URL (for the current provider).
+     * @param string $tokenUrl
+     */
+    public function setTokenUrl(string $tokenUrl): void
+    {
+        $this->tokenUrl = $tokenUrl;
+    }
+
+    /**
+     * Set the scope (for the current provider).
+     * @param string|null $scope
+     */
+    public function setScope(?string $scope): void
+    {
+        $this->scope = $scope;
+    }
 
     /**
      * {@inheritdoc}
@@ -35,19 +74,44 @@ final class OpenBanking extends OAuth2
     }
 
     /**
+     * Override the auth URL to use the selected provider.
+     * No fallback to parent is possible: the controller MUST set it.
+     */
+    public function getAuthUrl(): string
+    {
+        return $this->authUrl;
+    }
+
+    /**
+     * Override the token URL to use the selected provider.
+     * No fallback to parent is possible: the controller MUST set it.
+     */
+    public function getTokenUrl(): string
+    {
+        return $this->tokenUrl;
+    }
+
+    /**
+     * Override the scope to use that of the selected provider.
+     */
+    public function getScope(): string
+    {
+        // Parent's getScope() returns string
+        return $this->scope !== null ? $this->scope : parent::getScope();
+    }
+
+    /**
      * Exchanges the authorization code for an access token, using PKCE (code_verifier).
      *
      * @param ServerRequestInterface $incomingRequest
-     * @param string|null $authCode
+     * @param string $authCode
      * @param array $params
      * @return OAuthToken
      */
-    public function fetchAccessTokenWithCurlAndCodeVerifier(ServerRequestInterface $incomingRequest, $authCode = null, array $params = []): OAuthToken
+    public function fetchAccessTokenWithCurlAndCodeVerifier(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         $tokenUrl = $this->getTokenUrl();
-        /** @var string|null $redirectUri */
         $redirectUri = isset($params['redirect_uri']) && is_string($params['redirect_uri']) ? $params['redirect_uri'] : null;
-        /** @var string|null $codeVerifier */
         $codeVerifier = isset($params['code_verifier']) && is_string($params['code_verifier']) ? $params['code_verifier'] : null;
 
         $postFields = [
@@ -62,7 +126,6 @@ final class OpenBanking extends OAuth2
             $postFields['code_verifier'] = $codeVerifier;
         }
 
-        // Add client_id and client_secret if needed
         $clientId = $this->getClientId();
         if ($clientId !== '') {
             $postFields['client_id'] = $clientId;
@@ -130,13 +193,9 @@ final class OpenBanking extends OAuth2
         if ($remainder > 0) {
             $payload .= str_repeat('=', 4 - $remainder);
         }
-        /** @var false|string $payloadJson */
         $payloadJson = base64_decode(strtr($payload, '-_', '+/'));
-        if ($payloadJson === false) {
-            return [];
-        }
         /** @var array<string, mixed>|null $decoded */
-        $decoded = json_decode($payloadJson, true);
+        $decoded = json_decode($payloadJson ?: '', true);
         return is_array($decoded) ? $decoded : [];
     }
 }
