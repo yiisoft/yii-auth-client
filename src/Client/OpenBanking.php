@@ -23,7 +23,7 @@ final class OpenBanking extends OAuth2
      */
     public function getName(): string
     {
-        return 'openbankinguk';
+        return 'openbanking';
     }
 
     /**
@@ -31,7 +31,7 @@ final class OpenBanking extends OAuth2
      */
     public function getTitle(): string
     {
-        return 'Open Banking UK';
+        return 'Open Banking';
     }
 
     /**
