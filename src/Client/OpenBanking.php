@@ -14,7 +14,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 final class OpenBanking extends OAuth2
 {
     /**
-     * @var null|string
+     * @var string|null
      */
     protected ?string $scope = 'openid accounts payments';
 
@@ -45,9 +45,9 @@ final class OpenBanking extends OAuth2
     public function fetchAccessTokenWithCurlAndCodeVerifier(ServerRequestInterface $incomingRequest, $authCode = null, array $params = []): OAuthToken
     {
         $tokenUrl = $this->getTokenUrl();
-        /** @var null|string $redirectUri */
+        /** @var string|null $redirectUri */
         $redirectUri = isset($params['redirect_uri']) && is_string($params['redirect_uri']) ? $params['redirect_uri'] : null;
-        /** @var null|string $codeVerifier */
+        /** @var string|null $codeVerifier */
         $codeVerifier = isset($params['code_verifier']) && is_string($params['code_verifier']) ? $params['code_verifier'] : null;
 
         $postFields = [
