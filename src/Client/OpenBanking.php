@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Auth\Client;
+namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
