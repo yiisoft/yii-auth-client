@@ -26,7 +26,7 @@ final class OpenBanking extends OAuth2
     protected string $tokenUrl = '';
 
     /**
-     * @var null|string
+     * @var string|null
      */
     protected ?string $scope = null;
 
