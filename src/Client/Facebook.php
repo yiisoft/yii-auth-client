@@ -114,7 +114,7 @@ final class Facebook extends OAuth2
     }
 
     #[\Override]
-    public function fetchAccessToken(ServerRequestInterface $incomingRequest, $authCode, array $params = []): OAuthToken
+    public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
         if ($this->autoExchangeAccessToken) {
@@ -170,7 +170,7 @@ final class Facebook extends OAuth2
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
         OAuthToken $token = null,
-        $params = []
+        array $params = []
     ): string {
         if ($token === null) {
             $token = $this->getAccessToken();

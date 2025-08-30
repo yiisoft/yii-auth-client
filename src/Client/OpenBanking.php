@@ -97,7 +97,7 @@ final class OpenBanking extends OAuth2
     public function getScope(): string
     {
         // Parent's getScope() returns string
-        return $this->scope !== null ? $this->scope : parent::getScope();
+        return $this->scope ?? parent::getScope();
     }
 
     /**
