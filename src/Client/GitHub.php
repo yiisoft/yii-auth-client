@@ -34,7 +34,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
  */
-final class GitHub extends OAuth2
+final class GitHub extends OAuth2 implements GitHubInterface
 {
     /**
      * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity

@@ -6,8 +6,9 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
-interface OpenBankingInterface
+interface OpenBankingInterface extends OAuth2Interface
 {
     public function setAuthUrl(string $authUrl): void;
     public function setTokenUrl(string $tokenUrl): void;

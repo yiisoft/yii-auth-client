@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
-interface DeveloperSandboxHmrcInterface
+interface DeveloperSandboxHmrcInterface extends OAuth2Interface
 {
     public function setEnvironment(string $environment = 'dev'): void;
     public function getEnvironment(): string;

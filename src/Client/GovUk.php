@@ -18,7 +18,7 @@ use Exception;
  * @see Documentation Updates https://tech-docs.account.gov.uk/#documentation-updates
  * @see Technical Documents https://github.com/govuk-one-login/tech-docs
  */
-class GovUk extends OAuth2
+class GovUk extends OAuth2 implements GovUkInterface
 {
     protected string $authUrl = 'https://oidc.integration.account.gov.uk/authorize';
     protected string $jwksUrl = 'https://oidc.integration.account.gov.uk/.well-known/jwks.json';

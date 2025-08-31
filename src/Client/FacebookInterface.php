@@ -7,8 +7,9 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
-interface FacebookInterface
+interface FacebookInterface extends OAuth2Interface
 {
     public function getCurrentUserJsonArray(OAuthToken $token): array;
 

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
-interface MicrosoftOnlineInterface
+interface MicrosoftOnlineInterface extends OAuth2Interface
 {
     public function setTenant(string $tenant): void;
     public function getTenant(): string;

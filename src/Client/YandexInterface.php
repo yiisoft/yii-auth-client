@@ -6,8 +6,9 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
-interface YandexInterface
+interface YandexInterface extends OAuth2Interface
 {
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface;
     public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array;

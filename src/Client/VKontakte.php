@@ -20,7 +20,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *                                          Access Keys: Service Key ... to perform requests to the VKontakte API on behalf of the application (not used here)
  *                                                                        when user authorization is not required
  */
-final class VKontakte extends OAuth2
+final class VKontakte extends OAuth2 implements VKontakteInterface
 {
     protected string $authUrl = 'https://id.vk.com/authorize';
 

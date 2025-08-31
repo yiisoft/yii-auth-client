@@ -17,7 +17,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @link https://oauth.yandex.ru/client/new
  * @link https://api.yandex.ru/login/doc/dg/reference/response.xml
  */
-final class Yandex extends OAuth2
+final class Yandex extends OAuth2 implements YandexInterface
 {
     protected string $authUrl = 'https://oauth.yandex.com/authorize';
 

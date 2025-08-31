@@ -39,7 +39,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * @see https://developer.x.com/en/docs/authentication/oauth-2-0/authorization-code
  */
 
-final class X extends OAuth2
+final class X extends OAuth2 implements XInterface
 {
     protected string $authUrl = 'https://x.com/i/oauth2/authorize';
 

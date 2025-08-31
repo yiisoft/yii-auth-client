@@ -15,7 +15,7 @@ use DateTime;
  * @see https://github.com/MicrosoftDocs/dynamics365smb-docs/blob/main/business-central/LocalFunctionality/UnitedKingdom/fraud-prevention-data.md
  */
 
-final class DeveloperSandboxHmrc extends OAuth2
+final class DeveloperSandboxHmrc extends OAuth2 implements DeveloperSandboxHmrcInterface
 {
     /**
      * @var array<string, array<string, string>> Environment configuration for URLs.

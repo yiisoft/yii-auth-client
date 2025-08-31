@@ -16,7 +16,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * @link https://www.linkedin.com/secure/developer
  * @link https://developer.linkedin.com/docs/rest-api
  */
-final class LinkedIn extends OAuth2
+final class LinkedIn extends OAuth2 implements LinkedInInterface
 {
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';

@@ -12,7 +12,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * OpenBanking OAuth2 client for UK and other providers.
  * The endpoints and scope must be set by the consuming controller before usage.
  */
-final class OpenBanking extends OAuth2
+final class OpenBanking extends OAuth2 implements OpenBankingInterface
 {
     /**
      * @var string
