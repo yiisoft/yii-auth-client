@@ -10,6 +10,8 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
 interface GitHubInterface extends OAuth2Interface
 {
     public function getCurrentUserJsonArray(OAuthToken $token): array;
+
     public function getName(): string;
+
     public function getTitle(): string;
 }

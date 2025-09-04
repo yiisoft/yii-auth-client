@@ -12,12 +12,15 @@ use Psr\Http\Message\ServerRequestInterface;
 interface OAuth2Interface extends OAuthInterface
 {
     public function setClientId(string $clientId): void;
+
     public function getClientId(): string;
 
     public function setClientSecret(string $clientSecret): void;
+
     public function getClientSecret(): string;
 
     public function getOauth2ReturnUrl(): string;
+
     public function setOauth2ReturnUrl(string $returnUrl): void;
 
     public function getTokenUrl(): string;
