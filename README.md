@@ -23,7 +23,7 @@
 [![License](https://poser.pugx.org/rossaddison/yii-auth-client/license)](https://packagist.org/packages/rossaddison/yii-auth-client) 
 [![PHP Version Require](https://poser.pugx.org/rossaddison/yii-auth-client/require/php)](https://packagist.org/packages/rossaddison/yii-auth-client)
 
-This extension adds [OAuth2](https://oauth.net/2/) 
+This extension adds [OAuth2](https://oauth.net/2/)
 consumers for the [Yii framework](https://www.yiiframework.com).
 
 ## Requirements
