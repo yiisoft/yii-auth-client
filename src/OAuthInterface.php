@@ -14,7 +14,9 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 interface OAuthInterface extends AuthClientInterface
 {
     public function setYiisoftFactory(YiisoftFactory $factory): void;
+
     public function getYiisoftFactory(): YiisoftFactory;
+
     public function setAuthUrl(string $authUrl): void;
 
     /**
