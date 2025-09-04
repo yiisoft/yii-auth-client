@@ -10,6 +10,8 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
 interface XInterface extends OAuth2Interface
 {
     public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array;
+
     public function getName(): string;
+
     public function getTitle(): string;
 }

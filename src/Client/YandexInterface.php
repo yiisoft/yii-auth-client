@@ -11,7 +11,10 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
 interface YandexInterface extends OAuth2Interface
 {
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface;
+
     public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array;
+
     public function getName(): string;
+
     public function getTitle(): string;
 }
