@@ -194,7 +194,7 @@ final class AuthAction implements MiddlewareInterface
         // Get the access_token and save them to the session.
         if (isset($queryParams['code']) && (strlen($code = (string)$queryParams['code']) > 0)) {
             $token = $client->fetchAccessToken($request, $code);
-            if (strlen($token->getToken() ?? '') > 0) {
+            if (strlen($token->getToken()) > 0) {
                 return $this->authSuccess($client);
             }
             return $this->authCancel($client);
