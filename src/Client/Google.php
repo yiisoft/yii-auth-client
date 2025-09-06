@@ -9,8 +9,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 
 /**
- * Date: 31/12/2024
- *
  * Google allows authentication via Google OAuth2 using HTTP client. Here we are NOT using the alternative Client Libraries
  * namely @see https://developers.google.com/people/v1/libraries#php
  * In order to use Google OAuth2 you must create a project at <https://console.cloud.google.com/cloud-resource-manager>
