@@ -14,21 +14,21 @@
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Frossaddison%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/rossaddison/yii-auth-client/master)
 [![static analysis](https://github.com/rossaddison/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
 [![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)](https://psalm.dev)
-[![type-coverage](https://shepherd.dev/github/rossaddison/yii-auth-client/coverage.svg)](https://shepherd.dev/github/rossaddison/yii-auth-client)
-[![Latest Stable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Latest Unstable Version](https://poser.pugx.org/rossaddison/yii-auth-client/v/unstable)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Total Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/downloads)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![Monthly Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/d/monthly)](https://packagist.org/packages/rossaddison/yii-auth-client)
-[![Daily Downloads](https://poser.pugx.org/rossaddison/yii-auth-client/d/daily)](https://packagist.org/packages/rossaddison/yii-auth-client)
-[![License](https://poser.pugx.org/rossaddison/yii-auth-client/license)](https://packagist.org/packages/rossaddison/yii-auth-client) 
-[![PHP Version Require](https://poser.pugx.org/rossaddison/yii-auth-client/require/php)](https://packagist.org/packages/rossaddison/yii-auth-client)
+[![type-coverage](https://shepherd.dev/github/yiisoft/yii-auth-client/coverage.svg)](https://shepherd.dev/github/yiisoft/yii-auth-client)
+[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v)](https://packagist.org/packages/yiisoft/yii-auth-client) 
+[![Latest Unstable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v/unstable)](https://packagist.org/packages/yiisoft/yii-auth-client) 
+[![Total Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/downloads)](https://packagist.org/packages/yiisoft/yii-auth-client) 
+[![Monthly Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/d/monthly)](https://packagist.org/packages/yiisoft/yii-auth-client)
+[![Daily Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/d/daily)](https://packagist.org/packages/yiisoft/yii-auth-client)
+[![License](https://poser.pugx.org/yiisoft/yii-auth-client/license)](https://packagist.org/packages/yiisoft/yii-auth-client) 
+[![PHP Version Require](https://poser.pugx.org/yiisoft/yii-auth-client/require/php)](https://packagist.org/packages/yiisoft/yii-auth-client)
 
 This extension adds [OAuth2](https://oauth.net/2/)
 consumers for the [Yii framework](https://www.yiiframework.com).
 
 ## Requirements
 
-- PHP 8.3 or higher.
+- PHP 8.1 or higher.
 
 ## Installation
 
@@ -40,19 +40,6 @@ composer require rossaddison/yii-auth-client
 
 ## Documentation
 
-26th November 2024
-Purpose for this fork: Introduce external authentication into rossaddison/invoice
-- Due to the archiving of nov/jose-php, openId Connect, and OAuth1 have been removed from this fork
-  to allow the use and testing of other clients such as: 
-    Facebook, Google, Github, LinkedIn, 
-    Live, TwitterOAuth2, 
-    VKontakt, and Yandex.
-- This fork is being tested currently and is psalm level 1 statically built and tested only.
-- 3 issue handlers are currently in the psalm.xml and can be removed independently to see relevant errors
-  by running e.g c:\wamp64\www\yii-auth-client\php ./vendor/bin/psalm
-- A suitable php substitute will hopefully be introduced later for nov/jose-php. yiisoft/auth-jwt is the obvious choice.
-- Due to the archiving of yiisoft/yii-jquery,  a cdn for jquery has been introduced into 
-  src/Asset/AuthChoiceAsset.php
 - Guide: [English](docs/guide/en/README.md), [Русский](docs/guide/ru/README.md)
 - [Internals](docs/internals.md)
 
