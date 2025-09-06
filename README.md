@@ -10,9 +10,9 @@
 </p>
 
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fyii-auth-client)](https://dashboard.stryker-mutator.io/reports/yii-auth-client)
-[![Build status](https://github.com/rossaddison/yii-auth-client/workflows/build/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3Abuild)
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Frossaddison%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/rossaddison/yii-auth-client/master)
-[![static analysis](https://github.com/rossaddison/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/rossaddison/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
+[![Build status](https://github.com/yiisoft/yii-auth-client/workflows/build/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3Abuild)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fyiisoft%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/yiisoft/yii-auth-client/master)
+[![static analysis](https://github.com/yiisoft/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
 [![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)](https://psalm.dev)
 [![type-coverage](https://shepherd.dev/github/yiisoft/yii-auth-client/coverage.svg)](https://shepherd.dev/github/yiisoft/yii-auth-client)
 [![Latest Stable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v)](https://packagist.org/packages/yiisoft/yii-auth-client) 
