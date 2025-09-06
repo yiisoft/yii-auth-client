@@ -37,11 +37,11 @@ use function in_array;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
- * 
+ *
  * @link https://github.com/web-token/jwt-framework
- * 
+ *
  * @link https://openid.net/connect/
- * 
+ *
  * @see OAuth2
  */
 final class OpenIdConnect extends OAuth2
@@ -105,7 +105,7 @@ final class OpenIdConnect extends OAuth2
      * @var JWSLoader JSON Web Signature
      */
     private JWSLoader $jwsLoader;
-    
+
     private JWKSet|null $jwkSet;
 
     /**
@@ -160,7 +160,7 @@ final class OpenIdConnect extends OAuth2
      *
      * @return mixed configuration parameter value.
      */
-    public function getConfigParam(string $name) : mixed
+    public function getConfigParam(string $name): mixed
     {
         $params = $this->getConfigParams();
         /**
@@ -452,7 +452,7 @@ final class OpenIdConnect extends OAuth2
         }
         return $this->jwsLoader;
     }
-    
+
     protected function getJwkSet(): ?JWKSet
     {
         $jwkSet = $this->jwkSet;
@@ -497,6 +497,6 @@ final class OpenIdConnect extends OAuth2
         }
         if (!isset($claims['aud']) || (strcmp((string) $claims['aud'], $this->clientId) !== 0)) {
             throw new RequestException('Invalid "aud"', 400);
-        }        
+        }
     }
 }
