@@ -11,12 +11,12 @@ class DummyStateStorage implements StateStorageInterface
         // do nothing
     }
 
-    public function get($key)
+    public function get(string $key): mixed
     {
         return null;
     }
 
-    public function remove($key): void
+    public function remove(string $key): void
     {
         // do nothing
     }
