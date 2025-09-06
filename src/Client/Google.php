@@ -20,7 +20,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see https://developers.google.com/oauthplayground
  * @see <https://console.cloud.google.com/welcome?project=[yourProjectId]>
  */
-class Google extends OAuth2 implements GoogleInterface
+class Google extends OAuth2
 {
     protected string $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     protected string $tokenUrl = 'https://oauth2.googleapis.com/token';

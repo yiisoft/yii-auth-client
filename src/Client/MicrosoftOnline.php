@@ -22,7 +22,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
  */
-final class MicrosoftOnline extends OAuth2 implements MicrosoftOnlineInterface
+final class MicrosoftOnline extends OAuth2
 {
     /**
      * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#protocol-details
