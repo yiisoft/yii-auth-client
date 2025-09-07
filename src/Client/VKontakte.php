@@ -95,7 +95,6 @@ final class VKontakte extends OAuth2
         return [];
     }
 
-
     /**
      * Example answer: ["response" => 1]
      *
