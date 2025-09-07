@@ -1,7 +1,6 @@
 .PHONY: menu psalm psalm_file psalm_clear_cache php_unit_test roave_infection_covered \
         roave_infection_uncovered infection outdated composerwhynot composer_update \
-        composer_dumpautoload require_checker rector_see_changes rector_make_changes \
-        exit exit_to_directory
+        composer_dumpautoload require_checker rector_see_changes rector_make_changes
 
 menu:
 	@echo "================================================================================"
@@ -22,8 +21,6 @@ menu:
 	@echo "make crc                    - Composer require checker"
 	@echo "make rdr                    - Rector Dry Run (see changes)"
 	@echo "make rmc                    - Rector (make changes)"
-	@echo "make ex                     - Exit (noop in Makefile)"
-	@echo "make exd                    - Exit to current directory (noop in Makefile)"
 	@echo ""
 
 p:
@@ -76,9 +73,3 @@ rdr:
 
 rmc:
 	php vendor/bin/rector
-
-ex:
-	@echo "Exiting (noop in Makefile)."
-
-exd:
-	@echo "Returning to current directory (noop in Makefile)."
