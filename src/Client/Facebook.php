@@ -232,7 +232,7 @@ final class Facebook extends OAuth2
 
         return $token;
     }
-    
+
     public function getName(): string
     {
         return 'facebook';
