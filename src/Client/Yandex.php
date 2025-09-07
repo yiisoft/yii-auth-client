@@ -43,35 +43,36 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-    public function getCurrentUserJsonArray(
-        ClientInterface $client,
-        RequestFactoryInterface $requestFactory,
-        string $accessToken
+   public function getCurrentUserJsonArray(
+        OAuthToken $oAuthToken,
+        ClientInterface $clientInterface,
+        RequestFactoryInterface $requestFactoryInterface
     ): array {
-        // Yandex API endpoint for current user info
-        $url = 'https://login.yandex.ru/info?format=json';
-
-        // Build PSR-7 Request
-        $request = $requestFactory->createRequest('GET', $url)
-            ->withHeader('Authorization', 'OAuth ' . $accessToken);
-
-        // Send request via PSR-18 client
-        $response = $client->sendRequest($request);
-
-        // Check status code
-        if ($response->getStatusCode() !== 200) {
-            throw new \RuntimeException('Yandex API request failed: ' . $response->getStatusCode());
+        /**
+         * @see https://yandex.com/dev/id/doc/en/codes/code-url
+         */
+        $url = 'https://login.yandex.ru/info';
+    
+        $tokenString = (string)$oAuthToken->getParam('access_token');
+    
+        if (strlen($tokenString) > 0) {
+            $request = $requestFactoryInterface
+                ->createRequest('GET', $url)
+                ->withHeader('Authorization', "OAuth $tokenString");
+    
+            try {
+                $response = $clientInterface->sendRequest($request);
+                $body = (string)$response->getBody();
+                if (is_string($body) && strlen($body) > 0) {
+                    return (array)json_decode($body, true);
+                }
+                return [];
+            } catch (\Psr\Http\Client\ClientExceptionInterface $e) {
+                return [];
+            }
         }
-
-        // Get and decode JSON response body
-        $body = (string) $response->getBody();
-        $data = (array) json_decode($body, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Invalid JSON received from Yandex API: ' . json_last_error_msg());
-        }
-
-        return $data;
+    
+        return [];
     }
 
     /**
