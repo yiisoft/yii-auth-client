@@ -6,7 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Client;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
@@ -28,7 +28,7 @@ class CollectionTest extends TestCase
 
     private function getTestClient(): TestClient
     {
-        $httpClient = $this->getMockBuilder(Client::class)->getMock();
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
         return new TestClient($httpClient, $this->getRequestFactory(), $this->getStateStorage());
     }
 

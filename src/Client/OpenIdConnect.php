@@ -15,8 +15,7 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,6 +25,7 @@ use Yiisoft\Factory\Factory;
 use Yiisoft\Json\Json;
 use Yiisoft\Security\Random;
 use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
@@ -113,7 +113,7 @@ final class OpenIdConnect extends OAuth2
      *
      * @param $name
      * @param $title
-     * @param Client $httpClient
+     * @param ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param CacheInterface $cache
      * @param StateStorageInterface $stateStorage
@@ -122,7 +122,7 @@ final class OpenIdConnect extends OAuth2
     public function __construct(
         string $name,
         string $title,
-        Client $httpClient,
+        ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         CacheInterface $cache,
         StateStorageInterface $stateStorage,
@@ -374,7 +374,7 @@ final class OpenIdConnect extends OAuth2
                 $nonce = isset($jwsData['nonce']) ? (string) $jwsData['nonce'] : '';
                 $authNonce = (string) $this->getState('authNonce');
                 if (!isset($jwsData['nonce']) || empty($authNonce) || strcmp($nonce, $authNonce) !== 0) {
-                    throw new RequestException('Invalid auth nonce', 400);
+                    throw new ClientException('Invalid auth nonce', 400);
                 }
 
                 $this->removeState('authNonce');
@@ -389,8 +389,7 @@ final class OpenIdConnect extends OAuth2
      *
      * @param string $jws raw JWS input.
      *
-     * @throws RequestException on invalid JWS signature.
-     * @throws InvalidArgumentException
+     * @throws ClientException on invalid JWS signature.
      *
      * @return array JWS underlying data.
      */
@@ -401,8 +400,8 @@ final class OpenIdConnect extends OAuth2
             $signature = null;
             $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
             return (array) Json::decode($jwsVerified->getPayload(), true);
-        } catch (Exception $e) {
-            throw new RequestException('Loading JWS: Exception', $e->getCode(), $e);
+        } catch (\Exception $e) {
+            throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), $e->getCode());
         }
     }
 
@@ -480,17 +479,17 @@ final class OpenIdConnect extends OAuth2
      *
      * @param array $claims claims data.
      *
-     * @throws RequestException on invalid claims.
+     * @throws ClientException on invalid claims.
      */
     protected function validateClaims(array $claims): void
     {
         $iss = isset($claims['iss']) ? (string) $claims['iss'] : '';
         $issuerUrl = $this->issuerUrl;
         if (!isset($claims['iss']) || strcmp(rtrim($iss, '/'), rtrim($issuerUrl, '/')) !== 0) {
-            throw new RequestException('Invalid "iss"', 400);
+            throw new ClientException('Invalid "iss"', 400);
         }
         if (!isset($claims['aud']) || (strcmp((string) $claims['aud'], $this->clientId) !== 0)) {
-            throw new RequestException('Invalid "aud"', 400);
+            throw new ClientException('Invalid "aud"', 400);
         }
     }
 }
