@@ -43,7 +43,7 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-   public function getCurrentUserJsonArray(
+    public function getCurrentUserJsonArray(
         OAuthToken $oAuthToken,
         ClientInterface $clientInterface,
         RequestFactoryInterface $requestFactoryInterface
@@ -52,18 +52,18 @@ final class Yandex extends OAuth2
          * @see https://yandex.com/dev/id/doc/en/codes/code-url
          */
         $url = 'https://login.yandex.ru/info';
-    
+
         $tokenString = (string)$oAuthToken->getParam('access_token');
-    
+
         if (strlen($tokenString) > 0) {
             $request = $requestFactoryInterface
                 ->createRequest('GET', $url)
                 ->withHeader('Authorization', "OAuth $tokenString");
-    
+
             try {
                 $response = $clientInterface->sendRequest($request);
                 $body = (string)$response->getBody();
-                if (is_string($body) && strlen($body) > 0) {
+                if (strlen($body) > 0) {
                     return (array)json_decode($body, true);
                 }
                 return [];
@@ -71,7 +71,7 @@ final class Yandex extends OAuth2
                 return [];
             }
         }
-    
+
         return [];
     }
 
