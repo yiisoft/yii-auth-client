@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Yii\AuthClient\Exception;
 
 use Psr\Http\Client\ClientExceptionInterface;
@@ -10,4 +12,5 @@ class ClientException extends \RuntimeException implements ClientExceptionInterf
     {
         parent::__construct($message, $code, $previous);
     }
+
 }

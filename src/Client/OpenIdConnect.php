@@ -400,7 +400,7 @@ final class OpenIdConnect extends OAuth2
             $signature = null;
             $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
             return (array) Json::decode($jwsVerified->getPayload(), true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), $e->getCode());
         }
     }
