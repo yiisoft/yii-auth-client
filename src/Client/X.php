@@ -6,6 +6,8 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * Date: 10/01/2025
@@ -47,40 +49,37 @@ final class X extends OAuth2
 
     protected string $endpoint = 'https://api.x.com/2/users/me';
 
-    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array
-    {
-        /**
-         * @see https://docs.x.com/resources/fundamentals/authentication/guides/v2-authentication-mapping ... useful endpoints
-         * AI: Github Copilot Question:
-         * "What is the most popular php code for a twitter oauth2.0 public client
-         *  AND confidential client in order to use the access token
-         *  to retrieve user information with scopes included?"
-         */
-        $url = 'https://api.x.com/2/users/me';
-
+    /**
+     * Fetch current user information using PSR-18 HTTP Client and PSR-17 Request Factory,
+     * instead of curl.
+     *
+     * @param OAuthToken $token
+     * @param ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
+     * @return array
+     */
+    public function getCurrentUserJsonArray(
+        OAuthToken $token,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $tokenString = (string)$token->getParam('access_token');
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
 
-        if (strlen($tokenString) > 0) {
-            $ch = curl_init($url);
+        $request = $requestFactory->createRequest('GET', 'https://api.x.com/2/users/me')
+            ->withHeader('Authorization', 'Bearer ' . $tokenString)
+            ->withHeader('Content-Type', 'application/json');
 
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Authorization: Bearer ' . $tokenString,
-                ]);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
+        try {
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
-
+        } catch (\Throwable $e) {
+            // Optionally log error: $e->getMessage()
             return [];
         }
 

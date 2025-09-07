@@ -8,6 +8,8 @@ use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * Yandex allows authentication via Yandex OAuth.
@@ -41,45 +43,35 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array
-    {
-        /**
-         * @see https://yandex.com/dev/id/doc/en/codes/code-url
-         */
+    function getCurrentUserJsonArray(
+        ClientInterface $client,
+        RequestFactoryInterface $requestFactory,
+        string $accessToken
+    ): array {
+        // Yandex API endpoint for current user info
+        $url = 'https://login.yandex.ru/info?format=json';
 
-        $url = 'https://login.yandex.ru/info';
+        // Build PSR-7 Request
+        $request = $requestFactory->createRequest('GET', $url)
+            ->withHeader('Authorization', 'OAuth ' . $accessToken);
 
-        $tokenString = (string)$token->getParam('access_token');
+        // Send request via PSR-18 client
+        $response = $client->sendRequest($request);
 
-        if (strlen($tokenString) > 0) {
-            $headers = [
-                "Authorization: OAuth $tokenString",
-            ];
-
-            $ch = curl_init();
-
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_URL, $url);
-
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
-            }
-
-            return [];
+        // Check status code
+        if ($response->getStatusCode() !== 200) {
+            throw new \RuntimeException('Yandex API request failed: ' . $response->getStatusCode());
         }
 
-        return [];
+        // Get and decode JSON response body
+        $body = (string) $response->getBody();
+        $data = (array) json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('Invalid JSON received from Yandex API: ' . json_last_error_msg());
+        }
+
+        return $data;
     }
 
     /**

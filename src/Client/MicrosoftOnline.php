@@ -6,6 +6,9 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Tested 09/01/2025
@@ -70,25 +73,36 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
     }
 
-    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array
-    {
+    /**
+     * Fetch current user information using PSR-18 HTTP Client and PSR-17 Request Factory.
+     *
+     * @param OAuthToken $token
+     * @param ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
+     * @return array
+     */
+    public function getCurrentUserJsonArray(
+        OAuthToken $token,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $tokenString = (string)$token->getParam('access_token');
-        if (strlen($tokenString) > 0) {
-            // Create a GET request to a Microsoft Graph API endpoint
-            $ch = curl_init('https://graph.microsoft.com/v1.0/me');
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Authorization: Bearer ' . $tokenString,
-                    'Content-Type: application/json',
-                ]);
-                $response = curl_exec($ch);
-                curl_close($ch);
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-                return [];
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
+
+        $request = $requestFactory->createRequest('GET', 'https://graph.microsoft.com/v1.0/me')
+            ->withHeader('Authorization', 'Bearer ' . $tokenString)
+            ->withHeader('Content-Type', 'application/json');
+
+        try {
+            /** @var ResponseInterface $response */
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
+        } catch (\Throwable $e) {
             return [];
         }
 

@@ -6,6 +6,9 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * VKontakte allows authentication via VKontakte OAuth 2.0
@@ -39,110 +42,101 @@ final class VKontakte extends OAuth2
      * ]
      *
      * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
-     *      #Step 6. Getting New Access Token After Previous Token Expires
+     * Step 6: Getting New Access Token After Previous Token Expires
      *
      * @param string $refreshToken
      * @param string $clientId
      * @param string $deviceId
      * @param string $state
+     * @param ClientInterface $httpClient
+     * @param RequestFactoryInterface $requestFactory
      * @return mixed
      */
     public function step6GettingNewAccessTokenAfterPreviousExpires(
         string $refreshToken,
         string $clientId,
         string $deviceId,
-        string $state
+        string $state,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
     ): mixed {
-        $url = 'https://id.vk.com/oauth2/auth';
-
+        $url = $this->tokenUrl;
         $data = [
             'grant_type' => 'refresh_token',
-
             'refresh_token' => $refreshToken,
-
             'client_id' => $clientId,
-
             'device_id' => $deviceId,
-
             'state' => $state,
         ];
 
-        $ch = curl_init($url);
+        $request = $requestFactory->createRequest('POST', $url)
+            ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-        if ($ch != false) {
-            curl_setopt($ch, CURLOPT_POST, 1);
+        // Add form body
+        $request->getBody()->write(http_build_query($data));
 
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-            /**
-             * $response is json array string e.g. '{data}'
-             */
-            $response = curl_exec($ch);
-
-            if (curl_errno($ch)) {
+        try {
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if ($response->getStatusCode() >= 400) {
                 return [
-                    'error' => 'Error:' . curl_error($ch),
+                    'error' => 'Error:' . $response->getReasonPhrase(),
                 ];
             }
-
-            curl_close($ch);
-
-            if (is_string($response) && strlen($response) > 0) {
-                return (array)json_decode($response, true);
+            if (strlen($body) > 0) {
+                return json_decode($body, true);
             }
-
-            return [];
+        } catch (\Throwable $e) {
+            return [
+                'error' => 'Exception: ' . $e->getMessage(),
+            ];
         }
 
         return [];
-
-
-
-        return [];
     }
+
 
     /**
      * Example answer: ["response" => 1]
      *
      * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
      *      #Step 7. Token invalidation (logout)
+     *
+     * Converted to use PSR-18 ClientInterface and PSR-17 RequestFactoryInterface instead of curl.
      */
-    public function step7TokenInvalidationUsingCurlWithClientId(OAuthToken $token, string $clientId): array
-    {
+    public function step7TokenInvalidationWithClientId(
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $url = 'https://id.vk.com/oauth2/user_info';
-
         $tokenString = (string)$token->getParam('access_token');
 
-        if (strlen($tokenString) > 0) {
-            $ch = curl_init();
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
 
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_URL, $url . '?client_id=' . $clientId . '&access_token=' . $tokenString);
+        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&access_token=' . urlencode($tokenString);
 
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $request = $requestFactory->createRequest('GET', $fullUrl);
 
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
+        try {
+            /** @var ResponseInterface $response */
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
-
+        } catch (\Throwable $e) {
+            // Optionally log error: $e->getMessage()
             return [];
         }
 
         return [];
     }
 
-    /**
+     /**
      * Example Answer:
      * [
      * "user" => [
@@ -161,37 +155,32 @@ final class VKontakte extends OAuth2
      * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
      *      #Step 8. (Optional) Obtaining user data
      */
-    public function step8ObtainingUserDataArrayUsingCurlWithClientId(OAuthToken $token, string $clientId): array
-    {
+    public function step8ObtainingUserDataArrayWithClientId(
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $url = 'https://id.vk.com/oauth2/user_info';
-
         $tokenString = (string)$token->getParam('access_token');
 
-        if (strlen($tokenString) > 0) {
-            $headers = [
-                "Authorization: Bearer $tokenString",
-            ];
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
 
-            $ch = curl_init();
+        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&access_token=' . urlencode($tokenString);
 
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_URL, $url . '?client_id=' . $clientId);
+        $request = $requestFactory->createRequest('GET', $fullUrl);
 
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
+        try {
+            /** @var ResponseInterface $response */
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
-
+        } catch (\Throwable $e) {
+            // Optionally log error: $e->getMessage()
             return [];
         }
 
@@ -199,52 +188,40 @@ final class VKontakte extends OAuth2
     }
 
     /**
-     * Example answer:
-     * [
-     *      "user" => [
-     *          "user_id" => "1234567890",
-     *          "first_name" => "Ivan",
-     *          "last_name" => "I.",
-     *          "phone" => "+42872 *** ** 29",
-     *          "avatar" => "https://pp.userapi.com/60tZWMo4SmwcploUVl9XEt8ufnTTvDUmQ6Bj1g/mmv1pcj63C4.png",
-     *          "email" => "iv***@vk.vom"
-     *        ]
+     * Example answer: [
+     *   "user" => [
+     *     "user_id" => "1234567890",
+     *     "first_name" => "Ivan",
+     *     "last_name" => "Ivanov",
+     *     "avatar" => "https://pp.userapi.com/60tZWMo4SmwcploUVl9XEt8ufnTTvDUmQ6Bj1g/mmv1pcj63C4.png",
+     *     "sex" => 2,
+     *     "verified" => false
+     *   ]
      * ]
      *
      * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
-     *      #Step 9. (Optional) Get public user data
+     *      #Step 9. (Optional) Getting public user data
      */
-    public function step9GetPublicUserDataArrayUsingCurlWithClientId(OAuthToken $token, string $clientId): array
-    {
+    public function step9GetPublicUserDataArrayWithClientId(
+        string $clientId,
+        string $userId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $url = 'https://id.vk.com/oauth2/user_info';
+        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&user_id=' . urlencode($userId);
 
-        $tokenString = (string)$token->getParam('id_token');
+        $request = $requestFactory->createRequest('GET', $fullUrl);
 
-        if (strlen($tokenString) > 0) {
-            $headers = [
-                "Authorization: Bearer $tokenString",
-            ];
-
-            $ch = curl_init();
-
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_URL, $url . '?client_id=' . $clientId);
-
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
+        try {
+            /** @var ResponseInterface $response */
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
-
+        } catch (\Throwable $e) {
+            // Optionally log error: $e->getMessage()
             return [];
         }
 
