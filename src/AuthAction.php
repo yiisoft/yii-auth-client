@@ -278,10 +278,6 @@ final class AuthAction implements MiddlewareInterface
 
         $response = $this->responseFactory->createResponse();
 
-        /**
-         * renderFile changes to render
-         * @see https://github.com/search?q=repo%3Ayiisoft%2Fview%20renderFIle&type=code
-         */
         $response->getBody()->write($this->view->render($viewFile, $viewData));
 
         return $response;
