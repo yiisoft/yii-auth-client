@@ -5,25 +5,22 @@
     <a href="https://oauth.net/2/" target="_blank">
         <img src="https://oauth.net/images/oauth-2-sm.png" height="80px" alt="Oauth">
     </a>
+    <a href="https://openid.net/connect/" target="_blank">
+        <img src="https://openid.net/wordpress-content/uploads/2014/09/openid-r-logo-900x360.png" height="80px" alt="OpenId">
+    </a>
     <h1 align="center">Yii External Authentication</h1>
     <br>
 </p>
 
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fyii-auth-client)](https://dashboard.stryker-mutator.io/reports/yii-auth-client)
+[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v/stable.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
+[![Total Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/downloads.png)](https://packagist.org/packages/yiisoft/yii-auth-client)
 [![Build status](https://github.com/yiisoft/yii-auth-client/workflows/build/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3Abuild)
+[![Code Coverage](https://codecov.io/gh/yiisoft/yii-auth-client/branch/master/graph/badge.svg)](https://codecov.io/gh/yiisoft/yii-auth-client)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fyiisoft%2Fyii-auth-client%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/yiisoft/yii-auth-client/master)
 [![static analysis](https://github.com/yiisoft/yii-auth-client/workflows/static%20analysis/badge.svg)](https://github.com/yiisoft/yii-auth-client/actions?query=workflow%3A%22static+analysis%22)
-[![Psalm Level](https://img.shields.io/static/v1?label=Psalm%20Level&message=1&color=66ff00)](https://psalm.dev)
 [![type-coverage](https://shepherd.dev/github/yiisoft/yii-auth-client/coverage.svg)](https://shepherd.dev/github/yiisoft/yii-auth-client)
-[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v)](https://packagist.org/packages/yiisoft/yii-auth-client) 
-[![Latest Unstable Version](https://poser.pugx.org/yiisoft/yii-auth-client/v/unstable)](https://packagist.org/packages/yiisoft/yii-auth-client) 
-[![Total Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/downloads)](https://packagist.org/packages/yiisoft/yii-auth-client) 
-[![Monthly Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/d/monthly)](https://packagist.org/packages/yiisoft/yii-auth-client)
-[![Daily Downloads](https://poser.pugx.org/yiisoft/yii-auth-client/d/daily)](https://packagist.org/packages/yiisoft/yii-auth-client)
-[![License](https://poser.pugx.org/yiisoft/yii-auth-client/license)](https://packagist.org/packages/yiisoft/yii-auth-client) 
-[![PHP Version Require](https://poser.pugx.org/yiisoft/yii-auth-client/require/php)](https://packagist.org/packages/yiisoft/yii-auth-client)
 
-This extension adds [OAuth2](https://oauth.net/2/)
+This extension adds [OAuth](https://oauth.net/), [OAuth2](https://oauth.net/2/) and [OpenId Connect](https://openid.net/connect/)
 consumers for the [Yii framework](https://www.yiiframework.com).
 
 ## Requirements
@@ -35,7 +32,7 @@ consumers for the [Yii framework](https://www.yiiframework.com).
 The package could be installed with [Composer](https://getcomposer.org):
 
 ```shell
-composer require rossaddison/yii-auth-client
+composer require yiisoft/yii-auth-client
 ```
 
 ## Documentation
