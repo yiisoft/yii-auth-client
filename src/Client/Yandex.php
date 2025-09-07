@@ -43,7 +43,7 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-    function getCurrentUserJsonArray(
+    public function getCurrentUserJsonArray(
         ClientInterface $client,
         RequestFactoryInterface $requestFactory,
         string $accessToken

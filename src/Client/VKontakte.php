@@ -136,25 +136,25 @@ final class VKontakte extends OAuth2
         return [];
     }
 
-     /**
-     * Example Answer:
-     * [
-     * "user" => [
-     *              "user_id" => "1234567890",
-     *              "first_name" => "Ivan",
-     *              "last_name" => "Ivanov",
-     *              "phone" => "79991234567",
-     *              "avatar" => "https://pp.userapi.com/60tZWMo4SmwcploUVl9XEt8ufnTTvDUmQ6Bj1g/mmv1pcj63C4.png",
-     *              "email" => "ivan_i123@vk.com",
-     *              "sex" => 2,
-     *              "verified" => false,
-     *              "birthday" => "01.01.2000"
-     *          ]
-     * ]
-     *
-     * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
-     *      #Step 8. (Optional) Obtaining user data
-     */
+    /**
+    * Example Answer:
+    * [
+    * "user" => [
+    *              "user_id" => "1234567890",
+    *              "first_name" => "Ivan",
+    *              "last_name" => "Ivanov",
+    *              "phone" => "79991234567",
+    *              "avatar" => "https://pp.userapi.com/60tZWMo4SmwcploUVl9XEt8ufnTTvDUmQ6Bj1g/mmv1pcj63C4.png",
+    *              "email" => "ivan_i123@vk.com",
+    *              "sex" => 2,
+    *              "verified" => false,
+    *              "birthday" => "01.01.2000"
+    *          ]
+    * ]
+    *
+    * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+    *      #Step 8. (Optional) Obtaining user data
+    */
     public function step8ObtainingUserDataArrayWithClientId(
         OAuthToken $token,
         string $clientId,

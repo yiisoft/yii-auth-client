@@ -24,7 +24,7 @@ final class LinkedIn extends OAuth2
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
-    
+
     /**
      * Fetch current user information using PSR-18 HTTP Client and PSR-17 Request Factory.
      *
