@@ -189,9 +189,6 @@ final class OpenIdConnect extends OAuth2
         return $this->configParams;
     }
 
-    /**
-     * @return string service name.
-     */
     public function getName(): string
     {
         return 'open_id_connect';
@@ -287,9 +284,6 @@ final class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    /**
-     * @return string service title.
-     */
     public function getTitle(): string
     {
         return 'OpenID Connect';

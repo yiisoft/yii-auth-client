@@ -95,21 +95,11 @@ final class Yandex extends OAuth2
         return 'login:info';
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'yandex'
-     */
     public function getName(): string
     {
         return 'yandex';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'Yandex'
-     */
     public function getTitle(): string
     {
         return 'Yandex';

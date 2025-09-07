@@ -66,21 +66,11 @@ final class TikTok extends OAuth2
         return 'user.info.profile';
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'tiktok'
-     */
     public function getName(): string
     {
         return 'tiktok';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'TikTok'
-     */
     public function getTitle(): string
     {
         return 'TikTok';

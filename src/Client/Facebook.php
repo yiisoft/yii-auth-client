@@ -232,22 +232,12 @@ final class Facebook extends OAuth2
 
         return $token;
     }
-
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'facebook'
-     */
+    
     public function getName(): string
     {
         return 'facebook';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'Facebook'
-     */
     public function getTitle(): string
     {
         return 'Facebook';

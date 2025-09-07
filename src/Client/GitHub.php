@@ -74,21 +74,11 @@ final class GitHub extends OAuth2
         return [];
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'github'
-     */
     public function getName(): string
     {
         return 'github';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'GitHub'
-     */
     public function getTitle(): string
     {
         return 'GitHub';

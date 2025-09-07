@@ -262,21 +262,11 @@ final class VKontakte extends OAuth2
         return 'email phone';
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'vkontakte'
-     */
     public function getName(): string
     {
         return 'vkontakte';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'VKontakte'
-     */
     public function getTitle(): string
     {
         return 'VKontakte';

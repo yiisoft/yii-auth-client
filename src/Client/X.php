@@ -98,21 +98,11 @@ final class X extends OAuth2
         return 'users.read tweet.read offline.access';
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'x'
-     */
     public function getName(): string
     {
         return 'x';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'X'
-     */
     public function getTitle(): string
     {
         return 'X';

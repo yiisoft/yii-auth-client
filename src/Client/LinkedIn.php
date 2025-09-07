@@ -46,21 +46,11 @@ final class LinkedIn extends OAuth2
         return [];
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'linkedin'
-     */
     public function getName(): string
     {
         return 'linkedin';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'LinkedIn'
-     */
     public function getTitle(): string
     {
         return 'LinkedIn';

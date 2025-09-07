@@ -77,21 +77,11 @@ class Google extends OAuth2
         return [];
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'google'
-     */
     public function getName(): string
     {
         return 'google';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'Google'
-     */
     public function getTitle(): string
     {
         return 'Google';

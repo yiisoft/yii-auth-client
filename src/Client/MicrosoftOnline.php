@@ -95,21 +95,11 @@ final class MicrosoftOnline extends OAuth2
         return [];
     }
 
-    /**
-     * @return string service name.
-     *
-     * @psalm-return 'microsoftonline'
-     */
     public function getName(): string
     {
         return 'microsoftonline';
     }
 
-    /**
-     * @return string service title.
-     *
-     * @psalm-return 'MicrosoftOnline'
-     */
     public function getTitle(): string
     {
         return 'MicrosoftOnline';
