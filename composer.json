@@ -9,7 +9,6 @@
     ],
     "type": "library",
     "license": "BSD-3-Clause",
-    "prefer-stable": true,
     "support": {
         "issues": "https://github.com/yiisoft/yii-auth-client/issues?state=open",
         "source": "https://github.com/yiisoft/yii-auth-client",
