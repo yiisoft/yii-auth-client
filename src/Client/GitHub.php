@@ -60,7 +60,6 @@ final class GitHub extends OAuth2
                 $request,
                 [
                     'Authorization' => 'Bearer ' . $tokenString,
-                    'X-GitHub-Api-Version' => '2022-11-28',
                 ]
             );
 
