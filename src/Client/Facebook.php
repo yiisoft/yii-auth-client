@@ -19,23 +19,18 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * Example application configuration:
  *
  * config/common/params.php
- * ['yiisoft/yii-auth-client']['clients']
  *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         'class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'facebook' => [
- *                 'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
- *                 'clientId' => 'facebook_client_id',
- *                 'clientSecret' => 'facebook_client_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
+ * 'yiisoft/yii-auth-client' => [
+ *       'enabled' => true,
+ *       'clients' => [            
+ *           'facebook' => [
+ *               'class' => 'Yiisoft\Yii\AuthClient\Client\Facebook::class',
+ *               'clientId' => $_ENV['FACEBOOK_API_CLIENT_ID'] ?? '',
+ *               'clientSecret' => $_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? '',
+ *               'returnUrl' => $_ENV['FACEBOOK_API_CLIENT_RETURN_URL'] ?? '',
+ *           ],
+ *       ],
+ *   ],
  *
  * @link https://developers.facebook.com/apps
  * @link https://developers.facebook.com/docs/reference/api
