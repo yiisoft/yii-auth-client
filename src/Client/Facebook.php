@@ -22,7 +22,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * 'yiisoft/yii-auth-client' => [
  *       'enabled' => true,
- *       'clients' => [            
+ *       'clients' => [
  *           'facebook' => [
  *               'class' => 'Yiisoft\Yii\AuthClient\Client\Facebook::class',
  *               'clientId' => $_ENV['FACEBOOK_API_CLIENT_ID'] ?? '',
