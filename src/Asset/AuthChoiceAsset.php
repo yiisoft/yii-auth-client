@@ -21,7 +21,7 @@ class AuthChoiceAsset extends AssetBundle
     public array $js = [
         'authchoice.js',
     ];
-    
+
     public array $depends = [
         AuthChoiceStyleAsset::class,
     ];

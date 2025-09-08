@@ -157,7 +157,10 @@ final class AuthAction implements MiddlewareInterface
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
         }
-        throw new NotSupportedException('Provider is not supported.');
+        /**
+         * @psalm-suppress MixedArgument $client
+         */
+        throw new NotSupportedException('Provider "' . get_class($client) . '" is not supported.');
     }
 
     /**
