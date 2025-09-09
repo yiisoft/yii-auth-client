@@ -63,13 +63,8 @@ final class Facebook extends OAuth2
         $params = $token->getParams();
         $finalValue = '';
 
-        /**
-         * @var string $key
-         * @var string $value
-         */
-        foreach ($params as $key => $value) {
-            $finalValue = $key;
-        }
+        end($params);
+        $finalValue = key($params);
 
         /**
          * @var string $finalValue
