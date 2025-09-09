@@ -37,6 +37,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  */
 final class Facebook extends OAuth2
 {
+    protected string $graphApiVersion = 'v21.0';
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
@@ -73,8 +74,12 @@ final class Facebook extends OAuth2
         $array = json_decode($finalValue, true);
         $tokenString = (string)($array['access_token'] ?? '');
 
-        if (strlen($tokenString) > 0) {
-            $request = $this->createRequest('GET', 'https://graph.facebook.com/v21.0/me?fields=id,name,first_name,last_name');
+        if ($tokenString !== '') {
+            $url = sprintf(
+                'https://graph.facebook.com/%s/me?fields=id,name,first_name,last_name',
+                $this->graphApiVersion
+            );
+            $request = $this->createRequest('GET', $url);
             $request = RequestUtil::addHeaders(
                 $request,
                 [
