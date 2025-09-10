@@ -33,11 +33,11 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *   ],
  *
  * @link https://developers.facebook.com/apps
- * @link https://developers.facebook.com/docs/reference/api
+ * @link https://developers.facebook.com/docs/graph-api
  */
 final class Facebook extends OAuth2
 {
-    protected string $graphApiVersion = 'v21.0';
+    protected string $graphApiVersion = 'v23.0';
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';

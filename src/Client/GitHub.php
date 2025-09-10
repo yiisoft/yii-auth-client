@@ -53,7 +53,7 @@ final class GitHub extends OAuth2
         // Here is the actual 'access-token' which the user has allowed us to access their basic info.
         $tokenString = (string)$token->getParam('access_token');
 
-        if (strlen($tokenString) > 0) {
+        if ($tokenString !== '') {
             $request = $this->createRequest('GET', 'https://api.github.com/user');
 
             $request = RequestUtil::addHeaders(
