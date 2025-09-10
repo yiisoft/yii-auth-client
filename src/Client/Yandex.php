@@ -55,7 +55,7 @@ final class Yandex extends OAuth2
 
         $tokenString = (string)$oAuthToken->getParam('access_token');
 
-        if (strlen($tokenString) > 0) {
+        if ($tokenString !== '') {
             $request = $requestFactoryInterface
                 ->createRequest('GET', $url)
                 ->withHeader('Authorization', "OAuth $tokenString");
