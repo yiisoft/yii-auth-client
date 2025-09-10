@@ -55,12 +55,12 @@ class Google extends OAuth2
         $tokenString = $finalArray['access_token'] ?? '';
 
         if ($tokenString !== '') {
-            
+
             $url = sprintf(
                 'https://www.googleapis.com/oauth2/%s/userinfo',
                 $this->version
             );
-            
+
             $request = $this->createRequest('GET', $url);
 
             $request = RequestUtil::addHeaders(
