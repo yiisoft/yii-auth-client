@@ -40,8 +40,8 @@ final class TikTok extends OAuth2
         try {
             $response = $this->httpClient->sendRequest($request);
             $body = $response->getBody()->getContents();
-            if (is_string($body) && strlen($body) > 0) {
-                return (array)json_decode($body, true);
+            if (strlen($body) > 0) {
+                return (array) json_decode($body, true);
             }
         } catch (\Throwable $e) {
             // Optionally log error: $e->getMessage()
