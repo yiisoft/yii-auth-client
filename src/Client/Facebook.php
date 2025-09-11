@@ -14,8 +14,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * Facebook allows authentication via Facebook OAuth.
  *
  * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps> or redirect to
- * https://business.facebook.com/business/loginpage/?next=https%3A%2F%2Fdevelopers.facebook.com%2Fapps
- *
+ 
  * Example application configuration:
  *
  * config/common/params.php
@@ -41,6 +40,8 @@ final class Facebook extends OAuth2
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
+    /** @var string[] */
+    protected array $endpointFields = ['id', 'name', 'first_name', 'last_name'];
     protected bool $autoRefreshAccessToken = false; // Facebook does not provide access token refreshment
 
     /**
@@ -75,9 +76,13 @@ final class Facebook extends OAuth2
         $tokenString = (string)($array['access_token'] ?? '');
 
         if ($tokenString !== '') {
+            $queryParams = [
+                'fields' => implode(',', $this->endpointFields),
+            ];
             $url = sprintf(
-                'https://graph.facebook.com/%s/me?fields=id,name,first_name,last_name',
-                $this->graphApiVersion
+                $this->endpoint.'/%s/me?%s',
+                urlencode($this->graphApiVersion),
+                http_build_query($queryParams)
             );
             $request = $this->createRequest('GET', $url);
             $request = RequestUtil::addHeaders(
@@ -87,8 +92,7 @@ final class Facebook extends OAuth2
                 ]
             );
             $response = $this->sendRequest($request);
-            $user = [];
-            return (array)json_decode($response->getBody()->getContents(), true);
+            return (array) json_decode($response->getBody()->getContents(), true);
         }
         return [];
     }
