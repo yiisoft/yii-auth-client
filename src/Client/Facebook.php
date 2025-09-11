@@ -14,7 +14,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * Facebook allows authentication via Facebook OAuth.
  *
  * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps> or redirect to
- 
+ *
  * Example application configuration:
  *
  * config/common/params.php
@@ -80,7 +80,7 @@ final class Facebook extends OAuth2
                 'fields' => implode(',', $this->endpointFields),
             ];
             $url = sprintf(
-                $this->endpoint.'/%s/me?%s',
+                $this->endpoint. '/%s/me?%s',
                 urlencode($this->graphApiVersion),
                 http_build_query($queryParams)
             );
