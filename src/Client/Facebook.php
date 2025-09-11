@@ -80,7 +80,7 @@ final class Facebook extends OAuth2
                 'fields' => implode(',', $this->endpointFields),
             ];
             $url = sprintf(
-                $this->endpoint. '/%s/me?%s',
+                $this->endpoint . '/%s/me?%s',
                 urlencode($this->graphApiVersion),
                 http_build_query($queryParams)
             );
