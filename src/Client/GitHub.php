@@ -29,7 +29,6 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *       ],
  *   ],
  *
- *
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
  */

@@ -187,7 +187,7 @@ abstract class OAuth2 extends OAuth
         }
         return $token;
     }
-    
+
     /**
      * Note: This function will be adapted later to accomodate the 'confidential client'.
      * @see https://docs.x.com/resources/fundamentals/authentication/oauth-2-0/authorization-code
