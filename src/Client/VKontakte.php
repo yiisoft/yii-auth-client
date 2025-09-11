@@ -207,8 +207,7 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        $url = 'https://id.vk.com/oauth2/user_info';
-        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&user_id=' . urlencode($userId);
+        $fullUrl = $this->endpoint . '?client_id=' . urlencode($clientId) . '&user_id=' . urlencode($userId);
 
         $request = $requestFactory->createRequest('GET', $fullUrl);
 
@@ -217,7 +216,7 @@ final class VKontakte extends OAuth2
             $response = $httpClient->sendRequest($request);
             $body = $response->getBody()->getContents();
             if (strlen($body) > 0) {
-                return (array)json_decode($body, true);
+                return (array) json_decode($body, true);
             }
         } catch (\Throwable $e) {
             // Optionally log error: $e->getMessage()

@@ -68,7 +68,7 @@ final class X extends OAuth2
             return [];
         }
 
-        $request = $requestFactory->createRequest('GET', 'https://api.x.com/2/users/me')
+        $request = $requestFactory->createRequest('GET', $this->endpoint)
             ->withHeader('Authorization', 'Bearer ' . $tokenString)
             ->withHeader('Content-Type', 'application/json');
 

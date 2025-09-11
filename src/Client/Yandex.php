@@ -18,6 +18,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @link https://oauth.yandex.ru/client/new
  * @link https://api.yandex.ru/login/doc/dg/reference/response.xml
+ * @link https://yandex.com/dev/id/doc/en/codes/code-url
  */
 final class Yandex extends OAuth2
 {
@@ -48,16 +49,11 @@ final class Yandex extends OAuth2
         ClientInterface $clientInterface,
         RequestFactoryInterface $requestFactoryInterface
     ): array {
-        /**
-         * @see https://yandex.com/dev/id/doc/en/codes/code-url
-         */
-        $url = 'https://login.yandex.ru/info';
-
         $tokenString = (string)$oAuthToken->getParam('access_token');
 
         if ($tokenString !== '') {
             $request = $requestFactoryInterface
-                ->createRequest('GET', $url)
+                ->createRequest('GET', $this->endpoint)
                 ->withHeader('Authorization', "OAuth $tokenString");
 
             try {
