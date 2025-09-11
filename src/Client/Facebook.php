@@ -13,7 +13,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 /**
  * Facebook allows authentication via Facebook OAuth.
  *
- * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps> or redirect to
+ * In order to use Facebook OAuth you must register your application at <https://developers.facebook.com/apps>
  *
  * Example application configuration:
  *

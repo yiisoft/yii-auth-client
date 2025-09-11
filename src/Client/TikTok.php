@@ -19,8 +19,9 @@ final class TikTok extends OAuth2
 
     protected string $endpoint = '';
 
-    public function getCurrentUserJsonArrayUsingCurl(OAuthToken $token): array
-    {
+    public function getCurrentUserJsonArray(
+        OAuthToken $token
+    ): array {
         /**
          * @see ... useful endpoints
          */
@@ -28,27 +29,22 @@ final class TikTok extends OAuth2
 
         $tokenString = (string)$token->getParam('access_token');
 
-        if (strlen($tokenString) > 0) {
-            $ch = curl_init($url);
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
 
-            if ($ch != false) {
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $request = $this->requestFactory
+            ->createRequest('GET', $url)
+            ->withHeader('Authorization', 'Bearer ' . $tokenString);
 
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Authorization: Bearer ' . $tokenString,
-                ]);
-
-                $response = curl_exec($ch);
-
-                curl_close($ch);
-
-                if (is_string($response) && strlen($response) > 0) {
-                    return (array)json_decode($response, true);
-                }
-
-                return [];
+        try {
+            $response = $this->httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (is_string($body) && strlen($body) > 0) {
+                return (array)json_decode($body, true);
             }
-
+        } catch (\Throwable $e) {
+            // Optionally log error: $e->getMessage()
             return [];
         }
 

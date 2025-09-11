@@ -73,8 +73,6 @@ class Google extends OAuth2
 
             $response = $this->sendRequest($request);
 
-            $user = [];
-
             return (array)json_decode($response->getBody()->getContents(), true);
         }
 

@@ -59,8 +59,8 @@ final class Yandex extends OAuth2
             try {
                 $response = $clientInterface->sendRequest($request);
                 $body = (string)$response->getBody();
-                if (strlen($body) > 0) {
-                    return (array)json_decode($body, true);
+                if (!empty($body)) {
+                    return (array) json_decode($body, true);
                 }
                 return [];
             } catch (\Psr\Http\Client\ClientExceptionInterface $e) {

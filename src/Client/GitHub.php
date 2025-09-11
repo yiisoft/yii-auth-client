@@ -15,21 +15,20 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * Example application configuration:
  *
- * ```php
- * 'components' => [
- *     'authClientCollection' => [
- *         'class' => Yiisoft\Yii\AuthClient\Collection::class,
- *         'clients' => [
- *             'github' => [
- *                 'class' => Yiisoft\Yii\AuthClient\Clients\GitHub::class,
- *                 'clientId' => 'github_client_id',
- *                 'clientSecret' => 'github_client_secret',
- *             ],
- *         ],
- *     ]
- *     // ...
- * ]
- * ```
+ * config/common/params.php
+ *
+ * 'yiisoft/yii-auth-client' => [
+ *       'enabled' => true,
+ *       'clients' => [
+ *           'github' => [
+ *               'class' => 'Yiisoft\Yii\AuthClient\Client\Github::class',
+ *               'clientId' => $_ENV['GITHUB_API_CLIENT_ID'] ?? '',
+ *               'clientSecret' => $_ENV['GITHUB_API_CLIENT_SECRET'] ?? '',
+ *               'returnUrl' => $_ENV['GITHUB_API_CLIENT_RETURN_URL'] ?? '',
+ *           ],
+ *       ],
+ *   ],
+ *
  *
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new

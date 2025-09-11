@@ -108,7 +108,12 @@ final class AuthChoice extends Widget
                 $options = Json::htmlEncode($this->clientOptions);
             }
 
-            $this->webView->registerJs("jQuery('#" . $this->getId() . "').authchoice({$options});");
+            $this->webView->registerJs("
+                const el = document.getElementById('" . $this->getId() . "');
+                if (el && typeof authchoice === 'function') {
+                    authchoice(el, {$options});
+                }
+            ");
         } else {
             $this->assetManager->register(AuthChoiceStyleAsset::class);
         }

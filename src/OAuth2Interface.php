@@ -38,13 +38,7 @@ interface OAuth2Interface extends OAuthInterface
         array $params = []
     ): OAuthToken;
 
-    public function fetchAccessTokenWithCurl(
-        ServerRequestInterface $incomingRequest,
-        string $authCode,
-        array $params = []
-    ): OAuthToken;
-
-    public function fetchAccessTokenWithCurlAndCodeVerifier(
+    public function fetchAccessTokenWithCodeVerifier(
         ServerRequestInterface $incomingRequest,
         string $authCode,
         array $params = []
