@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Yiisoft\Security\Random;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Psr\Http\Client\ClientInterface;
@@ -226,7 +225,7 @@ final class VKontakte extends OAuth2
 
         return [];
     }
-    
+
     #[\Override]
     public function getName(): string
     {
@@ -238,13 +237,13 @@ final class VKontakte extends OAuth2
     {
         return 'VKontakte';
     }
-    
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *
@@ -258,7 +257,7 @@ final class VKontakte extends OAuth2
             'popupHeight' => 480,
         ];
     }
-    
+
     /**
      * @return string
      *

@@ -70,7 +70,7 @@ final class Yandex extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -80,13 +80,13 @@ final class Yandex extends OAuth2
         }
         return [];
     }
-        
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi';
-    } 
-    
+    }
+
     /**
      * @return int[]
      *

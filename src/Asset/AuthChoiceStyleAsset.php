@@ -12,9 +12,9 @@ use Yiisoft\Assets\AssetBundle;
 class AuthChoiceStyleAsset extends AssetBundle
 {
     public ?string $basePath = '@assets';
-    
+
     public ?string $baseUrl = '@assetsUrl';
-    
+
     public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
 
     /**

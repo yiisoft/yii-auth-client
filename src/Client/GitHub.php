@@ -70,7 +70,7 @@ final class GitHub extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -91,13 +91,13 @@ final class GitHub extends OAuth2
     {
         return 'GitHub';
     }
-        
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-github';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *

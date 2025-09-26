@@ -98,7 +98,7 @@ abstract class OAuth extends AuthClient
         }
         return $this->returnUrl;
     }
-    
+
     /**
      * @param string $returnUrl return URL
      */

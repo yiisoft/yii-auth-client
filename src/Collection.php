@@ -59,14 +59,13 @@ final class Collection
     public function getClients(): array
     {
         $clients = [];
-        
+
         /**
          * @var OAuth2 $client
          * @var string $name
          * @var array $this->clients
          */
         foreach ($this->clients as $name => $client) {
-            
             $clients[$name] = $this->getClient($name);
         }
 

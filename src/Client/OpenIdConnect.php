@@ -41,23 +41,23 @@ use function in_array;
  * @link https://github.com/web-token/jwt-framework
  *
  * @link https://openid.net/connect/
- * 
- * e.g.'s: https://{IdentityProviderDomain}/.well-known/openid-configuration 
- * 
+ *
+ * e.g.'s: https://{IdentityProviderDomain}/.well-known/openid-configuration
+ *
  * https://accounts.google.com/.well-known/openid-configuration
  * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
- * https://oidc.account.gov.uk/.well-known/openid-configuration  
+ * https://oidc.account.gov.uk/.well-known/openid-configuration
  * https://dev-kzv8xwxr.us.auth0.com/.well-known/openid-configuration
- * 
+ *
  * @see OAuth2
  */
 final class OpenIdConnect extends OAuth2
 {
     protected string $authUrl = '';
-    
+
     protected ?string $scope = 'openid';
     /**
-     * @var string OpenID Issuer  
+     * @var string OpenID Issuer
      */
     private string $issuerUrl = 'https://{IdentityProviderDomain}';
     /**
@@ -119,11 +119,11 @@ final class OpenIdConnect extends OAuth2
 
     /**
      * OpenIdConnect constructor.
-     *   
+     *
      * @param ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
-     * @param Factory $factory  
+     * @param Factory $factory
      * @param SessionInterface $session
      * @param string $name
      * @param string $title
@@ -132,9 +132,9 @@ final class OpenIdConnect extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        Factory $factory,    
-        SessionInterface $session,        
-        CacheInterface $cache,    
+        Factory $factory,
+        SessionInterface $session,
+        CacheInterface $cache,
         string $name,
         string $title,
     ) {
@@ -290,18 +290,18 @@ final class OpenIdConnect extends OAuth2
         }
         return parent::refreshAccessToken($token);
     }
-    
+
     #[\Override]
     public function getName(): string
     {
         /**
-         * Note 1: Change OpenIdConnect::class to OAuth, Google, 
+         * Note 1: Change OpenIdConnect::class to OAuth, Google,
          * Note 2: Keep 'oidc' unchanged
          * Related logic: app's config/web/di/yii-auth-client
          * `@var array $paramsClients['oidc']`
          * `$openidconnectClient = $paramsClients['oidc'];`
-         * 
-         * Related logic: app's config/common/params [yiisoft/yii-auth-client] => 
+         *
+         * Related logic: app's config/common/params [yiisoft/yii-auth-client] =>
          *  [
          *      'oidc' => [
          *          'class' => 'Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class',
@@ -319,13 +319,13 @@ final class OpenIdConnect extends OAuth2
     {
         return 'Open Id Connect';
     }
-      
+
     #[\Override]
     public function getButtonClass(): string
     {
         return '';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *

@@ -85,7 +85,7 @@ final class X extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -94,7 +94,7 @@ final class X extends OAuth2
         }
         return [];
     }
-    
+
     #[\Override]
     public function getName(): string
     {
@@ -106,13 +106,13 @@ final class X extends OAuth2
     {
         return 'X';
     }
-    
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi bi-twitter';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *

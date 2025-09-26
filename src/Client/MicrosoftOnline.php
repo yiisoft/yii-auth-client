@@ -109,7 +109,7 @@ final class MicrosoftOnline extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -119,7 +119,7 @@ final class MicrosoftOnline extends OAuth2
         }
         return [];
     }
-    
+
     #[\Override]
     public function getName(): string
     {
@@ -131,13 +131,13 @@ final class MicrosoftOnline extends OAuth2
     {
         return 'MicrosoftOnline';
     }
-   
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-warning bi bi-microsoft';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *
