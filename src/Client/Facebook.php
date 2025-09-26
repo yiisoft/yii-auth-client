@@ -94,7 +94,7 @@ final class Facebook extends OAuth2
         }
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -249,13 +249,13 @@ final class Facebook extends OAuth2
     public function getTitle(): string
     {
         return 'Facebook';
-    }    
-    
+    }
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-facebook';
-    }    
+    }
 
     /**
      * @return int[]

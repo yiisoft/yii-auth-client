@@ -65,7 +65,7 @@ final class LinkedIn extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -75,7 +75,7 @@ final class LinkedIn extends OAuth2
         }
         return [];
     }
-    
+
     #[\Override]
     public function getName(): string
     {
@@ -86,14 +86,14 @@ final class LinkedIn extends OAuth2
     public function getTitle(): string
     {
         return 'LinkedIn';
-    }    
-    
+    }
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-info bi bi-linkedin';
-    }  
-    
+    }
+
     /**
      * @return int[]
      *

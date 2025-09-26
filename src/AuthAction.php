@@ -15,7 +15,6 @@ use Yiisoft\Aliases\Aliases;
 use Yiisoft\Http\Status;
 use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
-use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -115,7 +114,7 @@ final class AuthAction implements MiddlewareInterface
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
     private readonly string $cancelUrl;
-    
+
     public function __construct(
         /**
          * @var Collection
@@ -125,10 +124,9 @@ final class AuthAction implements MiddlewareInterface
         private readonly Aliases $aliases,
         private readonly WebView $view,
         private readonly ResponseFactoryInterface $responseFactory
-    )
-    {
+    ) {
     }
-    
+
     /**
      * @param string $url successful URL.
      *

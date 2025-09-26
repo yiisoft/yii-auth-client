@@ -78,7 +78,7 @@ class Google extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -99,13 +99,13 @@ class Google extends OAuth2
     {
         return 'Google';
     }
-        
+
     #[\Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-google';
-    }    
-    
+    }
+
     /**
      * @return int[]
      *

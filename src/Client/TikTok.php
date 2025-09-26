@@ -50,7 +50,7 @@ final class TikTok extends OAuth2
 
         return [];
     }
-    
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -59,12 +59,12 @@ final class TikTok extends OAuth2
         }
         return [];
     }
-    
+
     #[\Override]
     public function getButtonClass(): string
     {
         return '';
-    }   
+    }
 
     /**
      * @return string

@@ -391,7 +391,7 @@ abstract class OAuth2 extends OAuth
     {
         return $this->tokenUrl;
     }
-    
+
     public function setTokenUrl(string $tokenUrl): void
     {
         $this->tokenUrl = $tokenUrl;

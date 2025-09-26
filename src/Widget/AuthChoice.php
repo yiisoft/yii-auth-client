@@ -90,7 +90,7 @@ final class AuthChoice extends Widget
      * @var string route name for the external clients authentication URL.
      */
     private string $authRoute = '';
-    
+
     private array $clients;
 
     public function __construct(
@@ -193,7 +193,7 @@ final class AuthChoice extends Widget
     {
         $this->clients = $clients;
     }
-    
+
     public function getClient(string $name): OAuth2
     {
         $clients = array_filter(
@@ -207,7 +207,7 @@ final class AuthChoice extends Widget
         }
 
         return $client;
-    }  
+    }
 
     /**
      * Outputs client auth link.
@@ -301,9 +301,9 @@ final class AuthChoice extends Widget
         $this->authRoute = $authRoute;
         return $this;
     }
-    
+
     /**
-     * Note: Popup window with {$authRoute} e.g. 'auth/authclient' 
+     * Note: Popup window with {$authRoute} e.g. 'auth/authclient'
      * @param array $provider
      * @param string $name
      * @return string
@@ -318,15 +318,15 @@ final class AuthChoice extends Widget
                     $width = (string) $viewOptions['popupWidth'];
                     $this->authRoute($authRoute);
                     return $this->clientLink($client, ' ' . ucfirst((string) $provider['buttonName']), [
-                        'onclick' => "window.open(this.href, 'authPopup', 'width=". $width . ",height=" . $height . "'); return false;",
+                        'onclick' => "window.open(this.href, 'authPopup', 'width=" . $width . ',height=' . $height . "'); return false;",
                         'class' => $client->getButtonClass() ,
                     ]);
-                }    
+                }
             }
         }
         return '';
     }
-        
+
     /**
      * Note: No popup window and no route
      * @param ServerRequestInterface $request
@@ -346,7 +346,7 @@ final class AuthChoice extends Widget
                         ->href($clientAuthUrl)
                         ->id('btn-' . $name)
                         ->render();
-                }    
+                }
             }
         }
         return '';
