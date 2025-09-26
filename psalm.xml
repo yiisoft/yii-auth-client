@@ -26,6 +26,5 @@
         </PropertyNotSetInConstructor>
         <ClassMustBeFinal errorLevel="suppress" />
         <InvalidArgument errorLevel="suppress" />
-        <MissingOverrideAttribute errorLevel="suppress"/>
     </issueHandlers>
 </psalm>
