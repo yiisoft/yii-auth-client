@@ -8,6 +8,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -21,6 +22,11 @@ class CollectionTest extends TestCase
         return new Psr17Factory();
     }
 
+    private function getYiisoftFactory(): YiisoftFactory
+    {
+        return new YiisoftFactory();
+    }
+
     private function getStateStorage(): StateStorageInterface
     {
         return new SessionStateStorage(new Session());
@@ -29,7 +35,13 @@ class CollectionTest extends TestCase
     private function getTestClient(): TestClient
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
-        return new TestClient($httpClient, $this->getRequestFactory(), $this->getStateStorage());
+        return new TestClient(
+            $httpClient,
+            $this->getRequestFactory(),
+            $this->getStateStorage(),
+            $this->getYiisoftFactory(),
+            new Session(),
+        );
     }
 
     public function testSetGet(): void
