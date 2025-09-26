@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
+use Yiisoft\Security\Random;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Psr\Http\Client\ClientInterface;
@@ -127,7 +128,7 @@ final class VKontakte extends OAuth2
             if (!empty($body)) {
                 return (array) json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Optionally log error: $e->getMessage()
             return [];
         }
@@ -178,7 +179,7 @@ final class VKontakte extends OAuth2
             if (strlen($body) > 0) {
                 return (array)json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Optionally log error: $e->getMessage()
             return [];
         }
@@ -218,14 +219,46 @@ final class VKontakte extends OAuth2
             if (strlen($body) > 0) {
                 return (array) json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Optionally log error: $e->getMessage()
             return [];
         }
 
         return [];
     }
+    
+    #[\Override]
+    public function getName(): string
+    {
+        return 'vkontakte';
+    }
 
+    #[\Override]
+    public function getTitle(): string
+    {
+        return 'VKontakte';
+    }
+    
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-dark';
+    }    
+    
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
+    #[\Override]
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
+    }
+    
     /**
      * @return string
      *
@@ -235,15 +268,5 @@ final class VKontakte extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'email phone';
-    }
-
-    public function getName(): string
-    {
-        return 'vkontakte';
-    }
-
-    public function getTitle(): string
-    {
-        return 'VKontakte';
     }
 }

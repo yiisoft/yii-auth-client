@@ -41,16 +41,25 @@ use function in_array;
  * @link https://github.com/web-token/jwt-framework
  *
  * @link https://openid.net/connect/
- *
+ * 
+ * e.g.'s: https://{IdentityProviderDomain}/.well-known/openid-configuration 
+ * 
+ * https://accounts.google.com/.well-known/openid-configuration
+ * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
+ * https://oidc.account.gov.uk/.well-known/openid-configuration  
+ * https://dev-kzv8xwxr.us.auth0.com/.well-known/openid-configuration
+ * 
  * @see OAuth2
  */
 final class OpenIdConnect extends OAuth2
 {
+    protected string $authUrl = '';
+    
     protected ?string $scope = 'openid';
     /**
-     * @var string OpenID Issuer (provider) base URL, e.g. `https://example.com`.
+     * @var string OpenID Issuer  
      */
-    private string $issuerUrl;
+    private string $issuerUrl = 'https://{IdentityProviderDomain}';
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
      * Note: this functionality requires `web-token/jwt-checker`, `web-token/jwt-key-mgmt`, `web-token/jwt-signature`
@@ -91,7 +100,7 @@ final class OpenIdConnect extends OAuth2
      * @var bool|null whether to use and validate auth 'nonce' parameter in authentication flow.
      * The option is used for preventing replay attacks.
      */
-    private ?bool $validateAuthNonce;
+    private ?bool $validateAuthNonce = null;
 
     /**
      * @var array OpenID provider configuration parameters.
@@ -106,33 +115,33 @@ final class OpenIdConnect extends OAuth2
      */
     private JWSLoader $jwsLoader;
 
-    private JWKSet|null $jwkSet;
+    private JWKSet|null $jwkSet = null;
 
     /**
      * OpenIdConnect constructor.
-     *
-     * @param $name
-     * @param $title
+     *   
      * @param ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
-     * @param CacheInterface $cache
      * @param StateStorageInterface $stateStorage
+     * @param Factory $factory  
      * @param SessionInterface $session
+     * @param string $name
+     * @param string $title
      */
     public function __construct(
-        string $name,
-        string $title,
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
-        CacheInterface $cache,
         StateStorageInterface $stateStorage,
-        SessionInterface $session,
-        Factory $factory
+        Factory $factory,    
+        SessionInterface $session,        
+        CacheInterface $cache,    
+        string $name,
+        string $title,
     ) {
+        $this->cache = $cache;
         $this->name = $name;
         $this->title = $title;
-        $this->cache = $cache;
-        parent::__construct($httpClient, $requestFactory, $stateStorage, $session, $factory);
+        parent::__construct($httpClient, $requestFactory, $stateStorage, $factory, $session);
     }
 
     /**
@@ -140,6 +149,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return string
      */
+    #[\Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
         array $params = []
@@ -189,11 +199,6 @@ final class OpenIdConnect extends OAuth2
         return $this->configParams;
     }
 
-    public function getName(): string
-    {
-        return 'open_id_connect';
-    }
-
     /**
      * Discovers OpenID Provider configuration parameters.
      *
@@ -210,7 +215,7 @@ final class OpenIdConnect extends OAuth2
         $request = $this->createRequest('GET', $configUrl);
         $response = $this->sendRequest($request);
 
-        return (array) Json::decode($response->getBody()->getContents());
+        return (array)json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -219,6 +224,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return OAuthToken
      */
+    #[\Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         if (empty($this->tokenUrl)) {
@@ -276,6 +282,7 @@ final class OpenIdConnect extends OAuth2
      * @param OAuthToken $token
      * @return OAuthToken
      */
+    #[\Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         if (strlen($this->tokenUrl) == 0) {
@@ -283,10 +290,54 @@ final class OpenIdConnect extends OAuth2
         }
         return parent::refreshAccessToken($token);
     }
+    
+    #[\Override]
+    public function getName(): string
+    {
+        /**
+         * Note 1: Change OpenIdConnect::class to OAuth, Google, 
+         * Note 2: Keep 'oidc' unchanged
+         * Related logic: app's config/web/di/yii-auth-client
+         * `@var array $paramsClients['oidc']`
+         * `$openidconnectClient = $paramsClients['oidc'];`
+         * 
+         * Related logic: app's config/common/params [yiisoft/yii-auth-client] => 
+         *  [
+         *      'oidc' => [
+         *          'class' => 'Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class',
+         *          'issuerUrl' => 'dev-0yporhwwkgkdmu1g.uk.auth0.com',
+         *          'clientId' => $_ENV['OIDC_API_CLIENT_ID'] ?? '',
+         *          'clientSecret' => $_ENV['OIDC_API_CLIENT_SECRET'] ?? '',
+         *          'returnUrl' => $_ENV['OIDC_API_CLIENT_RETURN_URL'] ?? '',
+         *  ],
+         */
+        return 'oidc';
+    }
 
+    #[\Override]
     public function getTitle(): string
     {
-        return 'OpenID Connect';
+        return 'Open Id Connect';
+    }
+      
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return '';
+    }    
+    
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
+    #[\Override]
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
     }
 
     public function setIssuerUrl(string $url): void
@@ -299,6 +350,7 @@ final class OpenIdConnect extends OAuth2
         return $this->api((array) $this->getConfigParam('userinfo_endpoint'), 'GET');
     }
 
+    #[\Override]
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = (array) $this->getConfigParam('token_endpoint_auth_methods_supported');
@@ -350,6 +402,7 @@ final class OpenIdConnect extends OAuth2
         return $request;
     }
 
+    #[\Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
@@ -361,6 +414,7 @@ final class OpenIdConnect extends OAuth2
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 
+    #[\Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $params = (array) $tokenConfig['params'];

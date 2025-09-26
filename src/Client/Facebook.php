@@ -64,9 +64,7 @@ final class Facebook extends OAuth2
     {
         $params = $token->getParams();
         $finalValue = '';
-
-        end($params);
-        $finalValue = key($params);
+        $finalValue = array_key_last($params);
 
         /**
          * @var string $finalValue
@@ -93,6 +91,15 @@ final class Facebook extends OAuth2
             );
             $response = $this->sendRequest($request);
             return (array) json_decode($response->getBody()->getContents(), true);
+        }
+        return [];
+    }
+    
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
         }
         return [];
     }
@@ -232,15 +239,23 @@ final class Facebook extends OAuth2
         return $token;
     }
 
+    #[\Override]
     public function getName(): string
     {
         return 'facebook';
     }
 
+    #[\Override]
     public function getTitle(): string
     {
         return 'Facebook';
-    }
+    }    
+    
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary bi bi-facebook';
+    }    
 
     /**
      * @return int[]

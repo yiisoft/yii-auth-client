@@ -78,12 +78,53 @@ final class X extends OAuth2
             if (strlen($body) > 0) {
                 return (array)json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Optionally log error: $e->getMessage()
             return [];
         }
 
         return [];
+    }
+    
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token, $this->httpClient, $this->requestFactory);
+        }
+        return [];
+    }
+    
+    #[\Override]
+    public function getName(): string
+    {
+        return 'x';
+    }
+
+    #[\Override]
+    public function getTitle(): string
+    {
+        return 'X';
+    }
+    
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-dark bi bi-twitter';
+    }    
+    
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
+    #[\Override]
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
     }
 
     /**
@@ -95,15 +136,5 @@ final class X extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'users.read tweet.read offline.access';
-    }
-
-    public function getName(): string
-    {
-        return 'x';
-    }
-
-    public function getTitle(): string
-    {
-        return 'X';
     }
 }

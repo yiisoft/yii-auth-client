@@ -78,15 +78,46 @@ class Google extends OAuth2
 
         return [];
     }
+    
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
+    }
 
+    #[\Override]
     public function getName(): string
     {
         return 'google';
     }
 
+    #[\Override]
     public function getTitle(): string
     {
         return 'Google';
+    }
+        
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary bi bi-google';
+    }    
+    
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
+    #[\Override]
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
     }
 
     /**
