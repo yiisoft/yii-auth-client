@@ -15,6 +15,7 @@ use Yiisoft\Aliases\Aliases;
 use Yiisoft\Http\Status;
 use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
+use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -54,11 +55,6 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 final class AuthAction implements MiddlewareInterface
 {
     public const string AUTH_NAME = 'auth_displayname';
-    /**
-     * @var Collection
-     * It should point to {@see Collection} instance.
-     */
-    private readonly Collection $clientCollection;
     /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
@@ -119,10 +115,45 @@ final class AuthAction implements MiddlewareInterface
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
      */
     private readonly string $cancelUrl;
-    private readonly ResponseFactoryInterface $responseFactory;
-    private readonly Aliases $aliases;
-    private readonly WebView $view;
+    
+    public function __construct(
+        /**
+         * @var Collection
+         * It should point to {@see Collection} instance.
+         */
+        private readonly Collection $clientCollection,
+        private readonly Aliases $aliases,
+        private readonly WebView $view,
+        private readonly ResponseFactoryInterface $responseFactory
+    )
+    {
+    }
+    
+    /**
+     * @param string $url successful URL.
+     *
+     * @return AuthAction
+     */
+    public function withSuccessUrl(string $url): self
+    {
+        $new = clone $this;
+        $new->successUrl = $url;
+        return $new;
+    }
 
+    /**
+     * @param string $url cancel URL.
+     *
+     * @return AuthAction
+     */
+    public function withCancelUrl(string $url): self
+    {
+        $new = clone $this;
+        $new->cancelUrl = $url;
+        return $new;
+    }
+
+    #[\Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $clientId = (string)$request->getAttribute($this->clientIdGetParamName);
@@ -160,7 +191,7 @@ final class AuthAction implements MiddlewareInterface
         /**
          * @psalm-suppress MixedArgument $client
          */
-        throw new NotSupportedException('Provider "' . get_class($client) . '" is not supported.');
+        throw new NotSupportedException('Provider "' . $client::class . '" is not supported.');
     }
 
     /**
@@ -197,7 +228,7 @@ final class AuthAction implements MiddlewareInterface
         // Get the access_token and save them to the session.
         if (isset($queryParams['code']) && (strlen($code = (string)$queryParams['code']) > 0)) {
             $token = $client->fetchAccessToken($request, $code);
-            if (strlen($token->getToken()) > 0) {
+            if (strlen((string) $token->getToken()) > 0) {
                 return $this->authSuccess($client);
             }
             return $this->authCancel($client);
