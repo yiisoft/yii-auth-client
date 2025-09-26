@@ -40,7 +40,7 @@ class OAuth2Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
             )
-            ->onlyMethods(['getName', 'getTitle'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
             ->getMock();
     }
 
@@ -57,7 +57,7 @@ class OAuth2Test extends TestCase
         $oauthClient->setOauth2ReturnUrl($returnUrl);
         $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest, []);
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
