@@ -43,13 +43,28 @@ final class TikTok extends OAuth2
             if (strlen($body) > 0) {
                 return (array) json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Optionally log error: $e->getMessage()
             return [];
         }
 
         return [];
     }
+    
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
+    }
+    
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return '';
+    }   
 
     /**
      * @return string
@@ -62,11 +77,13 @@ final class TikTok extends OAuth2
         return 'user.info.profile';
     }
 
+    #[\Override]
     public function getName(): string
     {
         return 'tiktok';
     }
 
+    #[\Override]
     public function getTitle(): string
     {
         return 'TikTok';
