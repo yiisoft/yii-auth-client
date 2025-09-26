@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Widget;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
+use Yiisoft\Html\Tag\A;
 use Yiisoft\Json\Json;
 use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
-use Yiisoft\Yii\AuthClient\AuthClientInterface;
+use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
  * It opens a popup window for the client authentication process.
- * By default this widget relies on the presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
+ * By default this widget relies on presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
  * to get auth clients information.
  *
  * Example:
@@ -46,19 +50,19 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
  * <?php AuthChoice::end(); ?>
  * ```
  *
- * This widget supports the following keys for {@see AuthClientInterface::getViewOptions()} result:
+ * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
  *
  *  - popupWidth: int, width of the popup window in pixels.
  *  - popupHeight: int, height of the popup window in pixels.
  *  - widget: array, configuration for the widget, which should be used to render a client link;
- *    such a widget should be a subclass of {@see AuthChoiceItem}.
+ *    such widget should be a subclass of {@see AuthChoiceItem}.
  *
  * @see \Yiisoft\Yii\AuthClient\AuthAction
  */
 final class AuthChoice extends Widget
 {
     /**
-     * @var string name of the GET param , which should be used to be passed auth client id to URL
+     * @var string name of the GET param , which should be used to passed auth client id to URL
      * defined by {@see baseAuthUrl}.
      */
     private string $clientIdGetParamName = 'authclient';
@@ -85,14 +89,19 @@ final class AuthChoice extends Widget
     /**
      * @var string route name for the external clients authentication URL.
      */
-    private readonly string $authRoute;
-    /**
-     * @var AuthClientInterface[] auth providers list.
-     */
-    private readonly array $clients;
-    private readonly UrlGeneratorInterface $urlGenerator;
-    private readonly WebView $webView;
-    private readonly AssetManager $assetManager;
+    private string $authRoute = '';
+    
+    private array $clients;
+
+    public function __construct(
+        Collection $clientCollection,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly WebView $webView,
+        private readonly AssetManager $assetManager,
+    ) {
+        $this->clients = $clientCollection->getClients();
+        $this->init();
+    }
 
     /**
      * Initializes the widget.
@@ -119,6 +128,7 @@ final class AuthChoice extends Widget
         }
 
         $this->options['id'] = $this->getId();
+        // This next line can cause header related issues
         echo Html::tag('div', '', $this->options)->open();
     }
 
@@ -134,6 +144,7 @@ final class AuthChoice extends Widget
      *
      * @return string rendered HTML.
      */
+    #[\Override]
     public function render(): string
     {
         $content = '';
@@ -155,6 +166,9 @@ final class AuthChoice extends Widget
     protected function renderMainContent(): string
     {
         $items = [];
+        /**
+         * @var OAuth2 $externalService
+         */
         foreach ($this->getClients() as $externalService) {
             $items[] = Html::tag('li', $this->clientLink($externalService));
         }
@@ -163,7 +177,9 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @return AuthClientInterface[] auth providers
+     * @return array
+     * @psalm-suppress MixedReturnTypeCoercion
+     * @psalm-return array<string, OAuth2>
      */
     public function getClients(): array
     {
@@ -171,9 +187,32 @@ final class AuthChoice extends Widget
     }
 
     /**
+     * @param OAuth2[] $clients
+     */
+    public function setClients(array $clients): void
+    {
+        $this->clients = $clients;
+    }
+    
+    public function getClient(string $name): OAuth2
+    {
+        $clients = array_filter(
+            $this->getClients(),
+            fn($client) => $client->getName() === $name
+        );
+        $client = end($clients);
+
+        if ($client === false) {
+            throw new InvalidConfigException("OAuth2 client with name '{$name}' not found.");
+        }
+
+        return $client;
+    }  
+
+    /**
      * Outputs client auth link.
      *
-     * @param AuthClientInterface $client external auth client instance.
+     * @param OAuth2 $client extending from an auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
      *
@@ -182,7 +221,7 @@ final class AuthChoice extends Widget
      *
      * @return string generated HTML.
      */
-    public function clientLink(AuthClientInterface $client, string $text = null, array $htmlOptions = []): string
+    public function clientLink(OAuth2 $client, string $text = null, array $htmlOptions = []): string
     {
         $viewOptions = $client->getViewOptions();
 
@@ -222,6 +261,7 @@ final class AuthChoice extends Widget
         if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
+        /* @var $widgetClass Widget */
         $widgetClass = $widgetConfig['class'];
         /**
          * @psalm-suppress MixedArgument $widgetClass
@@ -249,5 +289,66 @@ final class AuthChoice extends Widget
         $params[$this->clientIdGetParamName] = $client->getName();
 
         return $this->urlGenerator->generate($this->authRoute, $params);
+    }
+
+    /**
+     * @param string $authRoute
+     *
+     * @return self
+     */
+    public function authRoute(string $authRoute): self
+    {
+        $this->authRoute = $authRoute;
+        return $this;
+    }
+    
+    /**
+     * Note: Popup window with {$authRoute} e.g. 'auth/authclient' 
+     * @param array $provider
+     * @param string $name
+     * @return string
+     */
+    public function authRoutedButtons(string $authRoute, array $provider, string $name): string
+    {
+        foreach ($this->getClients() as $client) {
+            if ($name === $client->getName()) {
+                if (strlen($client->getClientId()) > 0) {
+                    $viewOptions = $client->getViewOptions();
+                    $height = (string) $viewOptions['popupHeight'];
+                    $width = (string) $viewOptions['popupWidth'];
+                    $this->authRoute($authRoute);
+                    return $this->clientLink($client, ' ' . ucfirst((string) $provider['buttonName']), [
+                        'onclick' => "window.open(this.href, 'authPopup', 'width=". $width . ",height=" . $height . "'); return false;",
+                        'class' => $client->getButtonClass() ,
+                    ]);
+                }    
+            }
+        }
+        return '';
+    }
+        
+    /**
+     * Note: No popup window and no route
+     * @param ServerRequestInterface $request
+     * @param array $provider
+     * @param string $name
+     * @return string
+     */
+    public function absoluteButtons(ServerRequestInterface $request, array $provider, string $name): string
+    {
+        foreach ($this->getClients() as $client) {
+            if ($name === $client->getName()) {
+                if (strlen($client->getClientId()) > 0) {
+                    $clientAuthUrl = $client->buildAuthUrl($request, (array) $provider['params']);
+                    return A::tag()
+                        ->addClass($client->getButtonClass())
+                        ->content(' ' . ucfirst((string) $provider['buttonName']))
+                        ->href($clientAuthUrl)
+                        ->id('btn-' . $name)
+                        ->render();
+                }    
+            }
+        }
+        return '';
     }
 }

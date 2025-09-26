@@ -72,6 +72,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return string authorization URL.
      */
+    #[\Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
         array $params = []
@@ -309,6 +310,7 @@ abstract class OAuth2 extends OAuth
         $this->clientId = $clientId;
     }
 
+    #[\Override]
     public function getClientId(): string
     {
         return $this->clientId;
@@ -334,6 +336,7 @@ abstract class OAuth2 extends OAuth
         $this->returnUrl = $returnUrl;
     }
 
+    #[\Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -353,6 +356,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return OAuthToken new auth token.
      */
+    #[\Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
@@ -386,6 +390,25 @@ abstract class OAuth2 extends OAuth
     public function getTokenUrl(): string
     {
         return $this->tokenUrl;
+    }
+    
+    public function setTokenUrl(string $tokenUrl): void
+    {
+        $this->tokenUrl = $tokenUrl;
+    }
+
+    public function withValidateAuthState(): self
+    {
+        $new = clone $this;
+        $new->validateAuthState = true;
+        return $new;
+    }
+
+    public function withoutValidateAuthState(): self
+    {
+        $new = clone $this;
+        $new->validateAuthState = false;
+        return $new;
     }
 
     /**

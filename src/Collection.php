@@ -32,47 +32,41 @@ final class Collection
 {
     public function __construct(
         /**
-         * @var array|AuthClientInterface[] list of Auth clients with their configuration in format: 'clientName' => [...]
+         * @var array|OAuth2Interface[] list of OAuth2 clients with their configuration in format: 'clientName' => [...]
          */
         private array $clients
     ) {
     }
 
-    /**
-     * @param string $name client name
-     *
-     * @throws InvalidArgumentException on non existing client request.
-     *
-     * @return AuthClientInterface auth client instance.
-     */
-    public function getClient(string $name): AuthClientInterface
+    public function getClient(string $name): OAuth2
     {
         if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
         $client = $this->clients[$name];
-        if (!($client instanceof AuthClientInterface)) {
+        if (!($client instanceof OAuth2)) {
             throw new RuntimeException(
-                'The Client should be a ClientInterface.'
+                'The Client should be an OAuth2 Interface.'
             );
         }
         return $client;
     }
 
     /**
-     * @return AuthClientInterface[] list of auth clients.
+     * @psalm-return array<string, OAuth2>
      */
     public function getClients(): array
     {
         $clients = [];
+        
         /**
-         * @psalm-suppress MixedAssignment  Unable to determine the type that $client is being assigned to
+         * @var OAuth2 $client
+         * @var string $name
+         * @var array $this->clients
          */
         foreach ($this->clients as $name => $client) {
-            /**
-             * @psalm-suppress  MixedArgumentTypeCoercion - getClient expects string, but parent type array-key provided
-             */
+            
             $clients[$name] = $this->getClient($name);
         }
 

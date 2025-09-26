@@ -98,6 +98,14 @@ abstract class OAuth extends AuthClient
         }
         return $this->returnUrl;
     }
+    
+    /**
+     * @param string $returnUrl return URL
+     */
+    public function setReturnUrl(string $returnUrl): void
+    {
+        $this->returnUrl = $returnUrl;
+    }
 
     /**
      * Composes default {@see returnUrl} value.

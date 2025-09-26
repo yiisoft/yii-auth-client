@@ -22,16 +22,31 @@ final class TestClient extends AuthClient
         return [];
     }
 
+    #[\Override]
     public function getName(): string
     {
         return 'test';
     }
 
+    #[\Override]
     public function getTitle(): string
     {
         return 'Test';
+    }  
+    
+    #[\Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary bi';
     }
 
+    #[\Override]
+    public function getClientId(): string
+    {
+        return 'adfadfasdfasdfasdfasdfasdfasdfa';
+    }    
+    
+    #[\Override]
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string
     {
         return 'http://test.local';

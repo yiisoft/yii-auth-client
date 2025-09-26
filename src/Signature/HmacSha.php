@@ -15,27 +15,25 @@ use function function_exists;
  */
 final class HmacSha extends Signature
 {
-    /**
+    public function __construct(/**
      * @var string hash algorithm, e.g. `sha1`, `sha256` and so on.
      *
      * @link https://php.net/manual/ru/function.hash-algos.php
      */
-    private string $algorithm;
-
-    public function __construct(string $algorithm)
+    private readonly string $algorithm)
     {
         if (!function_exists('hash_hmac')) {
             throw new NotSupportedException('PHP "Hash" extension is required.');
         }
-
-        $this->algorithm = $algorithm;
     }
 
+    #[\Override]
     public function getName(): string
     {
         return 'HMAC-' . strtoupper($this->algorithm);
     }
 
+    #[\Override]
     public function generateSignature(string $baseString, string $key): string
     {
         return base64_encode(hash_hmac($this->algorithm, $baseString, $key, true));

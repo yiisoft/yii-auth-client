@@ -28,16 +28,19 @@ class SessionStateStorage implements StateStorageInterface
     ) {
     }
 
+    #[\Override]
     public function set(string $key, $value): void
     {
         $this->session->set($key, $value);
     }
 
+    #[\Override]
     public function get(string $key): mixed
     {
         return $this->session->get($key);
     }
 
+    #[\Override]
     public function remove(string $key): void
     {
         $this->session->remove($key);

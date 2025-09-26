@@ -45,8 +45,6 @@ final class RsaSha extends Signature
 
     public function __construct(string $algorithm = '')
     {
-        $this->algorithm = $algorithm;
-
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
@@ -68,13 +66,14 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
+    #[\Override]
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
             $constants = get_defined_constants(true);
             if (isset($constants['openssl'])) {
                 foreach ($constants['openssl'] as $name => $value) {
-                    if (strpos($name, 'OPENSSL_ALGO_') !== 0) {
+                    if (!str_starts_with($name, 'OPENSSL_ALGO_')) {
                         continue;
                     }
                     if ($value === $this->algorithm) {
@@ -93,6 +92,7 @@ final class RsaSha extends Signature
         return 'RSA-' . (string) $algorithmName;
     }
 
+    #[\Override]
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
@@ -140,6 +140,7 @@ final class RsaSha extends Signature
         return '';
     }
 
+    #[\Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);

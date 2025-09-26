@@ -93,6 +93,7 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @return array view options in format: optionName => optionValue
      */
+    #[\Override]
     public function getViewOptions(): array
     {
         if (empty($this->viewOptions)) {
@@ -118,6 +119,7 @@ abstract class AuthClient implements AuthClientInterface
         ];
     }
 
+    #[\Override]
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface
