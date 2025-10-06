@@ -21,8 +21,7 @@ final class HmacSha extends Signature
      * @link https://php.net/manual/ru/function.hash-algos.php
      */
     private readonly string $algorithm
-    )
-    {
+    ) {
         if (!function_exists('hash_hmac')) {
             throw new NotSupportedException('PHP "Hash" extension is required.');
         }
