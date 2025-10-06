@@ -13,10 +13,10 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * VKontakte allows authentication via VKontakte OAuth 2.0
  *
- * In order to use VKontakte OAuth you must register your application at <https://dev.vk.com>.
- * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
- * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/how-auth-works/auth-flow-web
- * @see https://id.vk.com/about/business/go/accounts/{USER}/apps/{APPLICATION_ID}/edit
+ * In order to use VKontakte OAuth you must register your application at <https://dev.vk.ru>.
+ * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+ * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/how-auth-works/auth-flow-web
+ * @see https://id.vk.ru/about/business/go/accounts/{USER}/apps/{APPLICATION_ID}/edit
  *
  * Authorization Code Workflow Client Id => VKontakte Application Id
  * Authorization Code Workflow Secret Id => Access Keys: Protected Key ... to perform requests to the VKontakte API on behalf of the application (used here)
@@ -25,11 +25,11 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class VKontakte extends OAuth2
 {
-    protected string $authUrl = 'https://id.vk.com/authorize';
+    protected string $authUrl = 'https://id.vk.ru/authorize';
 
-    protected string $tokenUrl = 'https://id.vk.com/oauth2/auth';
+    protected string $tokenUrl = 'https://id.vk.ru/oauth2/auth';
 
-    protected string $endpoint = 'https://id.vk.com/oauth2/user_info';
+    protected string $endpoint = 'https://id.vk.ru/oauth2/user_info';
 
     /**
      * Example answer: [
@@ -41,7 +41,7 @@ final class VKontakte extends OAuth2
      *      'scope' => 'email phone'
      * ]
      *
-     * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+     * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
      * Step 6: Getting New Access Token After Previous Token Expires
      *
      * @param string $refreshToken
@@ -98,7 +98,7 @@ final class VKontakte extends OAuth2
     /**
      * Example answer: ["response" => 1]
      *
-     * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+     * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
      *      #Step 7. Token invalidation (logout)
      *
      * Converted to use PSR-18 ClientInterface and PSR-17 RequestFactoryInterface instead of curl.
@@ -109,7 +109,7 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        $url = 'https://id.vk.com/oauth2/user_info';
+        $url = 'https://id.vk.ru/oauth2/user_info';
         $tokenString = (string)$token->getParam('access_token');
 
         if (strlen($tokenString) === 0) {
@@ -144,14 +144,14 @@ final class VKontakte extends OAuth2
     *              "last_name" => "Ivanov",
     *              "phone" => "79991234567",
     *              "avatar" => "https://pp.userapi.com/60tZWMo4SmwcploUVl9XEt8ufnTTvDUmQ6Bj1g/mmv1pcj63C4.png",
-    *              "email" => "ivan_i123@vk.com",
+    *              "email" => "ivan_i123@vk.ru",
     *              "sex" => 2,
     *              "verified" => false,
     *              "birthday" => "01.01.2000"
     *          ]
     * ]
     *
-    * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+    * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
     *      #Step 8. (Optional) Obtaining user data
     */
     public function step8ObtainingUserDataArrayWithClientId(
@@ -160,7 +160,7 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        $url = 'https://id.vk.com/oauth2/user_info';
+        $url = 'https://id.vk.ru/oauth2/user_info';
         $tokenString = (string)$token->getParam('access_token');
 
         if (strlen($tokenString) === 0) {
@@ -198,7 +198,7 @@ final class VKontakte extends OAuth2
      *   ]
      * ]
      *
-     * @see https://id.vk.com/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
+     * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
      *      #Step 9. (Optional) Getting public user data
      */
     public function step9GetPublicUserDataArrayWithClientId(
