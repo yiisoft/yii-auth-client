@@ -43,10 +43,8 @@ final class RsaSha extends Signature
      */
     private ?string $publicCertificate = null;
 
-    public function __construct($algorithm = null)
+    public function __construct(string $algorithm = '')
     {
-        $this->algorithm = $algorithm;
-
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
@@ -68,13 +66,14 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
+    #[\Override]
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
             $constants = get_defined_constants(true);
             if (isset($constants['openssl'])) {
                 foreach ($constants['openssl'] as $name => $value) {
-                    if (strpos($name, 'OPENSSL_ALGO_') !== 0) {
+                    if (!str_starts_with($name, 'OPENSSL_ALGO_')) {
                         continue;
                     }
                     if ($value === $this->algorithm) {
@@ -90,20 +89,16 @@ final class RsaSha extends Signature
         } else {
             $algorithmName = strtoupper($this->algorithm);
         }
-        return 'RSA-' . $algorithmName;
+        return 'RSA-' . (string) $algorithmName;
     }
 
+    #[\Override]
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
-        // Pull the private key ID from the certificate
-        $privateKeyId = openssl_pkey_get_private($privateCertificateContent);
-        // Sign using the key
-        openssl_sign($baseString, $signature, $privateKeyId, $this->algorithm);
-        // Release the key resource
-        if (PHP_MAJOR_VERSION < 8) {
-            openssl_pkey_free($privateKeyId);
-        }
+
+        // For PHP 8+, you can pass the PEM string directly to openssl_sign()
+        openssl_sign($baseString, $signature, $privateCertificateContent, $this->algorithm);
 
         return base64_encode($signature);
     }
@@ -136,11 +131,16 @@ final class RsaSha extends Signature
                     "Private certificate file '{$this->privateCertificateFile}' does not exist!"
                 );
             }
-            return file_get_contents($this->privateCertificateFile);
+            $privateCertificateFile = file_get_contents($this->privateCertificateFile);
+            if ($privateCertificateFile === false) {
+                throw new InvalidConfigException('Failed to fetch private certificate file');
+            }
+            return $privateCertificateFile;
         }
         return '';
     }
 
+    #[\Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);
@@ -189,8 +189,9 @@ final class RsaSha extends Signature
             }
             $fp = fopen($this->publicCertificateFile, 'rb');
 
-            while (!feof($fp)) {
-                $content .= fgets($fp);
+            $fgetsFp = fgets($fp);
+            while (!feof($fp) && is_string($fgetsFp)) {
+                $content .= $fgetsFp;
             }
             fclose($fp);
         }

@@ -6,17 +6,20 @@ namespace Yiisoft\Yii\AuthClient\StateStorage;
 
 class DummyStateStorage implements StateStorageInterface
 {
+    #[\Override]
     public function set(string $key, $value): void
     {
         // do nothing
     }
 
-    public function get($key)
+    #[\Override]
+    public function get(string $key): mixed
     {
         return null;
     }
 
-    public function remove($key): void
+    #[\Override]
+    public function remove(string $key): void
     {
         // do nothing
     }

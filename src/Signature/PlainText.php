@@ -9,11 +9,13 @@ namespace Yiisoft\Yii\AuthClient\Signature;
  */
 final class PlainText extends Signature
 {
+    #[\Override]
     public function getName(): string
     {
         return 'PLAINTEXT';
     }
 
+    #[\Override]
     public function generateSignature(string $baseString, string $key): string
     {
         return $key;

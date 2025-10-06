@@ -22,14 +22,19 @@ interface AuthClientInterface
     public function getTitle(): string;
 
     /**
-     * @return array list of user attributes
-     */
-    public function getUserAttributes(): array;
-
-    /**
      * @return array view options in format: optionName => optionValue
      */
     public function getViewOptions(): array;
+
+    public function getButtonClass(): string;
+
+    /**
+     * The Client id is publically visible in button urls
+     * The Client secret must not be made available publically => exclude from interface
+     *
+     * @return string
+     */
+    public function getClientId(): string;
 
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 }

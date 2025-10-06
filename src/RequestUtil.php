@@ -21,7 +21,7 @@ final class RequestUtil
     public static function composeUrl(string $url, array $params = []): string
     {
         if (!empty($params)) {
-            if (strpos($url, '?') === false) {
+            if (!str_contains($url, '?')) {
                 $url .= '?';
             } else {
                 $url .= '&';
@@ -40,6 +40,11 @@ final class RequestUtil
         return $request->withUri($uri);
     }
 
+    /**
+     * @return (string|(string|null)[]|null)[]
+     *
+     * @psalm-return array<string, list{0: null|string, 1?: null|string,...}|null|string>
+     */
     public static function getParams(RequestInterface $request): array
     {
         $queryString = $request->getUri()->getQuery();
@@ -67,6 +72,11 @@ final class RequestUtil
 
     public static function addHeaders(RequestInterface $request, array $headers): RequestInterface
     {
+        /**
+         * @see Psr\Http\Message\withHeader
+         * @var string $header Case-insensitive header field name.
+         * @var string|string[] $value Header value(s).
+         */
         foreach ($headers as $header => $value) {
             $request = $request->withHeader($header, $value);
         }

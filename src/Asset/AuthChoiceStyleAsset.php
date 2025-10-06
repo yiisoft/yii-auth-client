@@ -11,7 +11,15 @@ use Yiisoft\Assets\AssetBundle;
  */
 class AuthChoiceStyleAsset extends AssetBundle
 {
-    public ?string $sourcePath = __DIR__ . '../../resources/assets';
+    public ?string $basePath = '@assets';
+
+    public ?string $baseUrl = '@assetsUrl';
+
+    public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
+
+    /**
+     * @psalm-suppress NonInvariantDocblockPropertyType $css
+     */
     public array $css = [
         'authchoice.css',
     ];

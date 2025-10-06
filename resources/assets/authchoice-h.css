@@ -1,0 +1,54 @@
+.auth-icon-h {
+    display: block;
+    width: 32px;
+    height: 32px;
+    background: url(authchoice-h.png) no-repeat;
+    border-radius: 3px;
+    margin: 0 auto;
+}
+
+.auth-icon-h.google {
+    background-position: -32px 0;
+}
+.auth-icon-h.twitter {
+    background-position: -64px 0;
+}
+.auth-icon-h.yandex {
+    background-position: -96px 0;
+}
+.auth-icon-h.vkontakte {
+    background-position: -128px 0;
+}
+.auth-icon-h.facebook {
+    background-position: -160px 0;
+}
+.auth-icon-h.linkedin {
+    background-position: -192px 0;
+}
+.auth-icon-h.github {
+    background-position: -224px 0;
+}
+.auth-icon-h.live {
+    background-position: -256px 0;
+}
+
+.auth-clients {
+    display: block;
+    margin: 0 0 1em;
+    list-style: none;
+    overflow: auto;
+}
+
+.auth-clients li {
+    float: left;
+    display: block;
+    margin: 0 1em 0 0;
+    text-align: center;
+}
+
+.auth-title {
+    display: block;
+    margin-top: 0.4em;
+    text-align: center;
+    width: 58px;
+}

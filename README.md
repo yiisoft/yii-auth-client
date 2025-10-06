@@ -25,7 +25,7 @@ consumers for the [Yii framework](https://www.yiiframework.com).
 
 ## Requirements
 
-- PHP 7.4 or higher.
+- PHP 8.1 or higher.
 
 ## Installation
 

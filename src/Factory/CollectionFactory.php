@@ -9,16 +9,22 @@ use Yiisoft\Yii\AuthClient\Collection;
 
 class CollectionFactory
 {
-    private array $clients;
-
-    public function __construct(array $clients = [])
+    public function __construct(private readonly array $clients = [])
     {
-        $this->clients = $clients;
     }
 
+    /**
+     * @param ContainerInterface $container
+     * @throws \InvalidArgumentException
+     * @return Collection
+     * @psalm-suppress MixedAssignment
+     */
     public function __invoke(ContainerInterface $container): Collection
     {
         $clients = [];
+        /**
+         * @var string $client
+         */
         foreach ($this->clients as $name => $client) {
             if (!is_string($name)) {
                 throw new \InvalidArgumentException('Client name must be set.');

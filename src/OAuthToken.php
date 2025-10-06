@@ -20,7 +20,7 @@ final class OAuthToken
     /**
      * @var int object creation timestamp.
      */
-    private int $createTimestamp;
+    private readonly int $createTimestamp;
 
     /**
      * @var string|null key in {@see params} array, which stores token expiration duration.
@@ -38,44 +38,24 @@ final class OAuthToken
     }
 
     /**
+     * Returns the token secret value.
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
+     * @return string token secret value.
+     */
+    public function getTokenSecret(): string
+    {
+        return $this->getParam($this->tokenSecretParamKey ?: 'oauth_token_secret');
+    }
+
+    /**
      * Sets token value.
      *
      * @param string $token token value.
      */
     public function setToken(string $token): void
     {
-        $this->setParam($this->tokenParamKey, $token);
-    }
-
-    /**
-     * Sets param by name.
-     *
-     * @param string $name param name.
-     * @param mixed $value param value,
-     */
-    public function setParam(string $name, $value): void
-    {
-        $this->params[$name] = $value;
-    }
-
-    /**
-     * Sets the token secret value.
-     *
-     * @param string $tokenSecret token secret.
-     */
-    public function setTokenSecret(string $tokenSecret): void
-    {
-        $this->setParam($this->tokenSecretParamKey, $tokenSecret);
-    }
-
-    /**
-     * Returns the token secret value.
-     *
-     * @return string token secret value.
-     */
-    public function getTokenSecret(): string
-    {
-        return $this->getParam($this->tokenSecretParamKey);
+        $this->setParam($this->tokenParamKey ?: 'oauth_token', $token);
     }
 
     /**
@@ -85,7 +65,7 @@ final class OAuthToken
      *
      * @return mixed param value.
      */
-    public function getParam(string $name)
+    public function getParam(string $name): mixed
     {
         return $this->params[$name] ?? null;
     }
@@ -113,14 +93,6 @@ final class OAuthToken
     }
 
     /**
-     * @param string $expireDurationParamKey expire duration param key.
-     */
-    public function setExpireDurationParamKey(string $expireDurationParamKey): void
-    {
-        $this->expireDurationParamKey = $expireDurationParamKey;
-    }
-
-    /**
      * Fetches default expire duration param key.
      *
      * @return string expire duration param key.
@@ -128,13 +100,16 @@ final class OAuthToken
     protected function defaultExpireDurationParamKey(): string
     {
         $expireDurationParamKey = 'expires_in';
+        /**
+         * @var mixed $value
+         */
         foreach ($this->getParams() as $name => $value) {
-            if (strpos($name, 'expir') !== false) {
-                $expireDurationParamKey = $name;
+            if (!str_contains((string)$name, 'expir')) {
+            } else {
+                $expireDurationParamKey = (string)$name;
                 break;
             }
         }
-
         return $expireDurationParamKey;
     }
 
@@ -144,6 +119,27 @@ final class OAuthToken
     public function getParams(): array
     {
         return $this->params;
+    }
+
+    /**
+     * Sets param by name.
+     *
+     * @param string $name param name.
+     * @param mixed $value param value,
+     */
+    public function setParam(string $name, mixed $value): void
+    {
+        $this->params[$name] = $value;
+    }
+
+    /**
+     * Sets the token secret value.
+     *
+     * @param string $tokenSecret token secret.
+     */
+    public function setTokenSecret(string $tokenSecret): void
+    {
+        $this->setParam($this->tokenSecretParamKey ?: 'oauth_token_secret', $tokenSecret);
     }
 
     /**
@@ -163,13 +159,13 @@ final class OAuthToken
     {
         $token = $this->getToken();
 
-        return !empty($token) && !$this->getIsExpired();
+        return strlen($token ?? '') > 0 && !$this->getIsExpired();
     }
 
     /**
      * Returns token value.
-     *
-     * @return string token value.
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
      */
     public function getToken(): ?string
     {
@@ -183,10 +179,7 @@ final class OAuthToken
      */
     public function getIsExpired(): bool
     {
-        $expirationDuration = $this->getExpireDuration();
-        if ($expirationDuration === null) {
-            return false;
-        }
+        $expirationDuration = (int)$this->getExpireDuration();
 
         return time() >= ($this->createTimestamp + $expirationDuration);
     }
@@ -194,15 +187,10 @@ final class OAuthToken
     /**
      * Returns the token expiration duration.
      *
-     * @return int|null token expiration duration.
+     * return mixed token expiration duration.
      */
-    public function getExpireDuration(): ?int
+    public function getExpireDuration(): mixed
     {
         return $this->getParam($this->getExpireDurationParamKey());
-    }
-
-    public function getCreateTimestamp(): int
-    {
-        return $this->createTimestamp;
     }
 }

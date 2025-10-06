@@ -8,8 +8,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Yiisoft\Di\Container;
-use Yiisoft\Di\ContainerConfig;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -23,6 +22,11 @@ class CollectionTest extends TestCase
         return new Psr17Factory();
     }
 
+    private function getYiisoftFactory(): YiisoftFactory
+    {
+        return new YiisoftFactory();
+    }
+
     private function getStateStorage(): StateStorageInterface
     {
         return new SessionStateStorage(new Session());
@@ -31,7 +35,13 @@ class CollectionTest extends TestCase
     private function getTestClient(): TestClient
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
-        return new TestClient($httpClient, $this->getRequestFactory(), $this->getStateStorage());
+        return new TestClient(
+            $httpClient,
+            $this->getRequestFactory(),
+            $this->getStateStorage(),
+            $this->getYiisoftFactory(),
+            new Session(),
+        );
     }
 
     public function testSetGet(): void
@@ -46,43 +56,28 @@ class CollectionTest extends TestCase
         $this->assertEquals($clients, $collection->getClients(), 'Unable to setup clients!');
     }
 
-    /**
-     * @depends testSetGet
-     */
-    public function testGetProviderByName()
+    public function testGetProviderByName(): void
     {
         $clientId = 'testClientId';
         $client = $this->getTestClient();
         $clients = [
             $clientId => $client,
         ];
-        $collection = new Collection($clients, $this->getContainer());
+        $collection = new Collection($clients);
 
         $this->assertEquals($client, $collection->getClient($clientId), 'Unable to get client by id!');
     }
 
-    /**
-     * @depends testSetGet
-     */
-    public function testHasProvider()
+    public function testHasProvider(): void
     {
         $clientName = 'testClientName';
         $collection = new Collection(
             [
                 $clientName => $this->getTestClient(),
-            ],
-            $this->getContainer()
+            ]
         );
-
 
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
         $this->assertFalse($collection->hasClient('nonExistingClientName'), 'Not existing client check fails!');
-    }
-
-    private function getContainer($definitions = [])
-    {
-        $config = ContainerConfig::create()
-            ->withDefinitions($definitions);
-        return new Container($config);
     }
 }

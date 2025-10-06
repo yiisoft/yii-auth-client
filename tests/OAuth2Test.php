@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Di\Container;
 use Yiisoft\Di\ContainerConfig;
-use Yiisoft\Factory\Factory;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
@@ -25,17 +25,22 @@ class OAuth2Test extends TestCase
     protected function createClient()
     {
         $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+
         $requestFactory = $this->getMockBuilder(RequestFactoryInterface::class)->getMock();
 
-        $factory = new Factory(
+        $yiisoftFactory = new YiisoftFactory(
             new Container(ContainerConfig::create())
         );
 
+        $session = $this->getMockBuilder(Session::class)->getMock();
+
+        $sessionStateStorage = new SessionStateStorage($session);
+
         return $this->getMockBuilder(OAuth2::class)
             ->setConstructorArgs(
-                [$httpClient, $requestFactory, new SessionStateStorage(new Session()), new Session(), $factory]
+                [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
             )
-            ->onlyMethods(['initUserAttributes', 'getName', 'getTitle'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
             ->getMock();
     }
 
@@ -49,10 +54,10 @@ class OAuth2Test extends TestCase
         $clientId = 'test_client_id';
         $oauthClient->setClientId($clientId);
         $returnUrl = 'http://test.return.url';
-        $oauthClient->setReturnUrl($returnUrl);
+        $oauthClient->setOauth2ReturnUrl($returnUrl);
         $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
 
-        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest);
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest, []);
 
         $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
         $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');

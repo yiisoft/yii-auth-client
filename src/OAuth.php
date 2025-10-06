@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
-use InvalidArgumentException;
-use Psr\Http\Client\ClientInterface as PsrClientInterface;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UriInterface;
-use Yiisoft\Factory\Factory;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
-use Yiisoft\Yii\AuthClient\Signature\HmacSha;
-use Yiisoft\Yii\AuthClient\Signature\Signature;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function is_array;
@@ -52,48 +48,37 @@ abstract class OAuth extends AuthClient
      * Note: this should be absolute URL (with http:// or https:// leading).
      * By default current URL will be used.
      */
-    protected ?string $returnUrl = null;
+    protected string $returnUrl = '';
     /**
-     * @var array|OAuthToken access token instance or its array configuration.
+     * @var array|OAuthToken|null access token instance or its array configuration.
      */
-    protected $accessToken;
-    /**
-     * @var array|Signature signature method instance or its array configuration.
-     */
-    protected $signatureMethod = [];
-    private Factory $factory;
+    protected $accessToken = null;
 
     /**
      * BaseOAuth constructor.
      *
-     * @param PsrClientInterface $httpClient
+     * @param ClientInterface $httpClient
      * @param RequestFactoryInterface $requestFactory
      * @param StateStorageInterface $stateStorage
-     * @param Factory $factory
+     * @param YiisoftFactory $factory
      */
     public function __construct(
-        PsrClientInterface $httpClient,
+        ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        Factory $factory
+        protected YiisoftFactory $factory
     ) {
-        $this->factory = $factory;
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
 
-    public function getEndpoint(): string
+    public function setYiisoftFactory(YiisoftFactory $factory): void
     {
-        return $this->endpoint;
+        $this->factory = $factory;
     }
 
-    public function setEndpoint(string $endpoint): void
+    public function getYiisoftFactory(): YiisoftFactory
     {
-        $this->endpoint = $endpoint;
-    }
-
-    public function getAuthUrl(): string
-    {
-        return $this->authUrl;
+        return $this->factory;
     }
 
     public function setAuthUrl(string $authUrl): void
@@ -108,7 +93,7 @@ abstract class OAuth extends AuthClient
      */
     public function getReturnUrl(ServerRequestInterface $request): string
     {
-        if ($this->returnUrl === null) {
+        if ($this->returnUrl === '') {
             $this->returnUrl = $this->defaultReturnUrl($request);
         }
         return $this->returnUrl;
@@ -132,67 +117,6 @@ abstract class OAuth extends AuthClient
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         return (string)$request->getUri();
-    }
-
-    /**
-     * @return array|Signature signature method instance.
-     */
-    public function getSignatureMethod(): Signature
-    {
-        if (!is_object($this->signatureMethod)) {
-            $this->signatureMethod = $this->createSignatureMethod($this->signatureMethod);
-        }
-
-        return $this->signatureMethod;
-    }
-
-    /**
-     * Set signature method to be used.
-     *
-     * @param array|Signature $signatureMethod signature method instance or its array configuration.
-     *
-     * @throws InvalidArgumentException on wrong argument.
-     */
-    public function setSignatureMethod($signatureMethod): void
-    {
-        if (!is_object($signatureMethod) && !is_array($signatureMethod)) {
-            throw new InvalidArgumentException(
-                '"' . static::class . '::signatureMethod"'
-                . ' should be instance of "\Yiisoft\Yii\AuthClient\Signature\BaseMethod" or its array configuration. "'
-                . gettype($signatureMethod) . '" has been given.'
-            );
-        }
-        $this->signatureMethod = $signatureMethod;
-    }
-
-    /**
-     * Creates signature method instance from its configuration.
-     *
-     * @param array $signatureMethodConfig signature method configuration.
-     *
-     * @return object|Signature signature method instance.
-     */
-    protected function createSignatureMethod(array $signatureMethodConfig): Signature
-    {
-        if (!array_key_exists('class', $signatureMethodConfig)) {
-            $signatureMethodConfig['class'] = HmacSha::class;
-            $signatureMethodConfig['__construct()'] = ['sha1'];
-        }
-        return $this->factory->create($signatureMethodConfig);
-    }
-
-    public function withAutoRefreshAccessToken(): self
-    {
-        $new = clone $this;
-        $new->autoRefreshAccessToken = true;
-        return $new;
-    }
-
-    public function withoutAutoRefreshAccessToken(): self
-    {
-        $new = clone $this;
-        $new->autoRefreshAccessToken = false;
-        return $new;
     }
 
     /**
@@ -229,11 +153,11 @@ abstract class OAuth extends AuthClient
         if ($response->getStatusCode() !== 200) {
             throw new InvalidResponseException(
                 $response,
-                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . (string)$response->getBody()
             );
         }
 
-        return Json::decode($response->getBody()->getContents());
+        return (array)Json::decode($response->getBody()->getContents());
     }
 
     /**
@@ -264,7 +188,7 @@ abstract class OAuth extends AuthClient
     }
 
     /**
-     * @return OAuthToken auth token instance.
+     * @return OAuthToken|null auth token instance.
      */
     public function getAccessToken(): ?OAuthToken
     {
@@ -280,30 +204,45 @@ abstract class OAuth extends AuthClient
      *
      * @param array|OAuthToken $token access token or its configuration.
      */
-    public function setAccessToken($token): void
+    public function setAccessToken(array|OAuthToken $token): void
     {
-        if (!is_object($token) && $token !== null) {
-            $token = $this->createToken($token);
+        if (is_array($token) && !empty($token)) {
+            /**
+             * @psalm-suppress MixedAssignment $newToken
+             */
+            $newToken = $this->createToken($token);
+            /**
+             * @psalm-suppress MixedAssignment $this->accessToken
+             */
+            $this->accessToken = $newToken;
+            /**
+             * @psalm-suppress MixedArgument $newToken
+             */
+            $this->saveAccessToken($newToken);
         }
-        $this->accessToken = $token;
-        $this->saveAccessToken($token);
+        if ($token instanceof OAuthToken) {
+            $this->accessToken = $token;
+            $this->saveAccessToken($token);
+        }
     }
 
     /**
      * Restores access token.
      *
-     * @return OAuthToken auth token.
+     * @return OAuthToken|null
      */
     protected function restoreAccessToken(): ?OAuthToken
     {
-        $token = $this->getState('token');
-        if (is_object($token)) {
-            /* @var $token OAuthToken */
+        /**
+         * @psalm-suppress MixedAssignment $token
+         */
+        if (($token = $this->getState('token')) instanceof OAuthToken) {
             if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
-                $token = $this->refreshAccessToken($token);
+                return $this->refreshAccessToken($token);
             }
+            return $token;
         }
-        return $token;
+        return null;
     }
 
     /**
@@ -332,15 +271,16 @@ abstract class OAuth extends AuthClient
      * @param array $tokenConfig token configuration.
      *
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
-     * @return OAuthToken|object
+     * @see Yiisoft\Factory\Factory
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType OAuthToken
      */
-    protected function createToken(array $tokenConfig = [])
+    protected function createToken(array $tokenConfig): OAuthToken
     {
         if (!array_key_exists('class', $tokenConfig)) {
             $tokenConfig['class'] = OAuthToken::class;
         }
-        return $this->factory->create($tokenConfig);
+        return $this->factory->create($tokenConfig['class']);
     }
 
     /**
@@ -350,7 +290,7 @@ abstract class OAuth extends AuthClient
      *
      * @return $this the object itself.
      */
-    protected function saveAccessToken($token): self
+    protected function saveAccessToken(OAuthToken $token = null): self
     {
         return $this->setState('token', $token);
     }
@@ -368,13 +308,10 @@ abstract class OAuth extends AuthClient
     }
 
     /**
-     * @param string $scope
+     * @return string
+     *
+     * @psalm-return ''
      */
-    public function setScope(string $scope): void
-    {
-        $this->scope = $scope;
-    }
-
     protected function getDefaultScope(): string
     {
         return '';
