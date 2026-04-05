@@ -269,7 +269,7 @@ abstract class OAuth2 extends OAuth
             } else {
                 $output = [];
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             $output = [];
         }
 

@@ -106,9 +106,6 @@ final class OpenIdConnect extends OAuth2
      * @var array OpenID provider configuration parameters.
      */
     private array $configParams = [];
-    private CacheInterface $cache;
-    private string $name;
-    private string $title;
 
     /**
      * @var JWSLoader JSON Web Signature
@@ -134,13 +131,10 @@ final class OpenIdConnect extends OAuth2
         StateStorageInterface $stateStorage,
         Factory $factory,
         SessionInterface $session,
-        CacheInterface $cache,
-        string $name,
-        string $title,
+        private readonly CacheInterface $cache,
+        private readonly string $name,
+        private readonly string $title,
     ) {
-        $this->cache = $cache;
-        $this->name = $name;
-        $this->title = $title;
         parent::__construct($httpClient, $requestFactory, $stateStorage, $factory, $session);
     }
 
