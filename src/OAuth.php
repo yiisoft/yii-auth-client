@@ -290,7 +290,7 @@ abstract class OAuth extends AuthClient
      *
      * @return $this the object itself.
      */
-    protected function saveAccessToken(OAuthToken $token = null): self
+    protected function saveAccessToken(?OAuthToken $token = null): self
     {
         return $this->setState('token', $token);
     }

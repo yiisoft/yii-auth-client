@@ -340,7 +340,7 @@ final class AuthChoice extends Widget
             if ($name === $client->getName()) {
                 if (strlen($client->getClientId()) > 0) {
                     $clientAuthUrl = $client->buildAuthUrl($request, (array) $provider['params']);
-                    return A::tag()
+                    return (new A())
                         ->addClass($client->getButtonClass())
                         ->content(' ' . ucfirst((string) $provider['buttonName']))
                         ->href($clientAuthUrl)

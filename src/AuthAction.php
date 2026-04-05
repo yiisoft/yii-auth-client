@@ -53,7 +53,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
  */
 final class AuthAction implements MiddlewareInterface
 {
-    public const string AUTH_NAME = 'auth_displayname';
+    public const AUTH_NAME = 'auth_displayname';
     /**
      * @var string name of the GET param, which is used to passed auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
