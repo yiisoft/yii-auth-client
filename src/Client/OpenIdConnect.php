@@ -110,7 +110,7 @@ final class OpenIdConnect extends OAuth2
     /**
      * @var JWSLoader JSON Web Signature
      */
-    private readonly JWSLoader $jwsLoader;
+    private JWSLoader $jwsLoader;
 
     private JWKSet|null $jwkSet = null;
 
