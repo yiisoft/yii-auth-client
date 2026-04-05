@@ -100,7 +100,7 @@ final class RsaSha extends Signature
         // For PHP 8+, you can pass the PEM string directly to openssl_sign()
         openssl_sign($baseString, $signature, $privateCertificateContent, $this->algorithm);
 
-        return base64_encode($signature);
+        return base64_encode((string) $signature);
     }
 
     /**
