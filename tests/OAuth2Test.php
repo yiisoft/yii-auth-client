@@ -63,4 +63,67 @@ class OAuth2Test extends TestCase
         $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
         $this->assertStringContainsString(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
     }
+
+    public function testBuildAuthUrlWithAuthParams(): void
+    {
+        $oauthClient = $this->createClient();
+        $authUrl = 'http://test.auth.url';
+        $oauthClient->setAuthUrl($authUrl);
+        $clientId = 'test_client_id';
+        $oauthClient->setClientId($clientId);
+        $returnUrl = 'http://test.return.url';
+        $oauthClient->setOauth2ReturnUrl($returnUrl);
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
+
+        // Set authParams
+        $oauthClient->setAuthParams([
+            'prompt' => 'select_account',
+            'access_type' => 'offline',
+        ]);
+
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest, []);
+
+        $this->assertStringContainsString($authUrl, $builtAuthUrl, 'No auth URL present!');
+        $this->assertStringContainsString($clientId, $builtAuthUrl, 'No client id present!');
+        $this->assertStringContainsString(rawurlencode($returnUrl), $builtAuthUrl, 'No return URL present!');
+        $this->assertStringContainsString('prompt=select_account', $builtAuthUrl, 'No prompt parameter present!');
+        $this->assertStringContainsString('access_type=offline', $builtAuthUrl, 'No access_type parameter present!');
+    }
+
+    public function testAuthParamsCanBeOverriddenByRuntimeParams(): void
+    {
+        $oauthClient = $this->createClient();
+        $authUrl = 'http://test.auth.url';
+        $oauthClient->setAuthUrl($authUrl);
+        $clientId = 'test_client_id';
+        $oauthClient->setClientId($clientId);
+        $returnUrl = 'http://test.return.url';
+        $oauthClient->setOauth2ReturnUrl($returnUrl);
+        $serverRequest = $this->getMockBuilder(ServerRequestInterface::class)->getMock();
+
+        // Set authParams with a default value
+        $oauthClient->setAuthParams([
+            'prompt' => 'select_account',
+        ]);
+
+        // Override with runtime params
+        $builtAuthUrl = $oauthClient->buildAuthUrl($serverRequest, [
+            'prompt' => 'consent',
+        ]);
+
+        $this->assertStringContainsString('prompt=consent', $builtAuthUrl, 'Runtime params should override authParams!');
+        $this->assertStringNotContainsString('prompt=select_account', $builtAuthUrl, 'authParams should be overridden!');
+    }
+
+    public function testGetAuthParams(): void
+    {
+        $oauthClient = $this->createClient();
+        $authParams = [
+            'prompt' => 'select_account',
+            'access_type' => 'offline',
+        ];
+        $oauthClient->setAuthParams($authParams);
+
+        $this->assertEquals($authParams, $oauthClient->getAuthParams());
+    }
 }

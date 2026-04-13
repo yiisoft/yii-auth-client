@@ -47,6 +47,18 @@ abstract class OAuth2 extends OAuth
     protected bool $validateAuthState = true;
 
     /**
+     * @var array additional auth parameters to be appended to authorization URL.
+     * These parameters will be merged with the default parameters in buildAuthUrl().
+     * For example, to force Google account chooser:
+     * ```php
+     * 'authParams' => [
+     *     'prompt' => 'select_account',
+     * ]
+     * ```
+     */
+    protected array $authParams = [];
+
+    /**
      * BaseOAuth constructor.
      *
      * @param ClientInterface $httpClient
@@ -92,7 +104,7 @@ abstract class OAuth2 extends OAuth
             $defaultParams['state'] = $authState;
         }
 
-        return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
+        return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $this->authParams, $params));
     }
 
     /**
@@ -334,6 +346,26 @@ abstract class OAuth2 extends OAuth
     public function setOauth2ReturnUrl(string $returnUrl): void
     {
         $this->returnUrl = $returnUrl;
+    }
+
+    /**
+     * Sets additional auth parameters to be appended to authorization URL.
+     *
+     * @param array $authParams additional auth parameters.
+     */
+    public function setAuthParams(array $authParams): void
+    {
+        $this->authParams = $authParams;
+    }
+
+    /**
+     * Returns additional auth parameters.
+     *
+     * @return array additional auth parameters.
+     */
+    public function getAuthParams(): array
+    {
+        return $this->authParams;
     }
 
     #[\Override]
