@@ -114,4 +114,16 @@ class OAuth2Test extends TestCase
         $this->assertStringContainsString('prompt=consent', $builtAuthUrl, 'Runtime params should override authParams!');
         $this->assertStringNotContainsString('prompt=select_account', $builtAuthUrl, 'authParams should be overridden!');
     }
+
+    public function testGetAuthParams(): void
+    {
+        $oauthClient = $this->createClient();
+        $authParams = [
+            'prompt' => 'select_account',
+            'access_type' => 'offline',
+        ];
+        $oauthClient->setAuthParams($authParams);
+
+        $this->assertEquals($authParams, $oauthClient->getAuthParams());
+    }
 }
