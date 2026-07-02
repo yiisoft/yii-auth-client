@@ -18,63 +18,18 @@ on:
       - 'psalm.xml'
 
 name: mutation test
+
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   mutation:
-    name: PHP ${{ matrix.php }}-${{ matrix.os }}
-
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-
-        php:
-          - 8.5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          persist-credentials: false
-
-      - name: Install PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: ${{ matrix.php }}
-          ini-values: memory_limit=-1
-          coverage: pcov
-          tools: composer:v2
-
-      - name: Determine composer cache directory
-        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-dir)" >> $GITHUB_ENV
-
-      - name: Cache dependencies installed with composer
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ${{ env.COMPOSER_CACHE_DIR }}
-          key: php${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            php${{ matrix.php }}-composer-
-
-      - name: Validate composer configuration
-        run: composer validate --no-check-publish
-
-      - name: Update composer
-        run: composer self-update
-
-      - name: Install dependencies with composer
-        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader --ansi
-
-      - name: Run infection
-        run: |
-          vendor/bin/roave-infection-static-analysis-plugin --threads=max --ignore-msi-with-no-mutations
-        env:
-          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+    uses: yiisoft/actions/.github/workflows/roave-infection.yml@master
+    with:
+      ini-values: date.timezone='UTC', memory_limit=-1
+      os: >-
+        ['ubuntu-latest']
+      php: >-
+        ['8.5']
+    secrets:
+      STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
