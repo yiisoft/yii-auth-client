@@ -11,7 +11,7 @@ use RuntimeException;
 /**
  * Container stub resolving entries from a fixed map, used where a full DI container is unnecessary.
  */
-final class Container implements ContainerInterface
+final readonly class Container implements ContainerInterface
 {
     public function __construct(private readonly array $entries = [])
     {

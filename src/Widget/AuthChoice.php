@@ -18,6 +18,7 @@ use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
+use Override;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -144,7 +145,7 @@ final class AuthChoice extends Widget
      *
      * @return string rendered HTML.
      */
-    #[\Override]
+    #[Override]
     public function render(): string
     {
         $content = '';

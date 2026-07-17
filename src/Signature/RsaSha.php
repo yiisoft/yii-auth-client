@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
+use Override;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -25,12 +26,6 @@ final class RsaSha extends Signature
      * @var string path to the file, which holds public key certificate.
      */
     private string $publicCertificateFile;
-    /**
-     * @var int|string signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so on.
-     *
-     * @link https://php.net/manual/en/openssl.signature-algos.php
-     */
-    private $algorithm;
 
     /**
      * @var string|null OpenSSL private key certificate content.
@@ -43,10 +38,15 @@ final class RsaSha extends Signature
      */
     private ?string $publicCertificate = null;
 
-    public function __construct(string $algorithm = '')
-    {
-        $this->algorithm = $algorithm;
-
+    /**
+     * @param int|string $algorithm signature hash algorithm, e.g. `OPENSSL_ALGO_SHA1`, `OPENSSL_ALGO_SHA256` and so
+     * on.
+     *
+     * @link https://php.net/manual/en/openssl.signature-algos.php
+     */
+    public function __construct(
+        private readonly int|string $algorithm = ''
+    ) {
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
@@ -68,7 +68,7 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
@@ -94,7 +94,7 @@ final class RsaSha extends Signature
         return 'RSA-' . (string) $algorithmName;
     }
 
-    #[\Override]
+    #[Override]
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
@@ -142,7 +142,7 @@ final class RsaSha extends Signature
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);
@@ -152,10 +152,6 @@ final class RsaSha extends Signature
         $publicKeyId = openssl_pkey_get_public($publicCertificate);
         // Check the computed signature against the one passed in the query
         $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
-        // Release the key resource
-        if (PHP_MAJOR_VERSION < 8) {
-            openssl_pkey_free($publicKeyId);
-        }
 
         return $verificationResult === 1;
     }

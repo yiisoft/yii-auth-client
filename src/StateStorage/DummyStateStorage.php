@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
-class DummyStateStorage implements StateStorageInterface
+use Override;
+
+final class DummyStateStorage implements StateStorageInterface
 {
-    #[\Override]
+    #[Override]
     public function set(string $key, $value): void
     {
         // do nothing
     }
 
-    #[\Override]
+    #[Override]
     public function get(string $key): mixed
     {
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function remove(string $key): void
     {
         // do nothing

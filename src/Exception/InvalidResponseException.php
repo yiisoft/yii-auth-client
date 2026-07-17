@@ -11,7 +11,7 @@ use Throwable;
 /**
  * InvalidResponseException represents an exception caused by invalid remote server response.
  */
-class InvalidResponseException extends RuntimeException
+final class InvalidResponseException extends RuntimeException
 {
     /**
      * Constructor.

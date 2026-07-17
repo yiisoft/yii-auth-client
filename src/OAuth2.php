@@ -12,6 +12,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Override;
+use Throwable;
 
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
@@ -72,7 +74,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return string authorization URL.
      */
-    #[\Override]
+    #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
         array $params = []
@@ -250,7 +252,7 @@ abstract class OAuth2 extends OAuth
             } else {
                 $output = [];
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $output = [];
         }
 
@@ -277,12 +279,48 @@ abstract class OAuth2 extends OAuth
     }
 
     /**
+     * Fetches current user data as JSON array from the given endpoint, authenticating the request with
+     * the access token as an `Authorization` header.
+     *
+     * @param OAuthToken $token access token, whose `access_token` param is used for authentication.
+     * @param string $url endpoint URL to fetch user data from.
+     * @param array $headers additional request headers, merged over the default `Authorization` header.
+     * @param string $authScheme `Authorization` header scheme, e.g. `Bearer` or `OAuth`.
+     *
+     * @return array decoded user data, or an empty array if there is no access token or the request fails.
+     */
+    protected function fetchCurrentUserJsonArray(
+        OAuthToken $token,
+        string $url,
+        array $headers = [],
+        string $authScheme = 'Bearer',
+    ): array {
+        $tokenString = (string)$token->getParam('access_token');
+        if ($tokenString === '') {
+            return [];
+        }
+
+        $request = RequestUtil::addHeaders(
+            $this->createRequest('GET', $url),
+            array_merge(['Authorization' => $authScheme . ' ' . $tokenString], $headers)
+        );
+
+        try {
+            $body = $this->sendRequest($request)->getBody()->getContents();
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $body === '' ? [] : (array)json_decode($body, true);
+    }
+
+    /**
      * Creates token from its configuration.
      *
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
-    #[\Override]
+    #[Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $tokenConfig['tokenParamKey'] = 'access_token';
@@ -295,7 +333,7 @@ abstract class OAuth2 extends OAuth
         $this->clientId = $clientId;
     }
 
-    #[\Override]
+    #[Override]
     public function getClientId(): string
     {
         return $this->clientId;
@@ -321,7 +359,7 @@ abstract class OAuth2 extends OAuth
         $this->returnUrl = $returnUrl;
     }
 
-    #[\Override]
+    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -341,7 +379,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return OAuthToken new auth token.
      */
-    #[\Override]
+    #[Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
@@ -395,7 +433,7 @@ abstract class OAuth2 extends OAuth
      *
      * @return string return URL.
      */
-    #[\Override]
+    #[Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();

@@ -10,6 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Override;
 
 /**
  * AuthClient is a base Auth Client class.
@@ -93,7 +94,7 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @return array view options in format: optionName => optionValue
      */
-    #[\Override]
+    #[Override]
     public function getViewOptions(): array
     {
         if (empty($this->viewOptions)) {
@@ -119,7 +120,7 @@ abstract class AuthClient implements AuthClientInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface

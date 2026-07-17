@@ -17,6 +17,7 @@ use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
+use Override;
 
 /**
  * AuthAction performs authentication via different auth clients.
@@ -151,7 +152,7 @@ final class AuthAction implements MiddlewareInterface
         return $new;
     }
 
-    #[\Override]
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $clientId = (string)$request->getAttribute($this->clientIdGetParamName);

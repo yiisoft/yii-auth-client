@@ -6,9 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
+use Override;
 
 /**
  * Tested 09/01/2025
@@ -52,7 +50,7 @@ final class MicrosoftOnline extends OAuth2
         return $this->tenant;
     }
 
-    #[\Override]
+    #[Override]
     public function setAuthUrl(string $authUrl): void
     {
         $this->authUrl = $authUrl;
@@ -63,7 +61,7 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/authorize';
     }
 
-    #[\Override]
+    #[Override]
     public function setTokenUrl(string $tokenUrl): void
     {
         $this->tokenUrl = $tokenUrl;
@@ -74,65 +72,37 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
     }
 
-    /**
-     * Fetch current user information using PSR-18 HTTP Client and PSR-17 Request Factory.
-     *
-     * @param OAuthToken $token
-     * @param ClientInterface $httpClient
-     * @param RequestFactoryInterface $requestFactory
-     * @return array
-     */
-    public function getCurrentUserJsonArray(
-        OAuthToken $token,
-        ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
-    ): array {
-        $tokenString = (string)$token->getParam('access_token');
-        if (strlen($tokenString) === 0) {
-            return [];
-        }
-
-        $request = $requestFactory->createRequest('GET', 'https://graph.microsoft.com/v1.0/me')
-            ->withHeader('Authorization', 'Bearer ' . $tokenString)
-            ->withHeader('Content-Type', 'application/json');
-
-        try {
-            /** @var ResponseInterface $response */
-            $response = $httpClient->sendRequest($request);
-            $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                return (array)json_decode($body, true);
-            }
-        } catch (\Throwable) {
-            return [];
-        }
-
-        return [];
+    public function getCurrentUserJsonArray(OAuthToken $token): array
+    {
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            'https://graph.microsoft.com/v1.0/me',
+            ['Content-Type' => 'application/json']
+        );
     }
 
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
         if ($token instanceof OAuthToken) {
-            // Use $this->httpClient and $this->requestFactory from the parent OAuth2 class
-            return $this->getCurrentUserJsonArray($token, $this->httpClient, $this->requestFactory);
+            return $this->getCurrentUserJsonArray($token);
         }
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'microsoftonline';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'MicrosoftOnline';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-warning bi bi-microsoft';
@@ -143,7 +113,7 @@ final class MicrosoftOnline extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -158,7 +128,7 @@ final class MicrosoftOnline extends OAuth2
      *
      * @psalm-return 'offline_access User.Read'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'offline_access User.Read';

@@ -34,6 +34,7 @@ use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function in_array;
+use Override;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -143,7 +144,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return string
      */
-    #[\Override]
+    #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
         array $params = []
@@ -218,7 +219,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return OAuthToken
      */
-    #[\Override]
+    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         if (empty($this->tokenUrl)) {
@@ -276,7 +277,7 @@ final class OpenIdConnect extends OAuth2
      * @param OAuthToken $token
      * @return OAuthToken
      */
-    #[\Override]
+    #[Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         if (strlen($this->tokenUrl) == 0) {
@@ -285,7 +286,7 @@ final class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         /**
@@ -308,13 +309,13 @@ final class OpenIdConnect extends OAuth2
         return 'oidc';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'Open Id Connect';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return '';
@@ -325,7 +326,7 @@ final class OpenIdConnect extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -344,7 +345,7 @@ final class OpenIdConnect extends OAuth2
         return $this->api((array) $this->getConfigParam('userinfo_endpoint'), 'GET');
     }
 
-    #[\Override]
+    #[Override]
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = (array) $this->getConfigParam('token_endpoint_auth_methods_supported');
@@ -396,7 +397,7 @@ final class OpenIdConnect extends OAuth2
         return $request;
     }
 
-    #[\Override]
+    #[Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
@@ -408,7 +409,7 @@ final class OpenIdConnect extends OAuth2
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 
-    #[\Override]
+    #[Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $params = (array) $tokenConfig['params'];

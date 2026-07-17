@@ -6,7 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
 
 /**
  * Google allows authentication via Google OAuth2 using HTTP client. Here we are NOT using the alternative Client Libraries
@@ -18,7 +18,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  * @see https://developers.google.com/oauthplayground
  * @see <https://console.cloud.google.com/welcome?project=[yourProjectId]>
  */
-class Google extends OAuth2
+final class Google extends OAuth2
 {
     protected string $version = 'v2';
     protected string $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -27,56 +27,16 @@ class Google extends OAuth2
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        /**
-         * e.g. '{all the params}' => ''
-         * @var array $params
-         */
-        $tokenParams = $token->getParams();
+        $url = sprintf('https://www.googleapis.com/oauth2/%s/userinfo', $this->version);
 
-        /**
-         * e.g. convert the above key, namely '{all the params}', into an array
-         * @var array $tokenArray
-         */
-        $tokenArray = array_keys($tokenParams);
-
-        /**
-         * @var string $jsonString
-         */
-        $jsonString = $tokenArray[0];
-
-        /**
-         * @var array $finalArray
-         */
-        $finalArray = json_decode($jsonString, true);
-
-        /**
-         * @var string $tokenString
-         */
-        $tokenString = $finalArray['access_token'] ?? '';
-
-        if ($tokenString !== '') {
-            $url = sprintf(
-                'https://www.googleapis.com/oauth2/%s/userinfo',
-                $this->version
-            );
-
-            $request = $this->createRequest('GET', $url);
-
-            $request = RequestUtil::addHeaders(
-                $request,
-                [
-                    'Authorization' => 'Bearer ' . $tokenString,
-                    'Host' => 'www.googleapis.com',
-                    'Content-length' => 0,
-                ]
-            );
-
-            $response = $this->sendRequest($request);
-
-            return (array)json_decode($response->getBody()->getContents(), true);
-        }
-
-        return [];
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            $url,
+            [
+                'Host' => 'www.googleapis.com',
+                'Content-length' => '0',
+            ]
+        );
     }
 
     protected function initUserAttributes(): array
@@ -88,19 +48,19 @@ class Google extends OAuth2
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'google';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'Google';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-google';
@@ -111,7 +71,7 @@ class Google extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -125,7 +85,7 @@ class Google extends OAuth2
      * @see https://www.googleapis.com/auth/userinfo.email will output userinfo.email
      * @psalm-return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';

@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
 
 /**
  * Facebook allows authentication via Facebook OAuth.
@@ -62,37 +63,16 @@ final class Facebook extends OAuth2
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        $params = $token->getParams();
-        $finalValue = '';
-        $finalValue = array_key_last($params);
+        $queryParams = [
+            'fields' => implode(',', $this->endpointFields),
+        ];
+        $url = sprintf(
+            $this->endpoint . '/%s/me?%s',
+            urlencode($this->graphApiVersion),
+            http_build_query($queryParams)
+        );
 
-        /**
-         * @var string $finalValue
-         * @var array $array
-         */
-        $array = json_decode($finalValue, true);
-        $tokenString = (string)($array['access_token'] ?? '');
-
-        if ($tokenString !== '') {
-            $queryParams = [
-                'fields' => implode(',', $this->endpointFields),
-            ];
-            $url = sprintf(
-                $this->endpoint . '/%s/me?%s',
-                urlencode($this->graphApiVersion),
-                http_build_query($queryParams)
-            );
-            $request = $this->createRequest('GET', $url);
-            $request = RequestUtil::addHeaders(
-                $request,
-                [
-                    'Authorization' => 'Bearer ' . $tokenString,
-                ]
-            );
-            $response = $this->sendRequest($request);
-            return (array) json_decode($response->getBody()->getContents(), true);
-        }
-        return [];
+        return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
     protected function initUserAttributes(): array
@@ -104,7 +84,7 @@ final class Facebook extends OAuth2
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -119,7 +99,7 @@ final class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
@@ -239,19 +219,19 @@ final class Facebook extends OAuth2
         return $token;
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'facebook';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'Facebook';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-facebook';
@@ -262,7 +242,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -276,7 +256,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return 'public_profile'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'public_profile';
