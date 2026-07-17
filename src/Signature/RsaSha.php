@@ -45,6 +45,8 @@ final class RsaSha extends Signature
 
     public function __construct(string $algorithm = '')
     {
+        $this->algorithm = $algorithm;
+
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
@@ -189,8 +191,7 @@ final class RsaSha extends Signature
             }
             $fp = fopen($this->publicCertificateFile, 'rb');
 
-            $fgetsFp = fgets($fp);
-            while (!feof($fp) && is_string($fgetsFp)) {
+            while (($fgetsFp = fgets($fp)) !== false) {
                 $content .= $fgetsFp;
             }
             fclose($fp);

@@ -59,6 +59,16 @@ final class OAuthToken
     }
 
     /**
+     * Sets the name of the {@see params} key, which stores the token value.
+     *
+     * @param string $tokenParamKey token param key.
+     */
+    public function setTokenParamKey(string $tokenParamKey): void
+    {
+        $this->tokenParamKey = $tokenParamKey;
+    }
+
+    /**
      * Returns param by name.
      *
      * @param string $name param name.

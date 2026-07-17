@@ -23,7 +23,7 @@ class Google extends OAuth2
     protected string $version = 'v2';
     protected string $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     protected string $tokenUrl = 'https://oauth2.googleapis.com/token';
-    protected string $endPoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
+    protected string $endpoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {

@@ -221,7 +221,7 @@ final class AuthChoice extends Widget
      *
      * @return string generated HTML.
      */
-    public function clientLink(OAuth2 $client, string $text = null, array $htmlOptions = []): string
+    public function clientLink(OAuth2 $client, ?string $text = null, array $htmlOptions = []): string
     {
         $viewOptions = $client->getViewOptions();
 

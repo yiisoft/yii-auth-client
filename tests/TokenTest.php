@@ -73,4 +73,34 @@ class TokenTest extends TestCase
         $oauthToken->setExpireDuration((int)$oauthToken->getExpireDuration() - $expireDuration);
         $this->assertFalse($oauthToken->getIsValid(), 'Expired token is valid!');
     }
+
+    public function testSetTokenStoresUnderCustomTokenParamKey(): void
+    {
+        $oauthToken = new OAuthToken();
+        $oauthToken->setTokenParamKey('custom_token_key');
+
+        $oauthToken->setToken('abc123');
+
+        $this->assertSame('abc123', $oauthToken->getParam('custom_token_key'));
+        $this->assertNull($oauthToken->getParam('oauth_token'));
+    }
+
+    public function testGetExpireDurationParamKeyIsPubliclyCallable(): void
+    {
+        $oauthToken = new OAuthToken();
+
+        $key = $oauthToken->getExpireDurationParamKey();
+
+        $this->assertSame('expires_in', $key);
+    }
+
+    public function testGetExpireDurationParamKeyFindsCustomExpirationKeyInParams(): void
+    {
+        $oauthToken = new OAuthToken();
+        $oauthToken->setParams(['access_token' => 'abc', 'custom_expiry' => 3600]);
+
+        $key = $oauthToken->getExpireDurationParamKey();
+
+        $this->assertSame('custom_expiry', $key);
+    }
 }

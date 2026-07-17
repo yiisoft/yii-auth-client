@@ -298,7 +298,7 @@ final class AuthAction implements MiddlewareInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
             $viewFile = $this->aliases->get($viewFile);
         }

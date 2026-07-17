@@ -178,15 +178,8 @@ abstract class OAuth2 extends OAuth
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
         $output = $this->parse_str_clean($contents);
-        $token = new OAuthToken();
-        /**
-         * @var string $key
-         * @var string $value
-         */
-        foreach ($output as $key => $value) {
-            $token->setParam($key, $value);
-        }
-        return $token;
+
+        return $this->createToken(['params' => $output]);
     }
 
     /**
@@ -261,15 +254,7 @@ abstract class OAuth2 extends OAuth
             $output = [];
         }
 
-        $token = new OAuthToken();
-        /**
-         * @var string $key
-         * @var string $value
-         */
-        foreach ($output as $key => $value) {
-            $token->setParam($key, $value);
-        }
-        return $token;
+        return $this->createToken(['params' => $output]);
     }
 
     /**
@@ -376,15 +361,7 @@ abstract class OAuth2 extends OAuth
 
         $output = $this->parse_str_clean($contents);
 
-        $token = new OAuthToken();
-        /**
-         * @var string $key
-         * @var string $value
-         */
-        foreach ($output as $key => $value) {
-            $token->setParam($key, $value);
-        }
-        return $token;
+        return $this->createToken(['params' => $output]);
     }
 
     public function getTokenUrl(): string

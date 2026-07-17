@@ -21,7 +21,12 @@ class InvalidResponseException extends RuntimeException
      * @param int $code error code
      * @param Throwable $previous The previous exception used for the exception chaining.
      */
-    public function __construct(private readonly ResponseInterface $response, string $message, $code = 0, Throwable $previous = null)
+    public function __construct(
+        private readonly ResponseInterface $response,
+        string $message,
+        $code = 0,
+        ?Throwable $previous = null
+    )
     {
         parent::__construct($message, $code, $previous);
     }

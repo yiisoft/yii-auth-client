@@ -175,7 +175,7 @@ final class Facebook extends OAuth2
      */
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
-        OAuthToken $token = null,
+        ?OAuthToken $token = null,
         array $params = []
     ): string {
         if ($token === null) {

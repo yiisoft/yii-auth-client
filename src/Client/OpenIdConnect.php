@@ -108,9 +108,9 @@ final class OpenIdConnect extends OAuth2
     private array $configParams = [];
 
     /**
-     * @var JWSLoader JSON Web Signature
+     * @var JWSLoader|null JSON Web Signature
      */
-    private JWSLoader $jwsLoader;
+    private ?JWSLoader $jwsLoader = null;
 
     private JWKSet|null $jwkSet = null;
 
@@ -486,7 +486,7 @@ final class OpenIdConnect extends OAuth2
                 new JWSSerializerManager([$compactSerializer]),
                 new JWSVerifier($algorithmManager),
                 new HeaderCheckerManager(
-                    [new AlgorithmChecker($checker)],
+                    [$checker],
                     [new JWSTokenSupport()]
                 )
             );

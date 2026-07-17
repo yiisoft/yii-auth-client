@@ -15,7 +15,7 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
-class CollectionTest extends TestCase
+final class CollectionTest extends TestCase
 {
     private function getRequestFactory(): RequestFactoryInterface
     {
@@ -34,9 +34,8 @@ class CollectionTest extends TestCase
 
     private function getTestClient(): TestClient
     {
-        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
         return new TestClient(
-            $httpClient,
+            $this->createStub(ClientInterface::class),
             $this->getRequestFactory(),
             $this->getStateStorage(),
             $this->getYiisoftFactory(),

@@ -280,7 +280,18 @@ abstract class OAuth extends AuthClient
         if (!array_key_exists('class', $tokenConfig)) {
             $tokenConfig['class'] = OAuthToken::class;
         }
-        return $this->factory->create($tokenConfig['class']);
+
+        /** @var OAuthToken $token */
+        $token = $this->factory->create($tokenConfig['class']);
+
+        if (isset($tokenConfig['params']) && is_array($tokenConfig['params'])) {
+            $token->setParams($tokenConfig['params']);
+        }
+        if (isset($tokenConfig['tokenParamKey']) && is_string($tokenConfig['tokenParamKey'])) {
+            $token->setTokenParamKey($tokenConfig['tokenParamKey']);
+        }
+
+        return $token;
     }
 
     /**
