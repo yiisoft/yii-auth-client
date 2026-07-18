@@ -106,7 +106,27 @@ final class OpenIdConnectTest extends TestCase
     {
         $client = $this->createClient();
 
-        $this->assertSame('Open Id Connect', $client->getTitle());
+        $this->assertSame('OIDC', $client->getTitle());
+    }
+
+    /**
+     * getTitle() must return the title configured per-instance via the constructor, so that an app
+     * registering multiple OpenIdConnect clients (Auth0, Okta, ...) can tell them apart in the UI.
+     */
+    public function testGetTitleReflectsConstructorArgumentPerInstance(): void
+    {
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            new ArrayCache(),
+            'auth0',
+            'Auth0',
+        );
+
+        $this->assertSame('Auth0', $client->getTitle());
     }
 
     public function testGetButtonClass(): void

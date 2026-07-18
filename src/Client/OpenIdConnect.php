@@ -310,7 +310,7 @@ final class OpenIdConnect extends OAuth2
     #[Override]
     public function getTitle(): string
     {
-        return 'Open Id Connect';
+        return $this->title;
     }
 
     #[Override]
