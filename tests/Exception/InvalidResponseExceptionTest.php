@@ -32,4 +32,13 @@ final class InvalidResponseExceptionTest extends TestCase
         $this->assertSame(500, $exception->getCode());
         $this->assertSame($previous, $exception->getPrevious());
     }
+
+    public function testGetResponseReturnsResponsePassedToConstructor(): void
+    {
+        $response = $this->createStub(ResponseInterface::class);
+
+        $exception = new InvalidResponseException($response, 'message');
+
+        $this->assertSame($response, $exception->getResponse());
+    }
 }

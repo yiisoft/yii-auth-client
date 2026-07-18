@@ -30,4 +30,12 @@ final class InvalidResponseException extends RuntimeException
     {
         parent::__construct($message, $code, $previous);
     }
+
+    /**
+     * @return ResponseInterface HTTP response instance that caused this exception.
+     */
+    public function getResponse(): ResponseInterface
+    {
+        return $this->response;
+    }
 }
