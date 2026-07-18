@@ -49,7 +49,6 @@ use Override;
  * https://accounts.google.com/.well-known/openid-configuration
  * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
  * https://oidc.account.gov.uk/.well-known/openid-configuration
- * https://dev-kzv8xwxr.us.auth0.com/.well-known/openid-configuration
  *
  * @see OAuth2
  */
@@ -287,24 +286,7 @@ final class OpenIdConnect extends OAuth2
     #[Override]
     public function getName(): string
     {
-        /**
-         * Note 1: Change OpenIdConnect::class to OAuth, Google,
-         * Note 2: Keep 'oidc' unchanged
-         * Related logic: app's config/web/di/yii-auth-client
-         * `@var array $paramsClients['oidc']`
-         * `$openidconnectClient = $paramsClients['oidc'];`
-         *
-         * Related logic: app's config/common/params [yiisoft/yii-auth-client] =>
-         *  [
-         *      'oidc' => [
-         *          'class' => 'Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class',
-         *          'issuerUrl' => 'dev-0yporhwwkgkdmu1g.uk.auth0.com',
-         *          'clientId' => $_ENV['OIDC_API_CLIENT_ID'] ?? '',
-         *          'clientSecret' => $_ENV['OIDC_API_CLIENT_SECRET'] ?? '',
-         *          'returnUrl' => $_ENV['OIDC_API_CLIENT_RETURN_URL'] ?? '',
-         *  ],
-         */
-        return 'oidc';
+        return $this->name;
     }
 
     #[Override]

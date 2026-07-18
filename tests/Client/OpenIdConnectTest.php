@@ -102,6 +102,61 @@ final class OpenIdConnectTest extends TestCase
         $this->assertSame('oidc', $client->getName());
     }
 
+    /**
+     * getName() must return the name configured per-instance via the constructor: it feeds both the
+     * session-state key prefix ({@see \Yiisoft\Yii\AuthClient\AuthClient::getStateKeyPrefix()}) and the
+     * config-discovery cache key ({@see getConfigParams()}), so two different providers configured with
+     * distinct names in the same app must not collide on either.
+     */
+    public function testGetNameReflectsConstructorArgumentPerInstance(): void
+    {
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            new ArrayCache(),
+            'auth0',
+            'Auth0',
+        );
+
+        $this->assertSame('auth0', $client->getName());
+    }
+
+    public function testGetConfigParamsDoesNotLeakAcrossDifferentlyNamedProviders(): void
+    {
+        $cache = new \Yiisoft\Cache\ArrayCache();
+        $auth0Client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'auth0',
+            'Auth0',
+        );
+        $auth0Client->setIssuerUrl(self::ISSUER_URL);
+        $cache->set('config-params-auth0', ['authorization_endpoint' => 'https://auth0.example.com/authorize']);
+
+        $oktaClient = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'okta',
+            'Okta',
+        );
+        $oktaClient->setIssuerUrl(self::ISSUER_URL);
+        $cache->set('config-params-okta', ['authorization_endpoint' => 'https://okta.example.com/authorize']);
+
+        $this->assertSame('https://auth0.example.com/authorize', $auth0Client->getConfigParam('authorization_endpoint'));
+        $this->assertSame('https://okta.example.com/authorize', $oktaClient->getConfigParam('authorization_endpoint'));
+    }
+
     public function testGetTitle(): void
     {
         $client = $this->createClient();
