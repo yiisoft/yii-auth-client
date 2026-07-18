@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Signature;
 
+use PHPUnit\Framework\Attributes\RequiresOperatingSystemFamily;
 use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
@@ -113,6 +114,11 @@ final class RsaShaTest extends TestCase
         $this->assertSame('', $signature->getPrivateCertificate());
     }
 
+    /**
+     * chmod(0000) only restricts reads on POSIX filesystems; Windows doesn't enforce Unix permission
+     * bits the same way, so this simulated read failure is only reproducible on Linux/macOS/BSD.
+     */
+    #[RequiresOperatingSystemFamily('Linux')]
     public function testGetPrivateCertificateThrowsWhenFileCannotBeRead(): void
     {
         $unreadableFile = tempnam(sys_get_temp_dir(), 'rsasha-test-');
