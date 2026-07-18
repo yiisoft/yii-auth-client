@@ -226,7 +226,7 @@ final class FacebookTest extends ProviderClientTestCase
                 if (count($this->capturedRequests) === 1) {
                     return new Response(200, [], 'access_token=short-token&expires_in=3600');
                 }
-                return new Response(200, [], '');
+                return new Response(200, [], (string) json_encode(['access_token' => 'long-lived-token', 'expires_in' => 5184000]));
             }
         };
         $client = $this->createFacebookClient($httpClient)->withoutValidateAuthState();
@@ -237,26 +237,35 @@ final class FacebookTest extends ProviderClientTestCase
 
         $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
 
-        $this->assertInstanceOf(OAuthToken::class, $token);
         $this->assertCount(2, $capturedRequests);
+        $this->assertSame('long-lived-token', $token->getToken());
     }
 
-    public function testExchangeAccessTokenSendsPostRequestToTokenUrlAndStoresNewToken(): void
+    public function testExchangeAccessTokenSendsExpectedParamsAndStoresDecodedToken(): void
     {
         $capturedRequest = null;
-        $httpClient = $this->httpClientCapturing(new Response(200, [], ''), $capturedRequest);
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'long-lived-token', 'expires_in' => 5184000])),
+            $capturedRequest
+        );
         $client = $this->createFacebookClient($httpClient);
+        $client->setClientId('cid');
         $client->setClientSecret('csecret');
         $oldToken = new OAuthToken();
         $oldToken->setToken('old-token');
 
         $newToken = $client->exchangeAccessToken($oldToken);
 
-        $this->assertInstanceOf(OAuthToken::class, $newToken);
+        $this->assertSame('long-lived-token', $newToken->getToken());
         $this->assertSame($newToken, $client->getAccessToken());
         $this->assertNotNull($capturedRequest);
         $this->assertSame('POST', $capturedRequest->getMethod());
-        $this->assertSame('https://graph.facebook.com/oauth/access_token', (string) $capturedRequest->getUri());
+        $this->assertStringStartsWith('https://graph.facebook.com/oauth/access_token', (string) $capturedRequest->getUri());
+        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $this->assertSame('fb_exchange_token', $params['grant_type']);
+        $this->assertSame('old-token', $params['fb_exchange_token']);
+        $this->assertSame('cid', $params['client_id']);
+        $this->assertSame('csecret', $params['client_secret']);
     }
 
     public function testFetchClientAuthCodeReturnsStatusCodeAsStringAndSendsProvidedToken(): void
@@ -312,23 +321,55 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertArrayNotHasKey('access_token', $params);
     }
 
-    public function testFetchClientAccessTokenSendsExpectedParamsAndStoresToken(): void
+    public function testFetchClientAccessTokenSendsExpectedParamsAndStoresDecodedToken(): void
     {
         $capturedRequest = null;
-        $httpClient = $this->httpClientCapturing(new Response(200, [], ''), $capturedRequest);
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'client-access-token', 'expires_in' => 3600])),
+            $capturedRequest
+        );
         $client = $this->createFacebookClient($httpClient);
         $client->setClientId('cid');
         $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/callback');
 
         $token = $client->fetchClientAccessToken($incomingRequest, 'auth-code');
 
-        $this->assertInstanceOf(OAuthToken::class, $token);
+        $this->assertSame('client-access-token', $token->getToken());
         $this->assertSame($token, $client->getAccessToken());
         $this->assertNotNull($capturedRequest);
         $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
         $this->assertSame('auth-code', $params['code']);
         $this->assertSame('cid', $params['client_id']);
         $this->assertSame('http://example.com/callback', $params['redirect_uri']);
+    }
+
+    public function testExchangeAccessTokenCastsScalarJsonResponseToArray(): void
+    {
+        // A JSON-scalar body (not an object) exercises the `(array)` cast around json_decode().
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(new Response(200, [], '5'), $capturedRequest);
+        $client = $this->createFacebookClient($httpClient);
+        $client->setClientSecret('csecret');
+        $oldToken = new OAuthToken();
+        $oldToken->setToken('old-token');
+
+        $newToken = $client->exchangeAccessToken($oldToken);
+
+        $this->assertSame([5], $newToken->getParams());
+    }
+
+    public function testFetchClientAccessTokenCastsScalarJsonResponseToArray(): void
+    {
+        // A JSON-scalar body (not an object) exercises the `(array)` cast around json_decode().
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(new Response(200, [], '5'), $capturedRequest);
+        $client = $this->createFacebookClient($httpClient);
+        $client->setClientId('cid');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/callback');
+
+        $token = $client->fetchClientAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame([5], $token->getParams());
     }
 
     public function testFetchClientAuthCodeMergesCallerSuppliedParamsOverDefaults(): void
