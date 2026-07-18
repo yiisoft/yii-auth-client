@@ -18,19 +18,18 @@ use Override;
  *
  * Example application configuration:
  *
- * config/common/params.php
- *
+ * config/common/params.php:
  * 'yiisoft/yii-auth-client' => [
- *       'enabled' => true,
- *       'clients' => [
- *           'facebook' => [
- *               'class' => 'Yiisoft\Yii\AuthClient\Client\Facebook::class',
- *               'clientId' => $_ENV['FACEBOOK_API_CLIENT_ID'] ?? '',
- *               'clientSecret' => $_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? '',
- *               'returnUrl' => $_ENV['FACEBOOK_API_CLIENT_RETURN_URL'] ?? '',
- *           ],
- *       ],
- *   ],
+ *     'clients' => [
+ *         'facebook' => Facebook::class,
+ *     ],
+ * ],
+ *
+ * config/common/di.php:
+ * Facebook::class => [
+ *     'setClientId()' => [$_ENV['FACEBOOK_API_CLIENT_ID'] ?? ''],
+ *     'setClientSecret()' => [$_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? ''],
+ * ],
  *
  * @link https://developers.facebook.com/apps
  * @link https://developers.facebook.com/docs/graph-api
@@ -75,6 +74,7 @@ final class Facebook extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

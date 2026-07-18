@@ -6,53 +6,74 @@ Installation
 In order to install extension use Composer. Either run:
 
 ```
-composer require yiisoft/yii-auth-client "~3.0.0"
+composer require yiisoft/yii-auth-client
 ```
 
 or add
 
 ```json
-"yiisoft/yii-auth-client": "~3.0.0"
+"yiisoft/yii-auth-client": "^1.0.0"
 ```
 
 to the `require` section of your composer.json.
 
+The package ships its own `config/di.php` and `config/params.php`, which are picked up automatically if you
+use [yiisoft/config](https://github.com/yiisoft/config). They register a [[\Yiisoft\Yii\AuthClient\Collection]]
+service built from the `yiisoft/yii-auth-client.clients` parameter.
+
 ## Configuring application
 
-After extension is installed you need to setup auth client collection application component:
+After the extension is installed, list the auth clients you want to use in your application's params, and
+register each client class as a DI definition so its `clientId`/`clientSecret` can be set.
+
+`config/common/params.php` (merged over the package's own `params.php`):
 
 ```php
 return [
-    'authClients' => [
-        'google' => [
-            'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
-            'setClientId' => ['google_client_id'],
-            'setClientSecret' => ['google_client_secret'],
+    'yiisoft/yii-auth-client' => [
+        'clients' => [
+            'google' => Yiisoft\Yii\AuthClient\Client\Google::class,
+            'facebook' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+            // etc.
         ],
-        'facebook' => [
-            'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
-            'setClientId' => ['facebook_client_id'],
-            'setClientSecret' => ['facebook_client_secret'],
-        ],
-        // etc.
     ],
-    // ...
 ];
 ```
 
-Out of the box the following clients are provided:
+`config/common/di.php`:
+
+```php
+use Yiisoft\Yii\AuthClient\Client\Facebook;
+use Yiisoft\Yii\AuthClient\Client\Google;
+
+return [
+    Google::class => [
+        'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
+        'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
+    ],
+    Facebook::class => [
+        'setClientId()' => [$_ENV['FACEBOOK_CLIENT_ID']],
+        'setClientSecret()' => [$_ENV['FACEBOOK_CLIENT_SECRET']],
+    ],
+];
+```
+
+Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthClient\Client`):
 
 - [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
-- [[Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
-- Google (via [[Yiisoft\Yii\AuthClient\Client\Google|OAuth]] and [[Yiisoft\Yii\AuthClient\Client\GoogleHybrid|OAuth Hybrid]]).
-- [[Yiisoft\Yii\AuthClient\Client\LinkedIn|LinkedIn]].
-- [[Yiisoft\Yii\AuthClient\Client\Live|Microsoft Live]].
-- [[Yiisoft\Yii\AuthClient\Client\Twitter|Twitter]].
-- [[Yiisoft\Yii\AuthClient\Client\VKontakte|VKontakte]].
-- [[Yiisoft\Yii\AuthClient\Client\Yandex|Yandex]].
+- [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
+- [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].
+- [[\Yiisoft\Yii\AuthClient\Client\LinkedIn|LinkedIn]].
+- [[\Yiisoft\Yii\AuthClient\Client\MicrosoftOnline|Microsoft Online]].
+- [[\Yiisoft\Yii\AuthClient\Client\TikTok|TikTok]].
+- [[\Yiisoft\Yii\AuthClient\Client\VKontakte|VKontakte]].
+- [[\Yiisoft\Yii\AuthClient\Client\X|X (Twitter)]].
+- [[\Yiisoft\Yii\AuthClient\Client\Yandex|Yandex]].
+- [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect|OpenIdConnect]], for any provider speaking the OpenID Connect
+  protocol (Auth0, Okta, Google, Microsoft Entra ID, ...) — see the [OpenID Connect](open-id-connect.md) guide.
 
-Configuration for each client is a bit different. For OAuth it's required to get client ID and secret key from
-the service you're going to use. For OpenID it works out of the box in most cases.
+Configuration for each client is a bit different. All of them require a client ID and secret key issued by the
+service you're going to use.
 
 ## Storing authorization data
 
@@ -61,47 +82,14 @@ and then check against it on subsequent authentications. It's not a good idea to
 services only since these may fail and there won't be a way for the user to log in. Instead it's better to provide
 both external authentication and good old login and password.
 
-If we're storing user information in a database the corresponding migration code could be the following:
+If we're storing user information in a database, a minimal schema needs a `user` table plus an `auth` table
+linking each user to one or more external identities:
 
-```php
-class m??????_??????_auth extends \Yiisoft\Db\Migration
-{
-    public function up()
-    {
-        $this->createTable('user', [
-            'id' => $this->primaryKey(),
-            'username' => $this->string()->notNull(),
-            'auth_key' => $this->string()->notNull(),
-            'password_hash' => $this->string()->notNull(),
-            'password_reset_token' => $this->string()->notNull(),
-            'email' => $this->string()->notNull(),
-            'status' => $this->smallInteger()->notNull()->defaultValue(10),
-            'created_at' => $this->integer()->notNull(),
-            'updated_at' => $this->integer()->notNull(),
-        ]);
+- `auth.user_id` — foreign key to `user.id`.
+- `auth.source` — the name of the auth provider used ([[\Yiisoft\Yii\AuthClient\AuthClientInterface::getName()|$client->getName()]],
+  e.g. `'google'`).
+- `auth.source_id` — the unique user identifier provided by the external service after successful authentication.
 
-        $this->createTable('auth', [
-            'id' => $this->primaryKey(),
-            'user_id' => $this->integer()->notNull(),
-            'source' => $this->string()->notNull(),
-            'source_id' => $this->string()->notNull(),
-        ]);
-
-        $this->addForeignKey('fk-auth-user_id-user-id', 'auth', 'user_id', 'user', 'id', 'CASCADE', 'CASCADE');
-    }
-
-    public function down()
-    {
-        $this->dropTable('auth');
-        $this->dropTable('user');
-    }
-}
-```
-
-In the above example `user` is a standard table that is used in advanced project template to store user info.
-Each user can authenticate using multiple external services therefore each `user` record can relate to
-multiple `auth` records. In the `auth` table `source` is the name of the auth provider used and `source_id` is
-unique user identifier that is provided by external service after successful login.
-
-Using tables created above we can generate `Auth` model. No further adjustments needed.
-
+Each user can authenticate using multiple external services, so each `user` record can relate to multiple `auth`
+records. How you create these tables depends on the migration tool used by your application; this package does
+not require or ship one.

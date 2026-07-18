@@ -87,6 +87,14 @@ abstract class OAuth extends AuthClient
     }
 
     /**
+     * @param string $scope auth request scope, overriding {@see getDefaultScope()}.
+     */
+    public function setScope(string $scope): void
+    {
+        $this->scope = $scope;
+    }
+
+    /**
      * @param ServerRequestInterface $request
      *
      * @return string return URL.

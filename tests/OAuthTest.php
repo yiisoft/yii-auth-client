@@ -188,6 +188,14 @@ final class OAuthTest extends TestCase
         $this->assertSame('', $client->getScope());
     }
 
+    public function testSetScopeOverridesDefault(): void
+    {
+        $client = $this->createClient();
+        $client->setScope('profile email');
+
+        $this->assertSame('profile email', $client->getScope());
+    }
+
     public function testSetYiisoftFactoryReplacesFactoryUsedByGetYiisoftFactory(): void
     {
         $client = $this->createClient();

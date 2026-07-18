@@ -1,139 +1,140 @@
 Создание собственных клиентов аутентификации
 ==============================
 
-Вы можете создать собственный клиент для любого внешнего сервиса аутентификации, который поддерживает протокол OpenId 
-или OAuth. Для этого, в первую очередь, необходимо выяснить, какой протокол поддерживает внешний сервис аутентификации, 
-что даст Вам имя базового класса для расширения:
+Вы можете создать собственный клиент аутентификации для любого внешнего провайдера, поддерживающего протокол
+OAuth 2 (сюда же входят провайдеры OpenID Connect - в этом случае расширяйте
+[[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect]], если провайдер публикует стандартный документ обнаружения
+`.well-known/openid-configuration`).
 
- - Для OAuth 2 используйте [[Yiisoft\Yii\AuthClient\OAuth2]].
- - Для OAuth 1/1.0a используйте [[Yiisoft\Yii\AuthClient\OAuth1]].
- - Для OpenID используйте [[Yiisoft\Yii\AuthClient\OpenId]].
+Расширьте [[\Yiisoft\Yii\AuthClient\OAuth2]] и определите как минимум:
 
-На данном этапе можно установить для клиента аутентификации базовые значения имени, заголовка и параметров 
-представления, переопределив соответствующие методы:
+- `authUrl` - URL авторизации провайдера.
+- `tokenUrl` - URL получения токена доступа провайдера.
+- `endpoint` - базовый URL API, используемый `api()`/`createApiRequest()` (см.
+  [Получение дополнительных данных с помощью дополнительных обращений к API](usage-api.md)).
+- `getName()`, `getTitle()`, `getButtonClass()` - требуются интерфейсом [[\Yiisoft\Yii\AuthClient\AuthClientInterface]].
+- `getClientId()` - требуется интерфейсом [[\Yiisoft\Yii\AuthClient\OAuth2Interface]]; уже реализован в `OAuth2`
+  через свойство `clientId`, задаваемое методом `setClientId()`, поэтому переопределять его обычно не нужно.
+- `getCurrentUserJsonArray(OAuthToken $token): array` - по соглашению (используется всеми встроенными клиентами,
+  хотя формально не входит в интерфейс) метод, получающий данные аутентифицированного пользователя. `OAuth2`
+  предоставляет вспомогательный метод `fetchCurrentUserJsonArray()`, который сам применяет токен как заголовок
+  `Authorization: Bearer`.
+- `initUserAttributes(): array` - защищённый метод-хук в [[\Yiisoft\Yii\AuthClient\AuthClient]] (по умолчанию
+  возвращает пустой массив), из которого строится публичный
+  [[\Yiisoft\Yii\AuthClient\AuthClientInterface::getUserAttributes()|getUserAttributes()]]. Переопределите его,
+  что бы вызвать ваш `getCurrentUserJsonArray()`, когда токен доступа уже получен - именно так поступают все
+  встроенные клиенты.
+
+Например, минимальный клиент для гипотетического провайдера `my.com` с OAuth2:
 
 ```php
-use Yiisoft\Yii\AuthClient\OAuth2;
+<?php
 
-class MyAuthClient extends OAuth2
+declare(strict_types=1);
+
+namespace App\AuthClient;
+
+use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Override;
+
+final class MyAuthClient extends OAuth2
 {
-    protected function defaultName()
+    protected string $authUrl = 'https://www.my.com/oauth2/auth';
+
+    protected string $tokenUrl = 'https://www.my.com/oauth2/token';
+
+    protected string $endpoint = 'https://www.my.com/apis/oauth2/v1';
+
+    public function getCurrentUserJsonArray(OAuthToken $token): array
+    {
+        return $this->fetchCurrentUserJsonArray($token, $this->endpoint . '/userinfo');
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+
+        return $token instanceof OAuthToken ? $this->getCurrentUserJsonArray($token) : [];
+    }
+
+    #[Override]
+    public function getName(): string
     {
         return 'my_auth_client';
     }
 
-    protected function defaultTitle()
+    #[Override]
+    public function getTitle(): string
     {
         return 'My Auth Client';
     }
 
-    protected function defaultViewOptions()
+    #[Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary';
+    }
+
+    #[Override]
+    protected function defaultViewOptions(): array
     {
         return [
             'popupWidth' => 800,
             'popupHeight' => 500,
         ];
     }
-}
-```
 
-В зависимости от актуального базового класса, Вам нужно будет переопределить различные свойства и методы.
-
-## [[Yiisoft\Yii\AuthClient\OpenId]]
-
-Всё, что Вам нужно - это задать URL аутентификации, путём определения свойства 
-[[Yiisoft\Yii\AuthClient\OpenId::authUrl|authUrl]].
-Вы так же можете настроить обязательные и/или дополнительные атрибуты по умолчанию.
-Например:
-
-```php
-use Yiisoft\Yii\AuthClient\OpenId;
-
-class MyAuthClient extends OpenId
-{
-    public $authUrl = 'https://www.my.com/openid/';
-
-    public $requiredAttributes = [
-        'contact/email',
-    ];
-
-    public $optionalAttributes = [
-        'namePerson/first',
-        'namePerson/last',
-    ];
-}
-```
-
-## [[Yiisoft\Yii\AuthClient\OAuth2]]
-
-Вам нужно будет указать:
-
-- URL аутентификации путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth2::authUrl|authUrl]].
-- URL получения токена путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth2::tokenUrl|tokenUrl]].
-- Базовый URL к API путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth2::apiBaseUrl|apiBaseUrl]].
-- Стратегии извлечения пользовательских атрибутов путём определения метода 
-[[Yiisoft\Yii\AuthClient\OAuth2::initUserAttributes()|initUserAttributes()]].
-
-Например:
-
-```php
-use Yiisoft\Yii\AuthClient\OAuth2;
-
-class MyAuthClient extends OAuth2
-{
-    public $authUrl = 'https://www.my.com/oauth2/auth';
-
-    public $tokenUrl = 'https://www.my.com/oauth2/token';
-
-    public $apiBaseUrl = 'https://www.my.com/apis/oauth2/v1';
-
-    protected function initUserAttributes()
+    #[Override]
+    protected function getDefaultScope(): string
     {
-        return $this->api('userinfo', 'GET');
+        return 'profile email';
     }
 }
 ```
 
-Вы так же можете указать области доступа аутентификации по умолчанию.
+`getDefaultScope()` задаёт scope, запрашиваемый каждым экземпляром вашего клиента. Если вам нужно менять scope
+в зависимости от DI-конфигурации без создания ещё одного подкласса, вызовите унаследованный метод `setScope()`
+(например, `'setScope()' => [...]` в DI-определении клиента), что бы переопределить его при регистрации.
 
-> Примечание: Некоторые  OAuth сервисы могут не следовать четким стандартам протокола OAuth, имея отличия, что может 
-потребовать дополнительных усилий при реализации клиентов для таких сервисов.
-
-## [[Yiisoft\Yii\AuthClient\OAuth1]]
-
-Вам нужно будет указать:
-
-- URL аутентификации путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth1::authUrl|authUrl]].
-- URL получения токена путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth1::requestTokenUrl|requestTokenUrl]].
-- URL получения токена доступа путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth1::accessTokenUrl|accessTokenUrl]].
-- Базовый URL к API путём определения свойства [[Yiisoft\Yii\AuthClient\OAuth1::apiBaseUrl|apiBaseUrl]].
-- Стратегии извлечения пользовательских атрибутов путём определения метода 
-[[Yiisoft\Yii\AuthClient\OAuth1::initUserAttributes()|initUserAttributes()]].
-
-Например:
+Затем зарегистрируйте его точно так же, как встроенный клиент (см. [Установка](installation.md)):
 
 ```php
-use Yiisoft\Yii\AuthClient\OAuth1;
+// config/common/params.php
+'yiisoft/yii-auth-client' => [
+    'clients' => [
+        'my_auth_client' => \App\AuthClient\MyAuthClient::class,
+    ],
+],
 
-class MyAuthClient extends OAuth1
+// config/common/di.php
+\App\AuthClient\MyAuthClient::class => [
+    'setClientId()' => [$_ENV['MY_CLIENT_ID']],
+    'setClientSecret()' => [$_ENV['MY_CLIENT_SECRET']],
+],
+```
+
+После аутентификации код приложения вызывает `$client->getUserAttributes()` (см. [Быстрый старт](quick-start.md)),
+что бы получить данные, возвращённые вашим переопределением `initUserAttributes()`. Если исходные имена полей
+провайдера не совпадают с ожидаемыми в приложении, или вы хотите привести данные разных провайдеров к единому
+виду, переопределите `defaultNormalizeUserAttributeMap()`, не меняя сам `initUserAttributes()`:
+
+```php
+#[Override]
+protected function defaultNormalizeUserAttributeMap(): array
 {
-    public $authUrl = 'https://www.my.com/oauth/auth';
-
-    public $requestTokenUrl = 'https://www.my.com/oauth/request_token';
-
-    public $accessTokenUrl = 'https://www.my.com/oauth/access_token';
-
-    public $apiBaseUrl = 'https://www.my.com/apis/oauth/v1';
-
-    protected function initUserAttributes()
-    {
-        return $this->api('userinfo', 'GET');
-    }
+    return [
+        'about' => 'bio',
+        'language' => ['languages', 0, 'name'],
+        'fullName' => static fn (array $attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
+    ];
 }
 ```
 
-Вы так же можете указать области доступа аутентификации по умолчанию.
+Каждый элемент связывает нормализованное имя атрибута с исходным именем атрибута (строка), путём во вложенных
+исходных атрибутах (массив ключей) или колбэком, принимающим массив исходных атрибутов. `getUserAttributes()`
+возвращает исходные атрибуты, объединённые с этими нормализованными.
 
-> Примечание: Некоторые  OAuth сервисы могут не следовать четким стандартам протокола OAuth, имея отличия, что может 
-потребовать дополнительных усилий при реализации клиентов для таких сервисов.
-
+> Примечание: Некоторые OAuth-провайдеры могут не следовать стандарту OAuth в точности, что может потребовать
+  дополнительных усилий при реализации клиента для них.

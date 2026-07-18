@@ -111,7 +111,13 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        return $this->getUserInfoByClientId($token, $clientId, $httpClient, $requestFactory);
+        return $this->requestWithClientIdAndAccessToken(
+            'https://id.vk.ru/oauth2/logout',
+            $token,
+            $clientId,
+            $httpClient,
+            $requestFactory,
+        );
     }
 
     /**
@@ -143,10 +149,29 @@ final class VKontakte extends OAuth2
     }
 
     /**
-     * Shared implementation for {@see step7TokenInvalidationWithClientId()} and
-     * {@see step8ObtainingUserDataArrayWithClientId()}, which both request the same `user_info` endpoint.
+     * Fetches user data from the `user_info` endpoint, used by {@see step8ObtainingUserDataArrayWithClientId()}.
      */
     private function getUserInfoByClientId(
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
+        return $this->requestWithClientIdAndAccessToken(
+            'https://id.vk.ru/oauth2/user_info',
+            $token,
+            $clientId,
+            $httpClient,
+            $requestFactory,
+        );
+    }
+
+    /**
+     * Shared GET request builder for VK ID endpoints authenticated by `client_id` and `access_token`
+     * query parameters, used by {@see step7TokenInvalidationWithClientId()} and {@see getUserInfoByClientId()}.
+     */
+    private function requestWithClientIdAndAccessToken(
+        string $url,
         OAuthToken $token,
         string $clientId,
         ClientInterface $httpClient,
@@ -158,7 +183,7 @@ final class VKontakte extends OAuth2
             return [];
         }
 
-        $fullUrl = 'https://id.vk.ru/oauth2/user_info'
+        $fullUrl = $url
             . '?client_id=' . urlencode($clientId)
             . '&access_token=' . urlencode($tokenString);
 
@@ -229,6 +254,24 @@ final class VKontakte extends OAuth2
         }
 
         return [];
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if (!$token instanceof OAuthToken) {
+            return [];
+        }
+
+        $data = $this->step8ObtainingUserDataArrayWithClientId(
+            $token,
+            $this->getClientId(),
+            $this->httpClient,
+            $this->requestFactory,
+        );
+
+        return (array) ($data['user'] ?? []);
     }
 
     #[Override]

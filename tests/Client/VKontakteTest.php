@@ -9,10 +9,13 @@ use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\VKontakte;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
+use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 final class VKontakteTest extends ProviderClientTestCase
 {
@@ -22,9 +25,19 @@ final class VKontakteTest extends ProviderClientTestCase
         return $this->instantiate(VKontakte::class);
     }
 
-    private function createVKontakteClient(): VKontakte
+    private function createVKontakteClient(?ClientInterface $httpClient = null): VKontakte
     {
-        return $this->instantiate(VKontakte::class);
+        if ($httpClient === null) {
+            return $this->instantiate(VKontakte::class);
+        }
+
+        return new VKontakte(
+            $httpClient,
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 
     private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
@@ -151,6 +164,33 @@ final class VKontakteTest extends ProviderClientTestCase
         $result = $client->step8ObtainingUserDataArrayWithClientId($token, 'client-id', $httpClient, $requestFactory);
 
         $this->assertSame(['user' => ['user_id' => '123']], $result);
+    }
+
+    /**
+     * initUserAttributes() must stay protected so subclasses can override it; the return value alone
+     * can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void
+    {
+        $client = $this->createVKontakteClient();
+        $method = new \ReflectionMethod($client, 'initUserAttributes');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame([], $method->invoke($client));
+    }
+
+    public function testInitUserAttributesUnwrapsUserDataWhenAccessTokenPresent(): void
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient
+            ->method('sendRequest')
+            ->willReturn(new Response(200, [], json_encode(['user' => ['user_id' => '123', 'first_name' => 'Ivan']])));
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $client->setAccessToken(['params' => ['access_token' => 'the-token']]);
+        $method = new \ReflectionMethod($client, 'initUserAttributes');
+
+        $this->assertSame(['user_id' => '123', 'first_name' => 'Ivan'], $method->invoke($client));
     }
 
     public function testStep9GetPublicUserDataDecodesResponseBody(): void
@@ -424,7 +464,7 @@ final class VKontakteTest extends ProviderClientTestCase
 
         $this->assertNotNull($capturedRequest);
         $uri = (string) $capturedRequest->getUri();
-        $this->assertStringStartsWith('https://id.vk.ru/oauth2/user_info?', $uri);
+        $this->assertStringStartsWith('https://id.vk.ru/oauth2/logout?', $uri);
         $this->assertSame('the-client-id', RequestUtil::getParams($capturedRequest)['client_id']);
         $this->assertSame('the-token', RequestUtil::getParams($capturedRequest)['access_token']);
     }

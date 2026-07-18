@@ -16,6 +16,7 @@ final class TestClient extends OAuth2
 
     protected string $endpoint = 'http://api.test.local';
 
+    #[\Override]
     protected function initUserAttributes(): array
     {
         return [];

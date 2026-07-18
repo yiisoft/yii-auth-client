@@ -4,113 +4,94 @@
 ## Установка расширения
 
 Для установки расширения используйте Composer. Запустите
-                                            
+
 ```
-composer require yiisoft/yii-auth-client "~2.3.0"
+composer require yiisoft/yii-auth-client
 ```
 
 или добавьте
 
 ```json
-"yiisoft/yii-auth-client": "~3.0.0"
+"yiisoft/yii-auth-client": "^1.0.0"
 ```
 
 в секцию `require` вашего composer.json.
 
+Пакет поставляется с собственными `config/di.php` и `config/params.php`, которые подключаются автоматически,
+если вы используете [yiisoft/config](https://github.com/yiisoft/config). Они регистрируют сервис
+[[\Yiisoft\Yii\AuthClient\Collection]], построенный на основе параметра `yiisoft/yii-auth-client.clients`.
+
 ## Настройка приложения
 
-После установки расширения необходимо настроить компонент приложения auth client collection: 
+После установки расширения перечислите нужные клиенты аутентификации в параметрах приложения и зарегистрируйте
+каждый класс клиента как DI-определение, что бы задать его `clientId`/`clientSecret`.
+
+`config/common/params.php` (объединяется с собственным `params.php` пакета):
 
 ```php
 return [
-    'components' => [
-        'authClientCollection' => [
-            'class' => Yiisoft\Yii\AuthClient\Collection::class,
-            'clients' => [
-                'google' => [
-                    'class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
-                    'clientId' => 'google_client_id',
-                    'clientSecret' => 'google_client_secret',
-                ],
-                'facebook' => [
-                    'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
-                    'clientId' => 'facebook_client_id',
-                    'clientSecret' => 'секретный_ключ_facebook_client',
-                ],
-                // и т.д.
-            ],
-        ]
-        // ...
+    'yiisoft/yii-auth-client' => [
+        'clients' => [
+            'google' => Yiisoft\Yii\AuthClient\Client\Google::class,
+            'facebook' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+            // и т.д.
+        ],
     ],
-    // ...
 ];
 ```
 
-Из коробки предоставляются следующие клиенты:
+`config/common/di.php`:
 
-- [[\Yiisoft\Yii\AuthClient\Clients\Facebook|Facebook]].
-- [[Yiisoft\Yii\AuthClient\Clients\GitHub|GitHub]].
-- Google (с помощью [[Yiisoft\Yii\AuthClient\Clients\Google|OAuth]] и [[Yiisoft\Yii\AuthClient\Clients\GoogleHybrid|OAuth Hybrid]]).
-- [[Yiisoft\Yii\AuthClient\Clients\LinkedIn|LinkedIn]].
-- [[Yiisoft\Yii\AuthClient\Clients\Live|Microsoft Live]].
-- [[Yiisoft\Yii\AuthClient\Clients\Twitter|Twitter]].
-- [[Yiisoft\Yii\AuthClient\Clients\VKontakte|VKontakte]].
-- [[Yiisoft\Yii\AuthClient\Clients\Yandex|Yandex]].
+```php
+use Yiisoft\Yii\AuthClient\Client\Facebook;
+use Yiisoft\Yii\AuthClient\Client\Google;
 
-Конфигурация для каждого клиента несколько отличается. Для OAuth, это обязательное получение ID клиента и секретного
-ключа сервиса, который Вы собираетесь использовать. Для OpenID, в большинстве случаев, это работает из коробки.
+return [
+    Google::class => [
+        'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
+        'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
+    ],
+    Facebook::class => [
+        'setClientId()' => [$_ENV['FACEBOOK_CLIENT_ID']],
+        'setClientSecret()' => [$_ENV['FACEBOOK_CLIENT_SECRET']],
+    ],
+];
+```
+
+Из коробки предоставляются следующие клиенты (все в пространстве имён `Yiisoft\Yii\AuthClient\Client`):
+
+- [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
+- [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
+- [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].
+- [[\Yiisoft\Yii\AuthClient\Client\LinkedIn|LinkedIn]].
+- [[\Yiisoft\Yii\AuthClient\Client\MicrosoftOnline|Microsoft Online]].
+- [[\Yiisoft\Yii\AuthClient\Client\TikTok|TikTok]].
+- [[\Yiisoft\Yii\AuthClient\Client\VKontakte|VKontakte]].
+- [[\Yiisoft\Yii\AuthClient\Client\X|X (Twitter)]].
+- [[\Yiisoft\Yii\AuthClient\Client\Yandex|Yandex]].
+- [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect|OpenIdConnect]] - для любого провайдера, поддерживающего протокол
+  OpenID Connect (Auth0, Okta, Google, Microsoft Entra ID и т.д.) - см. руководство [OpenID Connect](open-id-connect.md).
+
+Конфигурация для каждого клиента немного отличается. Для всех них требуется ID клиента и секретный ключ,
+выданные сервисом, который вы собираетесь использовать.
 
 ## Хранение данных авторизации
 
 Для того, что бы считать пользователя аутентифицированным при помощи внешнего сервиса, мы должны сохранить ID,
-предоставленный при первой аутентификации, а потом проверять его при последующих попытках. Ограничивать варианты 
-аутентификации только внешними сервисами, не самая лучшая идея, так как такой вид аутентификации может
-потерпеть неудачу, тем самым не оставив других вариантов аутентификации для пользователя. Вместо этого лучше
-обеспечить как возможность аутентификации через внешние сервисы, так и старый метод аутентификации с ипользованием 
-логина и пароля.
+предоставленный при первой аутентификации, а потом проверять его при последующих попытках. Ограничивать варианты
+аутентификации только внешними сервисами - не самая лучшая идея, так как такой вид аутентификации может
+потерпеть неудачу, не оставив пользователю других вариантов входа. Вместо этого лучше обеспечить как возможность
+аутентификации через внешние сервисы, так и обычный вход по логину и паролю.
 
-Если мы храним информацию о пользователях в базе данных, то код соответвующей миграции может выглядеть следующим образом:
+Если мы храним информацию о пользователях в базе данных, минимальная схема потребует таблицу `user` и таблицу
+`auth`, связывающую каждого пользователя с одной или несколькими внешними учётными записями:
 
-```php
-class m??????_??????_auth extends \Yiisoft\Db\Migration
-{
-    public function up()
-    {
-        $this->createTable('user', [
-            'id' => $this->primaryKey(),
-            'username' => $this->string()->notNull(),
-            'auth_key' => $this->string()->notNull(),
-            'password_hash' => $this->string()->notNull(),
-            'password_reset_token' => $this->string()->notNull(),
-            'email' => $this->string()->notNull(),
-            'status' => $this->smallInteger()->notNull()->defaultValue(10),
-            'created_at' => $this->integer()->notNull(),
-            'updated_at' => $this->integer()->notNull(),
-        ]);
+- `auth.user_id` - внешний ключ на `user.id`.
+- `auth.source` - имя использованного провайдера аутентификации ([[\Yiisoft\Yii\AuthClient\AuthClientInterface::getName()|$client->getName()]],
+  например `'google'`).
+- `auth.source_id` - уникальный идентификатор пользователя, предоставленный внешним сервисом после успешной
+  аутентификации.
 
-        $this->createTable('auth', [
-            'id' => $this->primaryKey(),
-            'user_id' => $this->integer()->notNull(),
-            'source' => $this->string()->notNull(),
-            'source_id' => $this->string()->notNull(),
-        ]);
-
-        $this->addForeignKey('fk-auth-user_id-user-id', 'auth', 'user_id', 'user', 'id', 'CASCADE', 'CASCADE');
-    }
-
-    public function down()
-    {
-        $this->dropTable('auth');
-        $this->dropTable('user');
-    }
-}
-```
-
-В приведённом выше примере представлена стандартная таблица `user`, используемая в шаблоне проекта Advanced для хранения
-информации о пользователях. Каждый пользователь может пройти аутентификацию используя несколько внешних сервисов,
-поэтому каждая запись в `user` может относится к нескольким записям в `auth`. Поле `source` в таблице `auth`
-это название используемого провайдера аутентификации и `source_id` это уникальный идентификатор пользователя,
-который предоставляется внешним сервисом после успешной аутентификации.
-
-Используя таблицы, созданные ранее мы можем сгенерировать модель `Auth`. Дальнейшие настройки не требуются.
-
+Каждый пользователь может пройти аутентификацию, используя несколько внешних сервисов, поэтому каждая запись в
+`user` может относиться к нескольким записям в `auth`. Способ создания этих таблиц зависит от инструмента миграций,
+используемого в вашем приложении; данный пакет не требует и не поставляет собственный.

@@ -320,6 +320,28 @@ final class OpenIdConnect extends OAuth2
         $this->issuerUrl = rtrim($url, '/');
     }
 
+    /**
+     * Enables JWS validation/decryption of the auth token (the default). See {@see validateJws} for details.
+     */
+    public function withValidateJws(): self
+    {
+        $new = clone $this;
+        $new->validateJws = true;
+        return $new;
+    }
+
+    /**
+     * Disables JWS validation/decryption of the auth token. See {@see validateJws} for the trade-offs of
+     * doing so.
+     */
+    public function withoutValidateJws(): self
+    {
+        $new = clone $this;
+        $new->validateJws = false;
+        return $new;
+    }
+
+    #[Override]
     protected function initUserAttributes(): array
     {
         return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');

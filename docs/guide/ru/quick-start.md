@@ -1,141 +1,136 @@
 Быстрый старт
 ===========
 
-## Добавление экшена в контроллер
+## Регистрация маршрута аутентификации
 
-Следующий шаг заключается в добавлении [[Yiisoft\Yii\AuthClient\AuthAction]] в веб контроллер и обеспечении реализации 
-`successCallback`, выполняющий ваши требования.
+[[\Yiisoft\Yii\AuthClient\AuthAction]] - это PSR-15 middleware, которое выполняет процесс OAuth2 (перенаправление
+к провайдеру, затем обработка его callback-запроса). Настройте его как DI-определение с нужными URL и колбэками,
+а затем привяжите к маршруту.
 
-
+`config/common/di.php`:
 
 ```php
-class SiteController extends Controller
+use Psr\Http\Message\ResponseFactoryInterface;
+use Yiisoft\Aliases\Aliases;
+use Yiisoft\View\WebView;
+use Yiisoft\Yii\AuthClient\AuthAction;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
+use Yiisoft\Yii\AuthClient\Collection;
+
+return [
+    AuthAction::class => static fn (
+        Collection $clientCollection,
+        Aliases $aliases,
+        WebView $view,
+        ResponseFactoryInterface $responseFactory,
+    ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory))
+        ->withSuccessUrl('/site/index')
+        ->withCancelUrl('/site/login')
+        ->withSuccessCallback(function (AuthClientInterface $client) {
+            (new AuthHandler($client))->handle();
+        })
+        ->withCancelCallback(function (AuthClientInterface $client) {
+            // flash-сообщение, логирование и т.д.
+        }),
+];
+```
+
+`config/common/routes.php`:
+
+```php
+use Yiisoft\Router\Route;
+use Yiisoft\Yii\AuthClient\AuthAction;
+
+return [
+    Route::methods(['GET', 'POST'], '/auth/{authclient}')
+        ->name('site/auth')
+        ->action(AuthAction::class),
+];
+```
+
+Реализация `AuthHandler` может выглядеть так:
+
+```php
+<?php
+
+namespace App\Auth;
+
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
+
+final class AuthHandler
 {
-    public function actions()
-    {
-        return [
-            'auth' => [
-                'class' => Yiisoft\Yii\AuthClient\AuthAction::class,
-                'successCallback' => [$this, 'onAuthSuccess'],
-            ],
-        ];
+    public function __construct(
+        private readonly AuthClientInterface $client,
+    ) {
     }
 
-    public function onAuthSuccess($client)
+    public function handle(): void
     {
-        $attributes = $client->getUserAttributes();
+        $attributes = $this->client->getUserAttributes();
+        $email = $attributes['email'] ?? null;
+        $id = $attributes['id'] ?? null;
 
-        /* @var $auth Auth */
-        $auth = Auth::find()->where([
-            'source' => $client->getId(),
-            'source_id' => $attributes['id'],
-        ])->one();
-        
-        if (Yii::getApp()->user->isGuest) {
-            if ($auth) { // авторизация
-                $user = $auth->user;
-                Yii::getApp()->user->login($user);
-            } else { // регистрация
-                if (isset($attributes['email']) && User::find()->where(['email' => $attributes['email']])->exists()) {
-                    Yii::getApp()->getSession()->setFlash('error', [
-                        Yii::t('app', "Пользователь с такой электронной почтой как в {client} уже существует, но с ним не связан. Для начала войдите на сайт использую электронную почту, для того, что бы связать её.", ['client' => $client->getTitle()]),
-                    ]);
-                } else {
-                    $password = Yii::getApp()->security->generateRandomString(6);
-                    $user = new User([
-                        'username' => $attributes['login'],
-                        'email' => $attributes['email'],
-                        'password' => $password,
-                    ]);
-                    $user->generateAuthKey();
-                    $user->generatePasswordResetToken();
-                    $transaction = $user->getDb()->beginTransaction();
-                    if ($user->save()) {
-                        $auth = new Auth([
-                            'user_id' => $user->id,
-                            'source' => $client->getId(),
-                            'source_id' => (string)$attributes['id'],
-                        ]);
-                        if ($auth->save()) {
-                            $transaction->commit();
-                            Yii::getApp()->user->login($user);
-                        } else {
-                            print_r($auth->getErrors());
-                        }
-                    } else {
-                        print_r($user->getErrors());
-                    }
-                }
+        // ищем существующую запись `auth` с [source => $this->client->getName(), source_id => $id]
+        // (см. раздел "Хранение данных авторизации" в руководстве по установке)
+        $auth = $this->findAuth($this->client->getName(), $id);
+
+        if ($this->currentUserIsGuest()) {
+            if ($auth !== null) {
+                $this->login($auth->userId);
+            } else {
+                // создаём нового пользователя и запись `auth`, связывающую 'source'/'source_id' с ним, затем входим
             }
-        } else { // Пользователь уже зарегистрирован
-            if (!$auth) { // добавляем внешний сервис аутентификации
-                $auth = new Auth([
-                    'user_id' => Yii::getApp()->user->id,
-                    'source' => $client->getId(),
-                    'source_id' => $attributes['id'],
-                ]);
-                $auth->save();
-            }
+        } elseif ($auth === null) {
+            // привязываем этот внешний аккаунт к текущему авторизованному пользователю
         }
     }
 }
 ```
 
-Метод `successCallback` вызывается, когда пользователь был успешно аутентифицирован через внешний сервис. Через
-экземпляр `$client` мы можем извлечь полученную информацию. В нашем случае мы хотели бы:
+`findAuth()`, `currentUserIsGuest()` и `login()` выше - это заглушки для вашего собственного кода хранения данных
+и управления сессией; данный пакет не предоставляет управление пользователями/сессией.
 
-- Если пользователь гость и в таблице auth существует запись, то проводим аутентификацию этого пользователя.
-- Если пользователь гость и в таблице auth записи не существует, то создаём нового пользователя и запись в таблице auth. После
-проводим аутентификацию пользователя.
-- Если пользователь прошёл аутентификацию и запись в таблице auth не найдена, то пытаемся подключить дополнительный 
-аккаунт (сохранить его данные в таблицу auth).
+`successCallback`/`cancelCallback` вызываются после успешной или отменённой аутентификации. Если колбэк
+возвращает экземпляр `ResponseInterface`, он используется как ответ middleware; иначе выполняется перенаправление
+на настроенный URL успеха/отмены.
 
-> Примечание: Могут потребоваться различные подходы обработки успешной аутентификации для различных клиентов 
-аутентификации.
-  Например: Twitter не допускает возвращение электронной почты пользователя, но так или иначе Вы должны с этим как то 
-  работать.
+> Примечание: Могут потребоваться различные подходы к обработке успешной аутентификации для разных клиентов.
+  Например, X (Twitter) не позволяет получить электронную почту пользователя, и с этим так или иначе нужно
+  что-то делать.
 
 ### Базовая структура клиента аутентификации
 
-Хоть все клиенты и разные, всё же они реализуют базовый интерфейс [[Yiisoft\Yii\AuthClient\ClientInterface]], который управляет 
-общим API.
+Хоть все клиенты и разные, все они реализуют базовый интерфейс [[\Yiisoft\Yii\AuthClient\AuthClientInterface]],
+который управляет общим API:
 
-У каждого клиента есть некоторые описательные данные, которые могут использоваться в различных целях:
+- `getName()` - имя внешнего провайдера аутентификации, которому соответствует клиент, например `'google'`.
+  Это значение используется в URL (как параметр маршрута `authclient`), в CSS-классах и хорошо подходит для
+  колонки `source`, описанной в разделе [Установка](installation.md).
+- `getTitle()` - удобное для пользователя имя внешнего сервиса аутентификации, используется для представления
+  клиента на уровне отображения (например, `'Google'`).
+- `getClientId()` - ID клиента OAuth.
+- `getViewOptions()` - параметры отображения, такие как `popupWidth`/`popupHeight`, используемые виджетом
+  [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice]].
+- `getUserAttributes()` - данные аутентифицированного пользователя, например `id`/`email`, полученные от
+  провайдера после успешной аутентификации. Что именно возвращает провайдер - зависит от него самого (см.
+  [Создание собственных клиентов аутентификации](creating-your-own-auth-clients.md) о том, как клиент получает эти
+  данные и как привести имена полей к единому виду через `normalizeUserAttributeMap`).
 
-- `id` - уникальный идентификатор клиента, который отделяет его от других клиентов, может использоваться
-  в URL'ах, логах и т.д.
-- `name` - внешнее подлиное имя сервиса аутентификации, которое так же соответствует имени клиента. Различные
-  клиенты аутентификации могут иметь одно и то же имя, если они относятся к одному и тому же внешнему сервису
-  аутентификации.
-  Например: клиенты для Google и Google Hybrid имеют одинаковое имя "google".
-  Данный атрибут может быть использован внутри баз данных, CSS стилей и так далее.
-- `title` - удобное для пользователя имя внешнего сервиса аутентификации, используется для предоставления клиента
-  аутентификации на уровне представления.
+Каждый клиент аутентификации имеет собственный процесс аутентификации. Параметр OAuth `scope`, запрашиваемый у
+провайдера, по умолчанию берётся из `getDefaultScope()` конкретного класса клиента, и может быть переопределён
+для отдельного клиента через `setScope()` (например, `'setScope()' => ['profile email']` в его DI-определении)
+без создания подкласса; поля, реально присутствующие в ответе, всё равно полностью зависят от провайдера и
+выданного scope.
 
-Каждый клиент аутентификации имеет отличный от других процесс аутентификации, но каждый из них поддерживает метод 
-`getUserAttributes()`, который может быть вызван, в случае, если аутентификация прошла успешно.
+## Добавление виджета в представление входа
 
-Это метод позволяет получить информацию о внешней учетной записи пользователя, такую, как ID, адрес электронной почты, 
-полное имя, предпочитаемый язык и т.д. Обратите внимание, что для каждого внешнего сервиса в списке доступных полей 
-может изменяться как название поля, так и сам факт его существования.
-
-Определение списка атрибутов, возвращаемых внешним сервисом аутентификации, зависит от типа самого клиента:
-
-- [[Yiisoft\Yii\AuthClient\OpenId]]: сочетание `requiredAttributes` и `optionalAttributes`.
-- [[Yiisoft\Yii\AuthClient\OAuth1]] и [[Yiisoft\Yii\AuthClient\OAuth2]]: поле `scope`, обратите внимание, что разные сервисы используют 
-разные форматы для scope.
-
-> Совет: если Вы используете несколько различных клиентов, Вы можете объединить структуры атрибутов, которые они 
-возвращают, при помощи[[Yiisoft\Yii\AuthClient\BaseClient::normalizeUserAttributeMap]].
-
-
-## Добавление виджета в представление аутентификации
-
-В представлениях можно использовать готовый виджет [[Yiisoft\Yii\AuthClient\Widgets\AuthChoice]]:
+Для представлений есть готовый к использованию виджет [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice]]. Он получает
+список настроенных клиентов через DI-сервис [[\Yiisoft\Yii\AuthClient\Collection]] и должен знать имя маршрута,
+зарегистрированного выше:
 
 ```php
-<?= Yiisoft\Yii\AuthClient\Widgets\AuthChoice::widget([
-     'baseAuthUrl' => ['site/auth'],
-     'popupMode' => false,
-]) ?>
+<?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()->authRoute('site/auth') ?>
 ```
+
+По умолчанию он выводит ссылку для каждого настроенного клиента, открывая процесс аутентификации во всплывающем
+окне.

@@ -343,6 +343,32 @@ final class OpenIdConnectTest extends TestCase
         $this->assertFalse($client->getValidateAuthNonce());
     }
 
+    /**
+     * getValidateAuthNonce() short-circuits on {@see OpenIdConnect::$validateJws}, so disabling JWS
+     * validation via withoutValidateJws() must be observable through it even when 'nonce' is a supported claim.
+     */
+    public function testWithoutValidateJwsDisablesAutoDetectedAuthNonceValidation(): void
+    {
+        $client = $this->createClient(['claims_supported' => ['sub', 'nonce']]);
+
+        $withoutJws = $client->withoutValidateJws();
+
+        $this->assertFalse($withoutJws->getValidateAuthNonce());
+        // withoutValidateJws() must not mutate the original instance.
+        $this->assertTrue($client->getValidateAuthNonce());
+    }
+
+    public function testWithValidateJwsReenablesAutoDetectedAuthNonceValidation(): void
+    {
+        $client = $this->createClient(['claims_supported' => ['sub', 'nonce']])->withoutValidateJws();
+
+        $withJws = $client->withValidateJws();
+
+        $this->assertTrue($withJws->getValidateAuthNonce());
+        // withValidateJws() must not mutate the original instance.
+        $this->assertFalse($client->getValidateAuthNonce());
+    }
+
     public function testBuildAuthUrlDoesNotThrowWhenAuthorizationEndpointConfigIsMissing(): void
     {
         $client = $this->createClient(['claims_supported' => []]);

@@ -43,6 +43,7 @@ final class Google extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url, $headers);
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

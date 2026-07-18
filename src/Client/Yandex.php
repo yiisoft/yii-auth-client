@@ -48,6 +48,7 @@ final class Yandex extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $this->endpoint, authScheme: 'OAuth');
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

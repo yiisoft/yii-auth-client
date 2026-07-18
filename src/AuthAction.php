@@ -20,30 +20,31 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 use Override;
 
 /**
- * AuthAction performs authentication via different auth clients.
- * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
+ * AuthAction is a PSR-15 middleware, which performs authentication via {@see OAuth2} auth clients
+ * (including {@see \Yiisoft\Yii\AuthClient\Client\OpenIdConnect}).
  *
- * Usage:
+ * Usage, registered as a DI definition and attached to a route:
  *
  * ```php
- * class SiteController extends Controller
- * {
- *     public function actions()
- *     {
- *         return [
- *             'auth' => [
- *                 'class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
- *                 'successCallback' => [$this, 'successCallback'],
- *             ],
- *         ]
- *     }
- *
- *     public function successCallback($client)
- *     {
+ * // config/di.php
+ * AuthAction::class => static fn (
+ *     Collection $clientCollection,
+ *     Aliases $aliases,
+ *     WebView $view,
+ *     ResponseFactoryInterface $responseFactory,
+ * ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory))
+ *     ->withSuccessUrl('/site/index')
+ *     ->withCancelUrl('/site/login')
+ *     ->withSuccessCallback(function (AuthClientInterface $client) {
  *         $attributes = $client->getUserAttributes();
  *         // user login or signup comes here
- *     }
- * }
+ *     })
+ *     ->withCancelCallback(function (AuthClientInterface $client) {
+ *         // set flash, logging, etc.
+ *     }),
+ *
+ * // config/routes.php
+ * Route::methods(['GET', 'POST'], '/auth/{authclient}')->action(AuthAction::class),
  * ```
  *
  * Usually authentication via external services is performed inside the popup window.
@@ -68,7 +69,7 @@ final class AuthAction implements MiddlewareInterface
      * For example:
 
      * ```php
-     * public function onAuthSuccess(ClientInterface $client)
+     * public function onAuthSuccess(AuthClientInterface $client)
      * {
      *     $attributes = $client->getUserAttributes();
      *     // user login or signup comes here
@@ -89,7 +90,7 @@ final class AuthAction implements MiddlewareInterface
      * For example:
 
      * ```php
-     * public function onAuthCancel(ClientInterface $client)
+     * public function onAuthCancel(AuthClientInterface $client)
      * {
      *     // set flash, logging, etc.
      * }
@@ -154,6 +155,36 @@ final class AuthAction implements MiddlewareInterface
     {
         $new = clone $this;
         $new->cancelUrl = $url;
+        return $new;
+    }
+
+    /**
+     * @param callable $callback PHP callback, which should be triggered in case of successful authentication.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
+     * If it returns a {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see successUrl} will be performed.
+     *
+     * @return AuthAction
+     */
+    public function withSuccessCallback(callable $callback): self
+    {
+        $new = clone $this;
+        $new->successCallback = $callback;
+        return $new;
+    }
+
+    /**
+     * @param callable $callback PHP callback, which should be triggered in case of authentication cancellation.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
+     * If it returns a {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see cancelUrl} will be performed.
+     *
+     * @return AuthAction
+     */
+    public function withCancelCallback(callable $callback): self
+    {
+        $new = clone $this;
+        $new->cancelCallback = $callback;
         return $new;
     }
 

@@ -274,17 +274,6 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('id="btn-test"', $html);
     }
 
-    public function testInitIsPubliclyCallable(): void
-    {
-        $widget = $this->createWidget();
-
-        ob_start();
-        $widget->init();
-        ob_end_clean();
-
-        $this->assertTrue(true);
-    }
-
     public function testGetClientPicksMatchingClientAmongMultiple(): void
     {
         $wanted = $this->createTestClient();
@@ -346,6 +335,13 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('auth-clients', $rendered);
         $this->assertStringContainsString('href="http://auth.local/callback"', $rendered);
         $this->assertStringContainsString('</div>', $rendered);
+        // Guards against re-introducing double-encoding: the client link markup produced by
+        // clientLink() must appear as real nested tags, not HTML-escaped text inside <li>/<ul>.
+        $this->assertStringContainsString(
+            '<li><a class="test auth-link" title="Test" data-popup-width="860" data-popup-height="480" href="http://auth.local/callback">',
+            $rendered,
+        );
+        $this->assertStringNotContainsString('&lt;', $rendered);
     }
 
     public function testClientLinkUsesExplicitTextInsteadOfGeneratedSpan(): void
@@ -359,6 +355,25 @@ final class AuthChoiceTest extends TestCase
 
         $this->assertStringContainsString('>Custom Text<', $html);
         $this->assertStringNotContainsString('auth-icon', $html);
+    }
+
+    /**
+     * The auto-generated icon span is trusted, already-rendered HTML and must not be re-encoded (see
+     * testClientLinkGeneratesSpanWithAuthIconAndClientNameClass), but an explicit, caller-supplied $text is
+     * plain text and must still be HTML-encoded - otherwise this would be an XSS vector for any caller passing
+     * through unsanitized input.
+     */
+    public function testClientLinkEncodesExplicitTextContainingHtmlSpecialCharacters(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
+
+        $html = $widget->clientLink($client, '<script>alert(1)</script>');
+
+        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringContainsString('&lt;script&gt;', $html);
     }
 
     public function testClientLinkGeneratesSpanWithAuthIconAndClientNameClass(): void
@@ -469,35 +484,117 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('> Login<', $html);
     }
 
-    public function testConstructorCallsInitAndEchoesOpeningDivTag(): void
+    public function testConstructorDoesNotEchoOrRegisterAnything(): void
     {
+        $assetManager = $this->createAssetManager();
+
         ob_start();
         new AuthChoice(
             new Collection([]),
             $this->createUrlGeneratorStub(),
             new WebView(),
-            $this->createAssetManager(),
+            $assetManager,
         );
+        $output = ob_get_clean();
+
+        $this->assertSame('', $output);
+        $this->assertFalse($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
+    }
+
+    /**
+     * The bug this guards against: the constructor used to register assets and echo the opening `<div>` tag
+     * immediately, before {@see popupMode()}/{@see options()}/{@see clientOptions()} could ever be called on
+     * the returned instance - making them permanently unable to affect the output. begin()/render() must be
+     * the ones producing this output instead, so calling those configuration methods first actually works.
+     */
+    public function testPopupModeOptionsAndClientOptionsTakeEffectWhenSetBeforeRender(): void
+    {
+        $webView = new WebView();
+        $assetManager = $this->createAssetManager();
+        $widget = $this->createWidgetWithDeps([], $webView, $assetManager)
+            ->popupMode(false)
+            ->options(['class' => 'custom-container'])
+            ->clientOptions(['foo' => 'bar']);
+
+        $rendered = $widget->render();
+
+        $this->assertStringContainsString('class="custom-container"', $rendered);
+        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceStyleAsset::class));
+        $this->assertFalse($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
+        $this->assertNull($this->getRegisteredJsScript($webView));
+    }
+
+    public function testPopupModeReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->popupMode(false));
+    }
+
+    public function testOptionsReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->options([]));
+    }
+
+    public function testClientOptionsReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->clientOptions([]));
+    }
+
+    public function testBeginEchoesOpeningDivTagAndRegistersAssets(): void
+    {
+        $assetManager = $this->createAssetManager();
+        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager);
+
+        ob_start();
+        $widget->begin();
         $output = ob_get_clean();
 
         $this->assertStringContainsString('<div', $output);
         $this->assertStringContainsString('id="yii-auth-client"', $output);
+        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
-    public function testInitRegistersAuthChoiceAssetInPopupMode(): void
+    /**
+     * Exercises the real begin()/end() lifecycle (the base Widget stack). Two things must both hold:
+     * - begin() must call parent::begin() to push onto the stack, otherwise the matching end() throws.
+     * - renderOpenTag() must run at most once per widget: end() calls render(), which must not re-open
+     *   (and so re-echo) the `<div>` a second time on top of what begin() already echoed.
+     */
+    public function testBeginThenEndOpensDivOnceAndClosesItOnce(): void
+    {
+        $widget = $this->createWidgetWithDeps([], new WebView(), $this->createAssetManager());
+
+        ob_start();
+        $widget->begin();
+        $opened = ob_get_clean();
+        $closed = AuthChoice::end();
+
+        $this->assertStringContainsString('<div', $opened);
+        $this->assertStringNotContainsString('<div', $closed);
+        $this->assertStringContainsString('</div>', $closed);
+    }
+
+    public function testRenderRegistersAuthChoiceAssetInPopupMode(): void
     {
         $assetManager = $this->createAssetManager();
+        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager);
 
-        $this->createWidgetWithDeps([], new WebView(), $assetManager);
+        $widget->render();
 
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
-    public function testInitRegistersJsWithClientIdAndAuthchoiceInvocation(): void
+    public function testRenderRegistersJsWithClientIdAndAuthchoiceInvocation(): void
     {
         $webView = new WebView();
+        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager());
 
-        $this->createWidgetWithDeps([], $webView, $this->createAssetManager());
+        $widget->render();
 
         $js = $this->getRegisteredJsScript($webView);
         $this->assertNotNull($js);
@@ -505,36 +602,25 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('authchoice(el, )', $js);
     }
 
-    public function testInitEncodesNonEmptyClientOptionsAsJsonForJsInvocation(): void
+    public function testRenderEncodesNonEmptyClientOptionsAsJsonForJsInvocation(): void
     {
         $webView = new WebView();
-        $widget = (new \ReflectionClass(AuthChoice::class))->newInstanceWithoutConstructor();
-        (new ReflectionProperty($widget, 'assetManager'))->setValue($widget, $this->createAssetManager());
-        (new ReflectionProperty($widget, 'webView'))->setValue($widget, $webView);
-        (new ReflectionProperty($widget, 'clientOptions'))->setValue($widget, ['foo' => 'bar']);
-        (new ReflectionProperty($widget, 'options'))->setValue($widget, []);
+        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())
+            ->clientOptions(['foo' => 'bar']);
 
-        ob_start();
-        $widget->init();
-        ob_end_clean();
+        $widget->render();
 
         $js = $this->getRegisteredJsScript($webView);
         $this->assertNotNull($js);
         $this->assertStringContainsString('authchoice(el, {"foo":"bar"})', $js);
     }
 
-    public function testInitRegistersStyleAssetWhenPopupModeDisabled(): void
+    public function testRenderRegistersStyleAssetWhenPopupModeDisabled(): void
     {
         $assetManager = $this->createAssetManager();
-        $widget = (new \ReflectionClass(AuthChoice::class))->newInstanceWithoutConstructor();
-        (new ReflectionProperty($widget, 'assetManager'))->setValue($widget, $assetManager);
-        (new ReflectionProperty($widget, 'webView'))->setValue($widget, new WebView());
-        (new ReflectionProperty($widget, 'popupMode'))->setValue($widget, false);
-        (new ReflectionProperty($widget, 'options'))->setValue($widget, []);
+        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager)->popupMode(false);
 
-        ob_start();
-        $widget->init();
-        ob_end_clean();
+        $widget->render();
 
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceStyleAsset::class));
     }

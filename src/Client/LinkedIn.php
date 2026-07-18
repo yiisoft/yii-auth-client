@@ -31,6 +31,7 @@ final class LinkedIn extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

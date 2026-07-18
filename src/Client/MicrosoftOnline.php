@@ -81,6 +81,7 @@ final class MicrosoftOnline extends OAuth2
         );
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

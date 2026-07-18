@@ -39,17 +39,21 @@ use Override;
  * ```php
  * <?php
  * use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+ *
+ * $authChoice = AuthChoice::widget()->authRoute('site/auth');
+ * $authChoice->begin();
  * ?>
- * <?php $authChoice = AuthChoice::begin([
- *     'baseAuthUrl' => ['site/auth']
- * ]); ?>
  * <ul>
  * <?php foreach ($authChoice->getClients() as $client): ?>
  *     <li><?= $authChoice->clientLink($client) ?></li>
  * <?php endforeach; ?>
  * </ul>
- * <?php AuthChoice::end(); ?>
+ * <?= AuthChoice::end() ?>
  * ```
+ *
+ * Configuration methods ({@see popupMode()}, {@see options()}, {@see clientOptions()}, {@see authRoute()}) must
+ * be called before {@see begin()}/{@see render()}, since that is when their asset registration and the opening
+ * `<div>` tag are produced.
  *
  * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
  *
@@ -92,6 +96,12 @@ final class AuthChoice extends Widget
      */
     private string $authRoute = '';
 
+    /**
+     * @var bool whether {@see renderOpenTag()} has already registered assets and produced the opening
+     * `<div>` tag, so it is not done twice for a single {@see begin()}/{@see render()} pair.
+     */
+    private bool $openTagRendered = false;
+
     /** @var array<string, OAuth2> */
     private array $clients;
 
@@ -102,14 +112,31 @@ final class AuthChoice extends Widget
         private readonly AssetManager $assetManager,
     ) {
         $this->clients = $clientCollection->getClients();
-        $this->init();
     }
 
     /**
-     * Initializes the widget.
+     * Opens the widget: registers assets and echoes the opening `<div>` tag, so that content written directly
+     * to output between {@see begin()} and {@see end()} appears nested inside it.
      */
-    public function init(): void
+    #[Override]
+    public function begin(): ?string
     {
+        parent::begin();
+        echo $this->renderOpenTag();
+        return null;
+    }
+
+    /**
+     * Registers assets/JS and builds the opening `<div>` tag markup, exactly once per widget instance.
+     * Subsequent calls (e.g. from both {@see begin()} and {@see render()} in a begin()/end() usage) return ''.
+     */
+    private function renderOpenTag(): string
+    {
+        if ($this->openTagRendered) {
+            return '';
+        }
+        $this->openTagRendered = true;
+
         if ($this->popupMode) {
             $this->assetManager->register(AuthChoiceAsset::class);
 
@@ -130,8 +157,7 @@ final class AuthChoice extends Widget
         }
 
         $this->options['id'] = $this->getId();
-        // This next line can cause header related issues
-        echo Html::tag('div', '', $this->options)->open();
+        return Html::div('', $this->options)->open();
     }
 
     public function getId(): string
@@ -149,11 +175,11 @@ final class AuthChoice extends Widget
     #[Override]
     public function render(): string
     {
-        $content = '';
+        $content = $this->renderOpenTag();
         if ($this->autoRender) {
-            $content = $this->renderMainContent();
+            $content .= $this->renderMainContent();
         }
-        $content .= Html::tag('div')->close();
+        $content .= Html::div()->close();
         return $content;
     }
 
@@ -172,10 +198,11 @@ final class AuthChoice extends Widget
          * @var OAuth2 $externalService
          */
         foreach ($this->getClients() as $externalService) {
-            $items[] = Html::tag('li', $this->clientLink($externalService));
+            // encode(false): clientLink() already returns rendered, safe-to-embed HTML.
+            $items[] = Html::li($this->clientLink($externalService))->encode(false);
         }
 
-        return Html::tag('ul', implode('', $items), ['class' => 'auth-clients'])->render();
+        return Html::ul(['class' => 'auth-clients'])->items(...$items)->render();
     }
 
     /**
@@ -227,8 +254,11 @@ final class AuthChoice extends Widget
         $viewOptions = $client->getViewOptions();
 
         if (empty($viewOptions['widget'])) {
+            // Only the auto-generated icon markup below is already-rendered HTML; a caller-supplied $text
+            // is plain text and must still be encoded, so the two cases need different `encode` settings.
+            $encodeText = $text !== null;
             if ($text === null) {
-                $text = Html::tag('span', '', ['class' => 'auth-icon ' . $client->getName()])->render();
+                $text = Html::span('', ['class' => 'auth-icon ' . $client->getName()])->render();
             }
             if (!isset($htmlOptions['class'])) {
                 $htmlOptions['class'] = $client->getName();
@@ -255,7 +285,7 @@ final class AuthChoice extends Widget
                 }
             }
 
-            return Html::a($text, $this->createClientUrl($client), $htmlOptions)->render();
+            return Html::a($text, $this->createClientUrl($client), $htmlOptions)->encode($encodeText)->render();
         }
 
         $widgetConfig = (array)$viewOptions['widget'];
@@ -297,6 +327,42 @@ final class AuthChoice extends Widget
     public function authRoute(string $authRoute): self
     {
         $this->authRoute = $authRoute;
+        return $this;
+    }
+
+    /**
+     * @param bool $popupMode whether a popup window should be used instead of direct links. Must be called
+     * before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function popupMode(bool $popupMode): self
+    {
+        $this->popupMode = $popupMode;
+        return $this;
+    }
+
+    /**
+     * @param array $options the HTML attributes for the container `<div>` tag, see {@see Html::renderTagAttributes()}.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function options(array $options): self
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    /**
+     * @param array $clientOptions additional options passed to the underlying JS plugin. Must be called before
+     * {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function clientOptions(array $clientOptions): self
+    {
+        $this->clientOptions = $clientOptions;
         return $this;
     }
 

@@ -385,6 +385,12 @@ final class AuthActionTest extends TestCase
             }
 
             #[\Override]
+            public function getUserAttributes(): array
+            {
+                return [];
+            }
+
+            #[\Override]
             public function getButtonClass(): string
             {
                 return '';
