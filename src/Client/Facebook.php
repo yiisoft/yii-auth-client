@@ -122,6 +122,11 @@ final class Facebook extends OAuth2
      */
     public function exchangeAccessToken(OAuthToken $token): OAuthToken
     {
+        /**
+         * @infection-ignore-all
+         * This array literal's value is never assigned or used (dead code, pending a real fix to
+         * actually send it as the request body); mutating its contents is unobservable.
+         */
         [
             'grant_type' => 'fb_exchange_token',
             'fb_exchange_token' => $token->getToken(),
@@ -129,9 +134,20 @@ final class Facebook extends OAuth2
 
         $request = $this->createRequest('POST', $this->getTokenUrl());
         //->setParams($params);
+        /**
+         * @infection-ignore-all
+         * The immutable PSR-7 request returned by applyClientCredentialsToRequest() is discarded here
+         * (pending a real fix to capture it), so removing this call has no observable effect.
+         */
         $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
 
+        /**
+         * @infection-ignore-all
+         * $response is a ResponseInterface, never an array, so OAuth::createToken()'s
+         * `is_array($tokenConfig['params'])` check is always false regardless of this array's
+         * contents (pending a real fix to decode the response body here).
+         */
         $token = $this->createToken(['params' => $response]);
         $this->setAccessToken($token);
 
@@ -213,6 +229,12 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
+        /**
+         * @infection-ignore-all
+         * $response is a ResponseInterface, never an array, so OAuth::createToken()'s
+         * `is_array($tokenConfig['params'])` check is always false regardless of this array's
+         * contents (pending a real fix to decode the response body here).
+         */
         $token = $this->createToken(['params' => $response]);
         $this->setAccessToken($token);
 

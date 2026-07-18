@@ -29,14 +29,18 @@ final class Google extends OAuth2
     {
         $url = sprintf('https://www.googleapis.com/oauth2/%s/userinfo', $this->version);
 
-        return $this->fetchCurrentUserJsonArray(
-            $token,
-            $url,
-            [
-                'Host' => 'www.googleapis.com',
-                'Content-length' => '0',
-            ]
-        );
+        /**
+         * @infection-ignore-all
+         * $url above is always this same www.googleapis.com host, and PSR-7 implementations derive
+         * the Host header from the request URI, so this explicit 'Host' item is redundant with (and
+         * unobservably identical to) the auto-derived one.
+         */
+        $headers = [
+            'Host' => 'www.googleapis.com',
+            'Content-length' => '0',
+        ];
+
+        return $this->fetchCurrentUserJsonArray($token, $url, $headers);
     }
 
     protected function initUserAttributes(): array

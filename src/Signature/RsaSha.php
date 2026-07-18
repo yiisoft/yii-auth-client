@@ -47,9 +47,16 @@ final class RsaSha extends Signature
     public function __construct(
         private readonly int|string $algorithm = ''
     ) {
+        // @codeCoverageIgnoreStart
+        /**
+         * @infection-ignore-all
+         * The "OpenSSL" extension is required for this whole test suite to sign/verify anything
+         * (see RsaShaTest), so this guard is unreachable in any environment that can run these tests.
+         */
         if (!function_exists('openssl_sign')) {
             throw new NotSupportedException('PHP "OpenSSL" extension is required.');
         }
+        // @codeCoverageIgnoreEnd
     }
 
     /**

@@ -20,6 +20,9 @@ use Yiisoft\Cache\ArrayCache;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Exception\ClientException;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
@@ -50,8 +53,11 @@ final class OpenIdConnectTest extends TestCase
     /**
      * @param array<string, mixed> $configParams
      */
-    private function createClient(array $configParams = [], ?ClientInterface $httpClient = null): OpenIdConnect
-    {
+    private function createClient(
+        array $configParams = [],
+        ?ClientInterface $httpClient = null,
+        ?\Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface $stateStorage = null,
+    ): OpenIdConnect {
         $cache = new ArrayCache();
         if ($configParams !== []) {
             $cache->set('config-params-oidc', $configParams);
@@ -60,7 +66,7 @@ final class OpenIdConnectTest extends TestCase
         $client = new OpenIdConnect(
             $httpClient ?? $this->createStub(ClientInterface::class),
             new Psr17Factory(),
-            new DummyStateStorage(),
+            $stateStorage ?? new DummyStateStorage(),
             new YiisoftFactory(),
             new Session(),
             $cache,
@@ -82,6 +88,11 @@ final class OpenIdConnectTest extends TestCase
     {
         /** @var \Yiisoft\Yii\AuthClient\OAuthToken */
         return (new \ReflectionMethod($client, 'createToken'))->invoke($client, $tokenConfig);
+    }
+
+    private function disableJwsValidation(OpenIdConnect $client): void
+    {
+        (new \ReflectionProperty($client, 'validateJws'))->setValue($client, false);
     }
 
     public function testGetName(): void
@@ -578,5 +589,564 @@ final class OpenIdConnectTest extends TestCase
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
         $this->assertSame('user-1', $token->getParam('sub'));
+    }
+
+    public function testGetConfigParamsThrowsWhenIssuerUrlIsEmpty(): void
+    {
+        $client = $this->createClient();
+        $client->setIssuerUrl('');
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage('Cannot discover config because issuer URL is not set.');
+
+        $client->getConfigParams();
+    }
+
+    /**
+     * The discovered token_endpoint config value is cast to string before being stored. A non-string
+     * config value (int here) would fail to assign to the strictly `string`-typed $tokenUrl property
+     * if the cast were removed, throwing a TypeError instead of succeeding.
+     */
+    public function testFetchAccessTokenCastsDiscoveredTokenEndpointToString(): void
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600'));
+        $client = $this->createClient([
+            'token_endpoint' => 12345,
+            'token_endpoint_auth_methods_supported' => ['client_secret_post'],
+            'claims_supported' => [],
+        ], $httpClient)->withoutValidateAuthState();
+        $client->setClientSecret('secret');
+        $this->disableJwsValidation($client);
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('abc123', $token->getToken());
+        $this->assertSame('12345', $client->getTokenUrl());
+    }
+
+    /**
+     * When no 'nonce' param is supplied and nonce validation is enabled, fetchAccessToken() must
+     * generate a fresh nonce, persist it as state, and send it along in the token request. Captures
+     * the outgoing request and inspects state directly rather than relying on the deeper createToken()
+     * nonce check, in order to isolate and precisely kill the branch/negation mutants on this
+     * `!isset($params['nonce']) && $this->getValidateAuthNonce()` condition and on the setState() call.
+     */
+    public function testFetchAccessTokenGeneratesAndPersistsNonceWhenMissingAndValidationEnabled(): void
+    {
+        $capturedRequest = null;
+        // createToken()'s own downstream JWS validation (irrelevant to this test) triggers a *second*
+        // HTTP call (JWKS discovery); only the first call, the actual token request, is captured.
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest ??= $request;
+                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+            }
+        };
+        $client = $this->createClient(
+            [
+                'token_endpoint' => 'https://issuer.example.com/token',
+                'token_endpoint_auth_methods_supported' => ['client_secret_post'],
+                'claims_supported' => ['nonce'],
+            ],
+            $httpClient,
+            new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        )->withoutValidateAuthState();
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        try {
+            $client->fetchAccessToken($incomingRequest, 'auth-code');
+        } catch (\Throwable) {
+        }
+
+        $this->assertNotNull($capturedRequest);
+        $sentNonce = RequestUtil::getParams($capturedRequest)['nonce'] ?? null;
+        $this->assertIsString($sentNonce);
+        $this->assertNotSame('', $sentNonce);
+        $storedNonce = (new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
+        $this->assertSame($sentNonce, $storedNonce);
+    }
+
+    /**
+     * When the caller already supplies a 'nonce' param, fetchAccessToken() must not overwrite it or
+     * generate/persist a new one, regardless of whether nonce validation is enabled.
+     */
+    public function testFetchAccessTokenLeavesCallerSuppliedNonceUntouched(): void
+    {
+        $capturedRequest = null;
+        // createToken()'s own downstream JWS validation (irrelevant to this test) triggers a *second*
+        // HTTP call (JWKS discovery); only the first call, the actual token request, is captured.
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest ??= $request;
+                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+            }
+        };
+        $client = $this->createClient(
+            [
+                'token_endpoint' => 'https://issuer.example.com/token',
+                'token_endpoint_auth_methods_supported' => ['client_secret_post'],
+                'claims_supported' => ['nonce'],
+            ],
+            $httpClient,
+            new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        )->withoutValidateAuthState();
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        try {
+            $client->fetchAccessToken($incomingRequest, 'auth-code', ['nonce' => 'caller-supplied-nonce']);
+        } catch (\Throwable) {
+        }
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('caller-supplied-nonce', RequestUtil::getParams($capturedRequest)['nonce']);
+        $storedNonce = (new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
+        $this->assertNull($storedNonce);
+    }
+
+    /**
+     * When nonce validation is disabled, fetchAccessToken() must not add a nonce param at all.
+     */
+    public function testFetchAccessTokenOmitsNonceParamWhenValidationDisabled(): void
+    {
+        $capturedRequest = null;
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+            }
+        };
+        $client = $this->createClient([
+            'token_endpoint' => 'https://issuer.example.com/token',
+            'token_endpoint_auth_methods_supported' => ['client_secret_post'],
+            'claims_supported' => [],
+        ], $httpClient)->withoutValidateAuthState();
+        $client->setClientSecret('secret');
+        $this->disableJwsValidation($client);
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertArrayNotHasKey('nonce', RequestUtil::getParams($capturedRequest));
+    }
+
+    /**
+     * The discovered token_endpoint config value is cast to string before being stored. A non-string
+     * config value (int here) would fail to assign to the strictly `string`-typed $tokenUrl property
+     * if the cast were removed, throwing a TypeError instead of succeeding.
+     */
+    public function testRefreshAccessTokenCastsDiscoveredTokenEndpointToString(): void
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new \Nyholm\Psr7\Response(200, [], 'access_token=refreshed&expires_in=3600'));
+        $client = $this->createClient([
+            'token_endpoint' => 12345,
+            'token_endpoint_auth_methods_supported' => ['client_secret_post'],
+            'claims_supported' => [],
+        ], $httpClient);
+        $client->setClientSecret('secret');
+        $this->disableJwsValidation($client);
+        $oldToken = new OAuthToken();
+        $oldToken->setToken('old-token');
+
+        $newToken = $client->refreshAccessToken($oldToken);
+
+        $this->assertSame('refreshed', $newToken->getToken());
+        $this->assertSame('12345', $client->getTokenUrl());
+    }
+
+    public function testInitUserAttributesIsProtectedAndFetchesUserInfoEndpoint(): void
+    {
+        $capturedRequest = null;
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['sub' => 'user-1']));
+            }
+        };
+        $client = $this->createClient(['userinfo_endpoint' => 'https://issuer.example.com/userinfo'], $httpClient);
+        $this->disableJwsValidation($client);
+        $client->setAccessToken(['params' => ['access_token' => 'abc123', 'expires_in' => 3600]]);
+        $method = new \ReflectionMethod($client, 'initUserAttributes');
+
+        $this->assertTrue($method->isProtected());
+        $result = $method->invoke($client);
+
+        $this->assertSame(['sub' => 'user-1'], $result);
+        $this->assertNotNull($capturedRequest);
+        $this->assertStringStartsWith('https://issuer.example.com/userinfo', (string) $capturedRequest->getUri());
+    }
+
+    public function testApplyClientCredentialsToRequestIsProtectedAndUsesBasicAuthWhenSupported(): void
+    {
+        $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_basic']]);
+        $client->setClientId('cid');
+        $client->setClientSecret('csecret');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+
+        $this->assertTrue($method->isProtected());
+        $newRequest = $method->invoke($client, $request);
+
+        $this->assertSame('Basic ' . base64_encode('cid:csecret'), $newRequest->getHeaderLine('Authorization'));
+    }
+
+    public function testApplyClientCredentialsToRequestUsesPostParamsWhenSupported(): void
+    {
+        $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_post']]);
+        $client->setClientId('cid');
+        $client->setClientSecret('csecret');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+
+        $newRequest = $method->invoke($client, $request);
+
+        $params = RequestUtil::getParams($newRequest);
+        $this->assertSame('cid', $params['client_id']);
+        $this->assertSame('csecret', $params['client_secret']);
+    }
+
+    /**
+     * token_endpoint_auth_methods_supported is cast to array before the in_array() check. A bare
+     * string config value (not wrapped in an array) would fail in_array()'s strictly-typed `array`
+     * parameter if the cast were removed, throwing a TypeError instead of matching successfully.
+     */
+    public function testApplyClientCredentialsToRequestCastsAuthMethodsConfigToArray(): void
+    {
+        $client = $this->createClient(['token_endpoint_auth_methods_supported' => 'client_secret_basic']);
+        $client->setClientId('cid');
+        $client->setClientSecret('csecret');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+
+        $newRequest = $method->invoke($client, $request);
+
+        $this->assertSame('Basic ' . base64_encode('cid:csecret'), $newRequest->getHeaderLine('Authorization'));
+    }
+
+    public function testApplyClientCredentialsToRequestUsesJwtAssertionWhenSupported(): void
+    {
+        $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_jwt']]);
+        $client->setClientId('cid');
+        $client->setClientSecret('csecret');
+        $client->setTokenUrl('https://issuer.example.com/token');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $before = time();
+
+        $newRequest = $method->invoke($client, $request);
+
+        $after = time();
+        $params = RequestUtil::getParams($newRequest);
+        $this->assertArrayHasKey('assertion', $params);
+        [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['assertion']);
+        $header = (array) json_decode((string) base64_decode($headerSegment), true);
+        $payload = (array) json_decode((string) base64_decode($payloadSegment), true);
+        $this->assertSame(['typ' => 'JWT', 'alg' => 'HS256'], $header);
+        $this->assertSame('cid', $payload['iss']);
+        $this->assertSame('cid', $payload['sub']);
+        $this->assertSame('https://issuer.example.com/token', $payload['aud']);
+        $this->assertNotSame('', $payload['jti']);
+        $this->assertGreaterThanOrEqual($before, $payload['iat']);
+        $this->assertLessThanOrEqual($after, $payload['iat']);
+        $this->assertSame($payload['iat'] + 3600, $payload['exp']);
+        $this->assertNotSame('', $signatureSegment);
+    }
+
+    public function testApplyClientCredentialsToRequestThrowsWhenNoSupportedAuthMethod(): void
+    {
+        $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['unsupported_method']]);
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage('Unable to authenticate request: No auth method supported');
+
+        $method->invoke($client, $request);
+    }
+
+    public function testDefaultReturnUrlIsProtectedAndStripsOidcSpecificQueryParams(): void
+    {
+        $client = $this->createClient();
+        $method = new \ReflectionMethod($client, 'defaultReturnUrl');
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/callback')
+            ->withQueryParams([
+                'code' => 'abc',
+                'state' => 'xyz',
+                'nonce' => 'n',
+                'authuser' => '0',
+                'session_state' => 's',
+                'prompt' => 'none',
+                'keep' => 'me',
+            ]);
+
+        $this->assertTrue($method->isProtected());
+        $url = $method->invoke($client, $request);
+
+        $this->assertSame('http://example.com/callback?keep=me', $url);
+    }
+
+    public function testCreateTokenSucceedsWhenNonceMatchesStoredAuthNonce(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+            'nonce' => 'known-nonce',
+        ]);
+        $client = $this->createClient(
+            ['claims_supported' => ['nonce']],
+            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        );
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'known-nonce');
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+        $this->assertNull((new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce'));
+    }
+
+    public function testCreateTokenThrowsOnNonceMismatch(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+            'nonce' => 'wrong-nonce',
+        ]);
+        $client = $this->createClient(
+            ['claims_supported' => ['nonce']],
+            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        );
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'expected-nonce');
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid auth nonce');
+        $this->expectExceptionCode(400);
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+    }
+
+    /**
+     * The 'nonce' JWS claim is cast to string before comparison. A non-string claim value (int here)
+     * would fail strcmp()'s strictly-typed `string` parameter if the cast were removed, throwing a
+     * TypeError instead of comparing successfully against the (matching) stored auth nonce.
+     */
+    public function testCreateTokenCastsJwsNonceClaimToStringBeforeComparison(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+            'nonce' => 12345,
+        ]);
+        $client = $this->createClient(
+            ['claims_supported' => ['nonce']],
+            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        );
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', '12345');
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+    }
+
+    /**
+     * The stored auth-nonce state value is cast to string before comparison. A non-string stored
+     * value (int here) would fail strcmp()'s strictly-typed `string` parameter if the cast were
+     * removed, throwing a TypeError instead of comparing successfully against the matching claim.
+     */
+    public function testCreateTokenCastsStoredAuthNonceToStringBeforeComparison(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+            'nonce' => '67890',
+        ]);
+        $client = $this->createClient(
+            ['claims_supported' => ['nonce']],
+            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+        );
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 67890);
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+    }
+
+    /**
+     * The three nonce-invalidity conditions are joined with ||, not &&: a present-but-empty nonce
+     * claim (isset() true) combined with a never-set auth-nonce state (empty() true) must still throw,
+     * even though strcmp() of two empty strings is itself 0. An && mutant on the first two operands
+     * would wrongly let this combination through since the third disjunct alone is false here.
+     */
+    public function testCreateTokenThrowsWhenAuthNonceMissingEvenIfClaimNonceIsEmptyString(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+            'nonce' => '',
+        ]);
+        $client = $this->createClient(['claims_supported' => ['nonce']]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid auth nonce');
+        $this->expectExceptionCode(400);
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+    }
+
+    public function testCreateTokenThrowsWhenJwkSetCannotBeResolved(): void
+    {
+        // A response shaped as a single JWK (has "kty", no "keys" wrapper) makes
+        // JWKFactory::createFromValues() return a plain JWK instead of a JWKSet,
+        // so getJwkSet() legitimately resolves to null instead of a usable set.
+        $capturedRequest = null;
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['kty' => 'oct', 'k' => 'c2VjcmV0']));
+            }
+        };
+        $client = $this->createClient([
+            'claims_supported' => [],
+            'jwks_uri' => 'https://issuer.example.com/jwks',
+        ], $httpClient);
+
+        try {
+            $this->invokeCreateToken($client, ['params' => ['id_token' => 'irrelevant.jws.value']]);
+            $this->fail('Expected ClientException was not thrown.');
+        } catch (ClientException $e) {
+            $this->assertSame('Loading JWS: Exception: JWK Set is not available.', $e->getMessage());
+            $this->assertSame(400, $e->getCode());
+        }
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('https://issuer.example.com/jwks', (string) $capturedRequest->getUri());
+    }
+
+    /**
+     * getJwkSet() reads its cache entry under `$this->configParamsCacheKeyPrefix . 'jwkSet'`
+     * ('config-params-jwkSet'). Pre-seeding the cache under exactly that key must produce a cache hit
+     * (no HTTP call); any mutation of the concatenation (order, dropped operand) would miss the cache
+     * and fall through to HTTP-based discovery instead.
+     */
+    public function testGetJwkSetReadsCacheUnderConfigParamsPrefixConcatenatedWithJwkSetSuffix(): void
+    {
+        $calledHttp = false;
+        $httpClient = new class ($calledHttp) implements ClientInterface {
+            public function __construct(private bool &$calledHttp)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->calledHttp = true;
+                return new \Nyholm\Psr7\Response(200, [], '{}');
+            }
+        };
+        $jwk = $this->createHmacJwk();
+        $client = $this->createClient(['claims_supported' => []], $httpClient);
+        $cache = (new \ReflectionProperty($client, 'cache'))->getValue($client);
+        $cache->set('config-params-jwkSet', new JWKSet([$jwk]));
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+        $this->assertFalse($calledHttp);
+    }
+
+    /**
+     * A freshly-discovered JWK set must be cached, so a second createToken() call (e.g. for a
+     * subsequent login) reuses it instead of re-fetching the JWKS endpoint over HTTP.
+     */
+    public function testGetJwkSetCachesFreshlyDiscoveredSetForSubsequentCalls(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $callCount = 0;
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturnCallback(function () use (&$callCount, $jwk): ResponseInterface {
+            $callCount++;
+            return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['keys' => [$jwk->jsonSerialize()]]));
+        });
+        $client = $this->createClient([
+            'claims_supported' => [],
+            'jwks_uri' => 'https://issuer.example.com/jwks',
+        ], $httpClient);
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame(1, $callCount);
+    }
+
+    public function testGetJwsLoaderThrowsForUnknownAlgorithmClass(): void
+    {
+        $client = $this->createClient();
+        (new \ReflectionProperty($client, 'allowedJwsAlgorithms'))->setValue($client, ['NOT_A_REAL_ALG']);
+        $method = new \ReflectionMethod($client, 'getJwsLoader');
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage("Algorithm class \\Jose\\Component\\Signature\\Algorithm\\NOT_A_REAL_ALG doesn't exist");
+
+        $method->invoke($client);
     }
 }

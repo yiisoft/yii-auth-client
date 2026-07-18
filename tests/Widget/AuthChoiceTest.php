@@ -16,12 +16,15 @@ use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
+use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Yiisoft\Yii\AuthClient\Tests\Data\TestAuthChoiceItem;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
 
 final class AuthChoiceTest extends TestCase
 {
@@ -502,4 +505,75 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('authchoice(el, )', $js);
     }
 
+    public function testInitEncodesNonEmptyClientOptionsAsJsonForJsInvocation(): void
+    {
+        $webView = new WebView();
+        $widget = (new \ReflectionClass(AuthChoice::class))->newInstanceWithoutConstructor();
+        (new ReflectionProperty($widget, 'assetManager'))->setValue($widget, $this->createAssetManager());
+        (new ReflectionProperty($widget, 'webView'))->setValue($widget, $webView);
+        (new ReflectionProperty($widget, 'clientOptions'))->setValue($widget, ['foo' => 'bar']);
+        (new ReflectionProperty($widget, 'options'))->setValue($widget, []);
+
+        ob_start();
+        $widget->init();
+        ob_end_clean();
+
+        $js = $this->getRegisteredJsScript($webView);
+        $this->assertNotNull($js);
+        $this->assertStringContainsString('authchoice(el, {"foo":"bar"})', $js);
+    }
+
+    public function testInitRegistersStyleAssetWhenPopupModeDisabled(): void
+    {
+        $assetManager = $this->createAssetManager();
+        $widget = (new \ReflectionClass(AuthChoice::class))->newInstanceWithoutConstructor();
+        (new ReflectionProperty($widget, 'assetManager'))->setValue($widget, $assetManager);
+        (new ReflectionProperty($widget, 'webView'))->setValue($widget, new WebView());
+        (new ReflectionProperty($widget, 'popupMode'))->setValue($widget, false);
+        (new ReflectionProperty($widget, 'options'))->setValue($widget, []);
+
+        ob_start();
+        $widget->init();
+        ob_end_clean();
+
+        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceStyleAsset::class));
+    }
+
+    public function testClientLinkThrowsWhenWidgetConfigMissingClassKey(): void
+    {
+        $client = $this->createTestClient();
+        (new ReflectionProperty($client, 'viewOptions'))->setValue($client, ['widget' => ['someOption' => 'value']]);
+        $widget = $this->createWidget(['test' => $client]);
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage('Widget config "class" parameter is missing');
+
+        $widget->clientLink($client);
+    }
+
+    public function testClientLinkThrowsWhenWidgetClassIsNotAuthChoiceItemSubclass(): void
+    {
+        $client = $this->createTestClient();
+        (new ReflectionProperty($client, 'viewOptions'))->setValue($client, ['widget' => ['class' => \stdClass::class]]);
+        $widget = $this->createWidget(['test' => $client]);
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
+
+        $widget->clientLink($client);
+    }
+
+    public function testClientLinkRendersConfiguredWidgetClassWithClientAndAuthChoice(): void
+    {
+        $client = $this->createTestClient();
+        // A plain object (not an array) here means clientLink() must actually apply the (array) cast
+        // to reach ['class' => ...]: without the cast, isset($object['class']) throws a TypeError.
+        (new ReflectionProperty($client, 'viewOptions'))
+            ->setValue($client, ['widget' => (object) ['class' => TestAuthChoiceItem::class]]);
+        $widget = $this->createWidget(['test' => $client]);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertSame('auth-choice-item:test', $html);
+    }
 }

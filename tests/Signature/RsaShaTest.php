@@ -86,4 +86,58 @@ final class RsaShaTest extends TestCase
 
         $signature->getPublicCertificate();
     }
+
+    public function testGetNameWithIntAlgorithmResolvesOpensslConstantName(): void
+    {
+        $signature = new RsaSha(OPENSSL_ALGO_SHA256);
+
+        $name = $signature->getName();
+
+        $this->assertSame('RSA-SHA256', $name);
+    }
+
+    public function testGetNameThrowsForUnrecognizedIntAlgorithm(): void
+    {
+        $signature = new RsaSha(999999);
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage("Unable to determine name of algorithm '999999'");
+
+        $signature->getName();
+    }
+
+    public function testGetPrivateCertificateReturnsEmptyStringWhenFileNotSet(): void
+    {
+        $signature = new RsaSha('SHA1');
+
+        $this->assertSame('', $signature->getPrivateCertificate());
+    }
+
+    public function testGetPrivateCertificateThrowsWhenFileCannotBeRead(): void
+    {
+        $unreadableFile = tempnam(sys_get_temp_dir(), 'rsasha-test-');
+        $this->assertNotFalse($unreadableFile);
+        chmod($unreadableFile, 0000);
+        try {
+            $signature = new RsaSha('SHA1');
+            $signature->setPrivateCertificateFile($unreadableFile);
+
+            $this->expectException(InvalidConfigException::class);
+            $this->expectExceptionMessage('Failed to fetch private certificate file');
+
+            @$signature->getPrivateCertificate();
+        } finally {
+            chmod($unreadableFile, 0644);
+            unlink($unreadableFile);
+        }
+    }
+
+    public function testVerifyReturnsFalseWhenPublicCertificateIsNotAValidKey(): void
+    {
+        $signature = new RsaSha('SHA1');
+
+        $isValid = @$signature->verify('signature', 'base-string', 'unused');
+
+        $this->assertFalse($isValid);
+    }
 }

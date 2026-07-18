@@ -213,6 +213,57 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
     }
 
+    public function testFetchAccessTokenThrowsWhenAuthStateWasNeverGenerated(): void
+    {
+        $client = $this->createTestClient();
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => '']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenHandlesArrayValuedParameterRecursively(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&scope[]=read&scope[]=write&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame(['read', 'write'], $token->getParam('scope'));
+    }
+
+    /**
+     * A dotted/underscored key collision inside a nested array element must be resolved the same way
+     * it is at the top level: sanitizeKeys() recurses into array values to restore and de-collide their
+     * keys, not just the outer array's own keys.
+     */
+    public function testFetchAccessTokenResolvesNestedArrayKeyCollisionViaRecursion(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&scope[a.b]=1&scope[a_b]=2&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $scope = $token->getParam('scope');
+        $this->assertIsArray($scope);
+        $this->assertSame('1', $scope['a.b']);
+        $this->assertSame('2', $scope['a_b']);
+    }
+
     public function testFetchAccessTokenSucceedsWhenIncomingStateMatches(): void
     {
         $httpClient = $this->httpClientReturning(new Response(200, [], 'access_token=abc123&expires_in=3600'));
@@ -249,6 +300,276 @@ final class OAuth2Test extends TestCase
         ]);
 
         $this->assertSame('pkce-token', $token->getToken());
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierThrowsWhenIncomingStateIsMissing(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierThrowsWhenIncomingStateDoesNotMatch(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => 'wrong-state']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierThrowsWhenAuthStateWasNeverGenerated(): void
+    {
+        $client = $this->createTestClient();
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => '']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierSucceedsWhenIncomingStateMatches(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+        );
+        $client = $this->createClient($httpClient);
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('secret');
+        $client->setTokenUrl('http://token.local');
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $authUrlParams);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => $authUrlParams['state']]);
+
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+
+        $this->assertSame('pkce-token', $token->getToken());
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierQueryStateTakesPriorityOverBodyState(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+        );
+        $client = $this->createClient($httpClient);
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('secret');
+        $client->setTokenUrl('http://token.local');
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $authUrlParams);
+        // Correct state is in the query; body carries a different, wrong value.
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => $authUrlParams['state']])
+            ->withParsedBody(['state' => 'wrong-body-state']);
+
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+
+        $this->assertSame('pkce-token', $token->getToken());
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierRemovesAuthStateAfterSuccess(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+        );
+        $client = $this->createClient($httpClient);
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('secret');
+        $client->setTokenUrl('http://token.local');
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $authUrlParams);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => $authUrlParams['state']]);
+
+        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code');
+
+        $this->assertNull($client->getSessionAuthState());
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierReturnsEmptyTokenWhenHttpClientThrows(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                throw new \RuntimeException('network failure');
+            }
+        };
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
+
+        $this->assertSame([], $token->getParams());
+    }
+
+    public function testGetClientIdAndGetClientSecretReturnConfiguredValues(): void
+    {
+        $client = $this->getMockBuilder(OAuth2::class)
+            ->setConstructorArgs([
+                $this->createStub(ClientInterface::class),
+                new Psr17Factory(),
+                new SessionStateStorage(new Session()),
+                new YiisoftFactory(),
+                new Session(),
+            ])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass'])
+            ->getMock();
+        $client->setClientId('client-id-value');
+        $client->setClientSecret('client-secret-value');
+
+        $this->assertSame('client-id-value', $client->getClientId());
+        $this->assertSame('client-secret-value', $client->getClientSecret());
+    }
+
+    /**
+     * fetchCurrentUserJsonArray() must stay protected so subclasses (e.g. GitHub, Google) can call it;
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testFetchCurrentUserJsonArrayIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void
+    {
+        $client = $this->createTestClient();
+        $token = new OAuthToken();
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame([], $method->invoke($client, $token, 'http://api.test.local/user'));
+    }
+
+    /**
+     * getParam('access_token') is cast to string before the `=== ''` check. Without the cast, a
+     * missing access_token param (null) would fail `null === ''` and fall through to actually send
+     * a request, instead of short-circuiting to the empty array below.
+     */
+    public function testFetchCurrentUserJsonArrayDoesNotSendRequestWithoutAccessToken(): void
+    {
+        $callCount = 0;
+        $httpClient = new class ($callCount) implements ClientInterface {
+            public function __construct(private int &$callCount)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->callCount++;
+                return new Response(200, [], '{}');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $result = $method->invoke($client, $token, 'http://api.test.local/user');
+
+        $this->assertSame([], $result);
+        $this->assertSame(0, $callCount);
+    }
+
+    public function testFetchCurrentUserJsonArrayCastsScalarJsonResponseToArray(): void
+    {
+        $httpClient = $this->httpClientReturning(new Response(200, [], '5'));
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $result = $method->invoke($client, $token, 'http://api.test.local/user');
+
+        $this->assertSame([5], $result);
+    }
+
+    public function testFetchCurrentUserJsonArrayReturnsDecodedBodyWithAuthorizationHeader(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['login' => 'octocat'])),
+            $capturedRequest
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $result = $method->invoke($client, $token, 'http://api.test.local/user');
+
+        $this->assertSame(['login' => 'octocat'], $result);
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('Bearer abc123', $capturedRequest->getHeaderLine('Authorization'));
+    }
+
+    public function testFetchCurrentUserJsonArrayUsesCustomAuthSchemeAndMergesHeaders(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['id' => 1])),
+            $capturedRequest
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $method->invoke($client, $token, 'http://api.test.local/user', ['X-Extra' => 'yes'], 'OAuth');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('OAuth abc123', $capturedRequest->getHeaderLine('Authorization'));
+        $this->assertSame('yes', $capturedRequest->getHeaderLine('X-Extra'));
+    }
+
+    public function testFetchCurrentUserJsonArrayReturnsEmptyArrayOnEmptyResponseBody(): void
+    {
+        $httpClient = $this->httpClientReturning(new Response(200, [], ''));
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $this->assertSame([], $method->invoke($client, $token, 'http://api.test.local/user'));
+    }
+
+    public function testFetchCurrentUserJsonArrayReturnsEmptyArrayWhenHttpClientThrows(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                throw new \RuntimeException('network failure');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $this->assertSame([], $method->invoke($client, $token, 'http://api.test.local/user'));
     }
 
     public function testRefreshAccessTokenReturnsNewToken(): void

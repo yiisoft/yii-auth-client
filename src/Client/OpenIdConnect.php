@@ -169,7 +169,7 @@ final class OpenIdConnect extends OAuth2
     public function getConfigParam(string $name): mixed
     {
         $params = $this->getConfigParams();
-        return $params[$name];
+        return $params[$name] ?? null;
     }
 
     /**
@@ -411,7 +411,7 @@ final class OpenIdConnect extends OAuth2
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $params = (array) $tokenConfig['params'];
-        $idToken = (string) $params['id_token'];
+        $idToken = (string) ($params['id_token'] ?? '');
         if ($this->validateJws) {
             $jwsData = $this->loadJws($idToken);
             $this->validateClaims($jwsData);

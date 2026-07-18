@@ -188,6 +188,54 @@ final class OAuthTest extends TestCase
         $this->assertSame('', $client->getScope());
     }
 
+    public function testSetYiisoftFactoryReplacesFactoryUsedByGetYiisoftFactory(): void
+    {
+        $client = $this->createClient();
+        $newFactory = new YiisoftFactory();
+
+        $client->setYiisoftFactory($newFactory);
+
+        $this->assertSame($newFactory, $client->getYiisoftFactory());
+    }
+
+    public function testApiWithStringDataWritesItToRequestBody(): void
+    {
+        $capturedRequest = null;
+        $httpClient = new class ($capturedRequest) implements ClientInterface {
+            public function __construct(private ?RequestInterface &$capturedRequest)
+            {
+            }
+
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return new Response(200, [], '{}');
+            }
+        };
+        $client = $this->createClient($httpClient);
+        $client->setAccessToken(['params' => ['access_token' => 'abc123', 'expires_in' => 3600]]);
+
+        $client->api('/user', 'POST', 'raw body content');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('raw body content', (string) $capturedRequest->getBody());
+    }
+
+    /**
+     * defaultReturnUrl() must stay protected so subclasses (e.g. OAuth2) can override it;
+     * OAuth2 does override it, so a bare OAuth mock is needed to exercise the base implementation.
+     */
+    public function testDefaultReturnUrlIsProtectedAndCastsUriToString(): void
+    {
+        $client = $this->createBareOAuthClient();
+        $method = new ReflectionMethod($client, 'defaultReturnUrl');
+        $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/bare-callback');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame('http://example.com/bare-callback', $method->invoke($client, $request));
+    }
+
     public function testApiWithNonEmptyArrayDataAddsRequestParams(): void
     {
         $capturedRequest = null;

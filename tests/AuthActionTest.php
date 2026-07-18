@@ -19,6 +19,7 @@ use Yiisoft\Yii\AuthClient\AuthAction;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
@@ -360,6 +361,125 @@ final class AuthActionTest extends TestCase
 
         $this->assertSame(301, $response->getStatusCode());
         $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+    }
+
+    public function testProcessThrowsNotSupportedExceptionForNonOAuth2Client(): void
+    {
+        $client = new class implements AuthClientInterface {
+            #[\Override]
+            public function getName(): string
+            {
+                return 'not-oauth2';
+            }
+
+            #[\Override]
+            public function getTitle(): string
+            {
+                return 'Not OAuth2';
+            }
+
+            #[\Override]
+            public function getViewOptions(): array
+            {
+                return [];
+            }
+
+            #[\Override]
+            public function getButtonClass(): string
+            {
+                return '';
+            }
+
+            #[\Override]
+            public function getClientId(): string
+            {
+                return '';
+            }
+
+            #[\Override]
+            public function buildAuthUrl(\Psr\Http\Message\ServerRequestInterface $incomingRequest, array $params): string
+            {
+                return '';
+            }
+        };
+        $action = $this->createAction(new Collection([]));
+        $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/auth');
+
+        $this->expectException(NotSupportedException::class);
+        $this->expectExceptionMessage('Provider "' . $client::class . '" is not supported.');
+
+        (new \ReflectionMethod($action, 'auth'))->invoke($action, $client, $request);
+    }
+
+    public function testRedirectResolvesRedirectViewThroughAliases(): void
+    {
+        $client = $this->createTestClient();
+        $action = new AuthAction(
+            new Collection(['test' => $client]),
+            new Aliases(['@app' => dirname(__DIR__) . '/resources']),
+            new WebView(),
+            new Psr17Factory(),
+        );
+        $action = $action->withCancelUrl('http://cancel.local');
+        $this->setCallback($action, 'cancelCallback', fn () => null);
+        (new ReflectionProperty($action, 'redirectView'))->setValue($action, '@app/views/redirect.php');
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['error' => 'access_denied']);
+
+        $response = $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertStringContainsString('http://cancel.local', (string) $response->getBody());
+    }
+
+    public function testProcessThrowsWhenSuccessCallbackNotConfigured(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $action = $this->createAction(new Collection(['test' => $client]));
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['code' => 'auth-code']);
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage('"' . AuthAction::class . '::$successCallback" should be a valid callback.');
+
+        $action->process($request, $this->createRequestHandlerStub());
+    }
+
+    public function testProcessReturnsSuccessCallbackResponseDirectly(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $action = $this->createAction(new Collection(['test' => $client]));
+        $customResponse = (new Psr17Factory())->createResponse(418);
+        $this->setCallback($action, 'successCallback', fn () => $customResponse);
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['code' => 'auth-code']);
+
+        $response = $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertSame($customResponse, $response);
     }
 
     public function testProcessCastsErrorMessageToStringBeforeElvisCheck(): void

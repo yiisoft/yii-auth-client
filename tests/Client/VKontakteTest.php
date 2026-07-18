@@ -271,6 +271,66 @@ final class VKontakteTest extends ProviderClientTestCase
         ], $body);
     }
 
+    public function testStep6ReturnsErrorArrayWhenHttpClientThrows(): void
+    {
+        $client = $this->createVKontakteClient();
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                throw new \RuntimeException('network failure');
+            }
+        };
+        $requestFactory = new Psr17Factory();
+
+        $result = $client->step6GettingNewAccessTokenAfterPreviousExpires(
+            'refresh-token',
+            'client-id',
+            'device-id',
+            'state',
+            $httpClient,
+            $requestFactory
+        );
+
+        $this->assertSame(['error' => 'Exception: network failure'], $result);
+    }
+
+    public function testStep7ReturnsEmptyArrayWhenHttpClientThrows(): void
+    {
+        $client = $this->createVKontakteClient();
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'the-token');
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                throw new \RuntimeException('network failure');
+            }
+        };
+        $requestFactory = new Psr17Factory();
+
+        $result = $client->step7TokenInvalidationWithClientId($token, 'client-id', $httpClient, $requestFactory);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testStep9ReturnsEmptyArrayWhenHttpClientThrows(): void
+    {
+        $client = $this->createVKontakteClient();
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                throw new \RuntimeException('network failure');
+            }
+        };
+        $requestFactory = new Psr17Factory();
+
+        $result = $client->step9GetPublicUserDataArrayWithClientId('client-id', '123', $httpClient, $requestFactory);
+
+        $this->assertSame([], $result);
+    }
+
     public function testStep6ReturnsExactErrorMessageOnFailureStatus(): void
     {
         $client = $this->createVKontakteClient();

@@ -45,6 +45,36 @@ final class AuthClientTest extends TestCase
         $this->assertInstanceOf(RequestInterface::class, $request);
     }
 
+    public function testSetRequestFactoryReplacesFactoryUsedByGetRequestFactory(): void
+    {
+        $client = $this->createClient();
+        $newFactory = new Psr17Factory();
+
+        $client->setRequestFactory($newFactory);
+
+        $this->assertSame($newFactory, $client->getRequestFactory());
+    }
+
+    public function testGetNormalizeUserAttributeMapFallsBackToDefaultWhenEmpty(): void
+    {
+        $client = $this->createClient();
+
+        $this->assertSame([], $client->getNormalizeUserAttributeMap());
+    }
+
+    /**
+     * defaultNormalizeUserAttributeMap() must stay protected so subclasses can override it;
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testDefaultNormalizeUserAttributeMapIsProtectedAndReturnsEmptyArray(): void
+    {
+        $client = $this->createClient();
+        $method = new ReflectionMethod($client, 'defaultNormalizeUserAttributeMap');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame([], $method->invoke($client));
+    }
+
     /**
      * defaultViewOptions() must stay protected so subclasses (e.g. Google, GitHub) can override it;
      * the return value alone can't distinguish protected from private, so this also asserts visibility.
