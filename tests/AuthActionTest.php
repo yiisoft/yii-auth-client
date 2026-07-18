@@ -194,6 +194,65 @@ final class AuthActionTest extends TestCase
         $this->assertStringContainsString('http://success.local', (string) $response->getBody());
     }
 
+    public function testProcessInvokesCallbackConfiguredViaWithSuccessCallback(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $receivedClient = null;
+        $action = $this->createAction(new Collection(['test' => $client]))
+            ->withSuccessUrl('http://success.local')
+            ->withSuccessCallback(function (AuthClientInterface $c) use (&$receivedClient) {
+                $receivedClient = $c;
+                return null;
+            });
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['code' => 'auth-code']);
+
+        $response = $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertSame($client, $receivedClient);
+        $this->assertStringContainsString('http://success.local', (string) $response->getBody());
+    }
+
+    public function testProcessInvokesCallbackConfiguredViaWithCancelCallback(): void
+    {
+        $httpClient = new class implements ClientInterface {
+            #[\Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return new Response(200, [], 'token_type=bearer');
+            }
+        };
+        $client = $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $cancelCallbackInvoked = false;
+        $action = $this->createAction(new Collection(['test' => $client]))
+            ->withCancelUrl('http://cancel.local')
+            ->withCancelCallback(function () use (&$cancelCallbackInvoked) {
+                $cancelCallbackInvoked = true;
+                return null;
+            });
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['code' => 'auth-code']);
+
+        $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertTrue($cancelCallbackInvoked);
+    }
+
     public function testProcessCancelsWhenTokenExchangeYieldsNoToken(): void
     {
         $httpClient = new class implements ClientInterface {
@@ -238,6 +297,24 @@ final class AuthActionTest extends TestCase
         $withUrl = $action->withCancelUrl('http://cancel.local');
 
         $this->assertNotSame($action, $withUrl);
+    }
+
+    public function testWithSuccessCallbackReturnsNewInstanceWithoutMutatingOriginal(): void
+    {
+        $action = $this->createAction(new Collection([]));
+
+        $withCallback = $action->withSuccessCallback(fn () => null);
+
+        $this->assertNotSame($action, $withCallback);
+    }
+
+    public function testWithCancelCallbackReturnsNewInstanceWithoutMutatingOriginal(): void
+    {
+        $action = $this->createAction(new Collection([]));
+
+        $withCallback = $action->withCancelCallback(fn () => null);
+
+        $this->assertNotSame($action, $withCallback);
     }
 
     public function testProcessHandlesNonStringErrorQueryParamWithoutCrashing(): void
