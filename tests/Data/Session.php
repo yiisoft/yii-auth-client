@@ -97,9 +97,6 @@ class Session implements SessionInterface
     #[\Override]
     public function pull(string $key, $default = '')
     {
-        /**
-         * @psalm-suppress MixedAssignment
-         */
         $value = $this->data[$key] ?? $default;
         $this->remove($key);
         return $value;

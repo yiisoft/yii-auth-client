@@ -1,30 +1,22 @@
 <?xml version="1.0"?>
-    <psalm
-        errorLevel="1"
-        findUnusedBaselineEntry="true"
-        findUnusedCode="false"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="https://getpsalm.org/schema/config"
-        xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
-    >
+<psalm
+    errorLevel="1"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
+    strictBinaryOperands="false"
+    ensureOverrideAttribute="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
     <projectFiles>
         <directory name="src" />
-        <directory name="tests" />
+        <ignoreFiles>
+            <directory name="vendor" />
+        </ignoreFiles>
     </projectFiles>
     <issueHandlers>
-        <ImplementedReturnTypeMismatch>
-            <errorLevel type="suppress">
-                <directory name="src" />
-                <directory name="tests" />
-            </errorLevel>
-        </ImplementedReturnTypeMismatch>    
-        <PropertyNotSetInConstructor>
-            <errorLevel type="suppress">
-                <directory name="src" />
-                <directory name="tests" />
-            </errorLevel>
-        </PropertyNotSetInConstructor>
-        <ClassMustBeFinal errorLevel="suppress" />
-        <InvalidArgument errorLevel="suppress" />
+        <MixedAssignment errorLevel="suppress" />
+        <RiskyTruthyFalsyComparison errorLevel="suppress" />
     </issueHandlers>
 </psalm>

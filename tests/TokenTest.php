@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
 class TokenTest extends TestCase
@@ -102,5 +103,50 @@ class TokenTest extends TestCase
         $key = $oauthToken->getExpireDurationParamKey();
 
         $this->assertSame('custom_expiry', $key);
+    }
+
+    /**
+     * tokenSecretParamKey has no public setter and is never reassigned, so it's always the truthy
+     * default 'oauth_token_secret' through the public API — meaning `?:` and an inverted `? :` are
+     * indistinguishable via any reachable call. Reflection forces a different (still truthy) value to
+     * prove getTokenSecret() actually reads the property rather than a hardcoded literal.
+     */
+    public function testGetTokenSecretUsesConfiguredParamKeyOverLiteralDefault(): void
+    {
+        $oauthToken = new OAuthToken();
+        (new ReflectionProperty($oauthToken, 'tokenSecretParamKey'))->setValue($oauthToken, 'custom_secret_key');
+        $oauthToken->setParam('custom_secret_key', 'shh');
+
+        $this->assertSame('shh', $oauthToken->getTokenSecret());
+    }
+
+    /**
+     * Same rationale as {@see testGetTokenSecretUsesConfiguredParamKeyOverLiteralDefault()}, for the
+     * write side.
+     */
+    public function testSetTokenSecretUsesConfiguredParamKeyOverLiteralDefault(): void
+    {
+        $oauthToken = new OAuthToken();
+        (new ReflectionProperty($oauthToken, 'tokenSecretParamKey'))->setValue($oauthToken, 'custom_secret_key');
+
+        $oauthToken->setTokenSecret('shh');
+
+        $this->assertSame('shh', $oauthToken->getParam('custom_secret_key'));
+        $this->assertNull($oauthToken->getParam('oauth_token_secret'));
+    }
+
+    /**
+     * getExpireDuration() is `mixed` and can return a non-numeric string (e.g. a malformed
+     * "expires_in" from a provider response). The (int) cast turns that into 0 (immediately expired)
+     * rather than letting it reach `+` in getIsExpired(), which throws a TypeError on a non-numeric
+     * string operand.
+     */
+    public function testGetIsExpiredCastsNonNumericExpireDurationToZero(): void
+    {
+        $oauthToken = new OAuthToken();
+        $oauthToken->setToken('abc123');
+        $oauthToken->setParam('expires_in', 'not-a-number');
+
+        $this->assertTrue($oauthToken->getIsExpired());
     }
 }

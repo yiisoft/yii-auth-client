@@ -322,4 +322,58 @@ final class AuthActionTest extends TestCase
 
         $this->assertStringContainsString('false', (string) $response->getBody());
     }
+
+    public function testSuccessRedirectEnforcesRedirectByDefault(): void
+    {
+        $action = $this->createAction(new Collection([]))->withSuccessUrl('http://success.local');
+
+        $response = (new \ReflectionMethod($action, 'redirectSuccess'))->invoke($action);
+
+        $this->assertStringContainsString('true);', (string) $response->getBody());
+    }
+
+    public function testProcessRedirectsToAuthUrlWhenErrorQueryParamIsEmptyString(): void
+    {
+        $client = $this->createTestClient();
+        $action = $this->createAction(new Collection(['test' => $client]));
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['error' => '']);
+
+        $response = $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertSame(301, $response->getStatusCode());
+        $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+    }
+
+    public function testProcessRedirectsToAuthUrlWhenCodeQueryParamIsEmptyString(): void
+    {
+        $client = $this->createTestClient();
+        $action = $this->createAction(new Collection(['test' => $client]));
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['code' => '']);
+
+        $response = $action->process($request, $this->createRequestHandlerStub());
+
+        $this->assertSame(301, $response->getStatusCode());
+        $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+    }
+
+    public function testProcessCastsErrorMessageToStringBeforeElvisCheck(): void
+    {
+        $client = $this->createTestClient();
+        $action = $this->createAction(new Collection(['test' => $client]));
+        $request = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://example.com/auth')
+            ->withAttribute('authclient', 'test')
+            ->withQueryParams(['error' => 'invalid_request', 'error_message' => -0.0]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Auth error: -0');
+
+        $action->process($request, $this->createRequestHandlerStub());
+    }
 }

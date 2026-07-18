@@ -44,7 +44,7 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @var array $viewOptions view options in format: optionName => optionValue
      */
-    protected array $viewOptions;
+    protected array $viewOptions = [];
 
     public function __construct(
         protected PsrClientInterface $httpClient,

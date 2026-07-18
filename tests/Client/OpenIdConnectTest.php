@@ -411,4 +411,172 @@ final class OpenIdConnectTest extends TestCase
 
         $this->assertSame('user-1', $token->getParam('sub'));
     }
+
+    /**
+     * The cached value is cast to array before the empty() check. A non-empty scalar is truthy either
+     * way, but (array) wraps a scalar into a single-element array, while an uncast scalar would flow
+     * straight into {@see OpenIdConnect::$configParams}, which is typed `array`.
+     */
+    public function testGetConfigParamsCastsCachedValueToArray(): void
+    {
+        $cache = new \Yiisoft\Cache\ArrayCache();
+        $cache->set('config-params-oidc', 'not-an-array');
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'oidc',
+            'OIDC',
+        );
+
+        $params = $client->getConfigParams();
+
+        $this->assertSame(['not-an-array'], $params);
+    }
+
+    public function testGetConfigParamsPersistsDiscoveredConfigToCacheForOtherInstances(): void
+    {
+        $cache = new \Yiisoft\Cache\ArrayCache();
+        $httpClient = $this->createStub(ClientInterface::class);
+        $callCount = 0;
+        $httpClient
+            ->method('sendRequest')
+            ->willReturnCallback(function () use (&$callCount): ResponseInterface {
+                $callCount++;
+                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['authorization_endpoint' => 'https://issuer.example.com/authorize']));
+            });
+        $firstClient = new OpenIdConnect(
+            $httpClient,
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'oidc',
+            'OIDC',
+        );
+        $firstClient->setIssuerUrl(self::ISSUER_URL);
+        $secondClient = new OpenIdConnect(
+            $httpClient,
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'oidc',
+            'OIDC',
+        );
+        $secondClient->setIssuerUrl(self::ISSUER_URL);
+
+        $firstClient->getConfigParams();
+        $secondClient->getConfigParams();
+
+        $this->assertSame(1, $callCount);
+    }
+
+    /**
+     * tokenConfig['params'] is cast to array before being read from and merged into. An object with
+     * a public `id_token` property casts cleanly to an array; without the cast, plain array access on
+     * an object that doesn't implement ArrayAccess is a fatal TypeError.
+     */
+    public function testCreateTokenCastsParamsToArrayBeforeAccessingIdToken(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $token = $this->invokeCreateToken($client, ['params' => (object) ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+    }
+
+    /**
+     * id_token is cast to string before being passed to loadJws(), which is typed `string`. An int
+     * value would trigger a TypeError from loadJws() itself if the cast were removed, instead of the
+     * ClientException that loadJws() throws internally for a malformed (but string) JWS.
+     */
+    public function testCreateTokenCastsIdTokenToStringBeforeLoadingJws(): void
+    {
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([]));
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Loading JWS: Exception:');
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => 12345]]);
+    }
+
+    public function testCreateTokenThrowsLoadingJwsExceptionMessageWithOriginalMessageAppended(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+        $parts = explode('.', $idToken);
+        $parts[2] = strrev($parts[2]);
+        $tamperedIdToken = implode('.', $parts);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $this->expectException(ClientException::class);
+        // Must start with the static prefix AND have the underlying exception message appended after
+        // it, ruling out both a reversed concatenation and a dropped operand.
+        $this->expectExceptionMessageMatches('/^Loading JWS: Exception: .+/');
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $tamperedIdToken]]);
+    }
+
+    /**
+     * "iss" is cast to string before being passed to rtrim(), which is typed `string`. A non-string
+     * claim value would trigger a TypeError from rtrim() itself if the cast were removed, instead of
+     * the ClientException the code is meant to throw for a genuinely mismatched issuer.
+     */
+    public function testCreateTokenCastsIssuerClaimToStringBeforeComparison(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => 12345,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid "iss"');
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+    }
+
+    /**
+     * {@see OpenIdConnect::setIssuerUrl()} always strips a trailing slash, so under normal usage
+     * $issuerUrl never has one. The rtrim() in validateClaims() defends against that invariant being
+     * bypassed (e.g. a differently-configured subclass), so the property is forced via reflection here.
+     */
+    public function testCreateTokenTrimsTrailingSlashFromIssuerUrlBeforeComparison(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => self::CLIENT_ID,
+            'sub' => 'user-1',
+        ]);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+        (new \ReflectionProperty($client, 'issuerUrl'))->setValue($client, self::ISSUER_URL . '/');
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+    }
 }

@@ -34,7 +34,6 @@ abstract class ProviderClientTestCase extends TestCase
      */
     protected function instantiate(string $class): OAuth2
     {
-        /** @psalm-suppress UnsafeInstantiation all provider clients use the inherited OAuth2 constructor as-is */
         return new $class(
             $this->createStub(ClientInterface::class),
             $this->createStub(RequestFactoryInterface::class),

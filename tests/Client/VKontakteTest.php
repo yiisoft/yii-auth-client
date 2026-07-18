@@ -167,6 +167,42 @@ final class VKontakteTest extends ProviderClientTestCase
         $this->assertSame(['user' => ['user_id' => '123']], $result);
     }
 
+    /**
+     * An empty response body must return [] without ever calling json_decode(): decoding an empty
+     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
+     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
+     * (both branches ultimately return []).
+     */
+    public function testStep8ObtainingUserDataDoesNotDecodeEmptyResponseBody(): void
+    {
+        $client = $this->createVKontakteClient();
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'the-token');
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], ''));
+        $requestFactory = new Psr17Factory();
+        json_decode('null'); // reset json_last_error() to JSON_ERROR_NONE
+
+        $result = $client->step8ObtainingUserDataArrayWithClientId($token, 'client-id', $httpClient, $requestFactory);
+
+        $this->assertSame([], $result);
+        $this->assertSame(JSON_ERROR_NONE, json_last_error());
+    }
+
+    public function testStep9GetPublicUserDataDoesNotDecodeEmptyResponseBody(): void
+    {
+        $client = $this->createVKontakteClient();
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], ''));
+        $requestFactory = new Psr17Factory();
+        json_decode('null'); // reset json_last_error() to JSON_ERROR_NONE
+
+        $result = $client->step9GetPublicUserDataArrayWithClientId('client-id', '123', $httpClient, $requestFactory);
+
+        $this->assertSame([], $result);
+        $this->assertSame(JSON_ERROR_NONE, json_last_error());
+    }
+
     public function testStep6ReturnsErrorArrayOnFailureStatus(): void
     {
         $client = $this->createVKontakteClient();

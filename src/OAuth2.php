@@ -30,12 +30,12 @@ abstract class OAuth2 extends OAuth
     /**
      * @var string OAuth client secret.
      */
-    protected string $clientSecret;
+    protected string $clientSecret = '';
     /**
      * @var string token request URL endpoint.
      * @see e.g. 'https://github.com/login/oauth/access_token'
      */
-    protected string $tokenUrl;
+    protected string $tokenUrl = '';
 
     protected string $returnUrl = '';
 
@@ -114,11 +114,13 @@ abstract class OAuth2 extends OAuth
     }
 
     /**
-     * Generates the auth state value.
+     * Builds the seed string used by {@see generateAuthState()}. Extracted into its own method so the
+     * seed's composition can be tested directly, since the final hashed/uniqid()-mixed auth state value
+     * is opaque and can't reveal how its input was assembled.
      *
-     * @return string auth state value.
+     * @return string auth state seed.
      */
-    protected function generateAuthState(): string
+    protected function generateAuthStateBaseString(): string
     {
         $baseString = static::class . '-' . time();
         $sessionId = $this->session->getId();
@@ -127,7 +129,17 @@ abstract class OAuth2 extends OAuth
                 $baseString .= '-' . $sessionId;
             }
         }
-        return hash('sha256', uniqid($baseString, true));
+        return $baseString;
+    }
+
+    /**
+     * Generates the auth state value.
+     *
+     * @return string auth state value.
+     */
+    protected function generateAuthState(): string
+    {
+        return hash('sha256', uniqid($this->generateAuthStateBaseString(), true));
     }
 
     /**
@@ -146,7 +158,8 @@ abstract class OAuth2 extends OAuth
     ): OAuthToken {
         if ($this->validateAuthState) {
             /**
-             * @psalm-suppress MixedAssignment
+             * @var string|null $authState 'authState' is only ever written by
+             * {@see buildAuthUrl()} with the string returned from {@see generateAuthState()}.
              */
             $authState = $this->getState('authState');
             $queryParams = $incomingRequest->getQueryParams();
@@ -203,7 +216,8 @@ abstract class OAuth2 extends OAuth
     ): OAuthToken {
         if ($this->validateAuthState) {
             /**
-             * @psalm-suppress MixedAssignment
+             * @var string|null $authState 'authState' is only ever written by
+             * {@see buildAuthUrl()} with the string returned from {@see generateAuthState()}.
              */
             $authState = $this->getState('authState');
 
@@ -472,12 +486,15 @@ abstract class OAuth2 extends OAuth
 
             if (str_contains($newkey, '_')) {
                 // periode of space or [ or ] converted to _. Restore with querystring
+                // $key is guaranteed to be a string here: an int key never contains '_'.
+                /** @var string $key */
                 $regex = '/&(' . str_replace('_', '[ \.\[\]]', preg_quote($newkey, '/')) . ')=/';
                 $matches = null ;
-                if (preg_match_all($regex, '&' . urldecode($querystr), $matches) > 0) {
-                    if (count(array_unique($matches[1])) === 1 && (string)$key != $matches[1][0]) {
-                        $newkey = $matches[1][0] ;
-                    }
+                preg_match_all($regex, '&' . urldecode($querystr), $matches);
+                $candidateKeys = array_unique($matches[1]);
+                $candidateKey = reset($candidateKeys);
+                if (count($candidateKeys) === 1 && $key != $candidateKey) {
+                    $newkey = $candidateKey ;
                 }
             }
 
@@ -489,9 +506,7 @@ abstract class OAuth2 extends OAuth
             }
 
             if (is_array($val)) {
-                /**
-                 * @psalm-suppress MixedArgument $arr[$newkey]
-                 */
+                /** @var array $arr[$newkey] */
                 $this->sanitizeKeys($arr[$newkey], $querystr);
             }
         }

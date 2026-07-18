@@ -29,11 +29,11 @@ abstract class OAuth extends AuthClient
      * This field will be used as {@see UriInterface::getPath()}} value of {@see httpClient}.
      * Note: changing this property will take no effect after {@see httpClient} is instantiated.
      */
-    protected string $endpoint;
+    protected string $endpoint = '';
     /**
      * @var string authorize URL.
      */
-    protected string $authUrl;
+    protected string $authUrl = '';
     /**
      * @var string string auth request scope.
      */
@@ -153,7 +153,7 @@ abstract class OAuth extends AuthClient
         if ($response->getStatusCode() !== 200) {
             throw new InvalidResponseException(
                 $response,
-                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . (string)$response->getBody()
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
             );
         }
 
@@ -207,17 +207,8 @@ abstract class OAuth extends AuthClient
     public function setAccessToken(array|OAuthToken $token): void
     {
         if (is_array($token) && !empty($token)) {
-            /**
-             * @psalm-suppress MixedAssignment $newToken
-             */
             $newToken = $this->createToken($token);
-            /**
-             * @psalm-suppress MixedAssignment $this->accessToken
-             */
             $this->accessToken = $newToken;
-            /**
-             * @psalm-suppress MixedArgument $newToken
-             */
             $this->saveAccessToken($newToken);
         }
         if ($token instanceof OAuthToken) {
@@ -233,9 +224,6 @@ abstract class OAuth extends AuthClient
      */
     protected function restoreAccessToken(): ?OAuthToken
     {
-        /**
-         * @psalm-suppress MixedAssignment $token
-         */
         if (($token = $this->getState('token')) instanceof OAuthToken) {
             if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
                 return $this->refreshAccessToken($token);
@@ -272,8 +260,6 @@ abstract class OAuth extends AuthClient
      *
      * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
      * @see Yiisoft\Factory\Factory
-     * @psalm-suppress MixedReturnStatement
-     * @psalm-suppress MixedInferredReturnType OAuthToken
      */
     protected function createToken(array $tokenConfig): OAuthToken
     {
@@ -321,7 +307,7 @@ abstract class OAuth extends AuthClient
     /**
      * @return string
      *
-     * @psalm-return ''
+     * @psalm-return string
      */
     protected function getDefaultScope(): string
     {

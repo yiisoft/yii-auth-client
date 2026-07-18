@@ -9,7 +9,7 @@ use Yiisoft\Assets\AssetBundle;
 /**
  * AuthChoiceAsset is an asset bundle for {@see AuthChoice} widget.
  */
-class AuthChoiceStyleAsset extends AssetBundle
+final class AuthChoiceStyleAsset extends AssetBundle
 {
     public ?string $basePath = '@assets';
 
@@ -17,9 +17,7 @@ class AuthChoiceStyleAsset extends AssetBundle
 
     public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
 
-    /**
-     * @psalm-suppress NonInvariantDocblockPropertyType $css
-     */
+    /** @var array */
     public array $css = [
         'authchoice.css',
     ];

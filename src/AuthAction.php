@@ -78,9 +78,9 @@ final class AuthAction implements MiddlewareInterface
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see successUrl} will be performed.
      *
-     * @var callable
+     * @var callable|null
      */
-    private $successCallback;
+    private $successCallback = null;
     /**
      * @psalm-param TCallableString $cancelCallback PHP callback, which should be triggered in case of authentication cancellation.
      *
@@ -98,9 +98,9 @@ final class AuthAction implements MiddlewareInterface
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see cancelUrl} will be performed.
      *
-     * @var callable
+     * @var callable|null
      */
-    private $cancelCallback;
+    private $cancelCallback = null;
     /**
      * @var string name or alias of the view file, which should be rendered in order to perform redirection.
      * If not set - default one will be used.
@@ -110,9 +110,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * @var string the redirect url after successful authorization.
      */
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
     private readonly string $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
     private readonly string $cancelUrl;
 
@@ -171,7 +176,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Perform authentication for the given client.
      *
-     * @param mixed $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
@@ -187,9 +192,6 @@ final class AuthAction implements MiddlewareInterface
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
         }
-        /**
-         * @psalm-suppress MixedArgument $client
-         */
         throw new NotSupportedException('Provider "' . $client::class . '" is not supported.');
     }
 
@@ -336,7 +338,7 @@ final class AuthAction implements MiddlewareInterface
         }
 
         /**
-         * @psalm-suppress MixedAssignment
+         * @var ResponseInterface $response
          */
         $response = ($this->successCallback)($client);
         if ($response instanceof ResponseInterface) {

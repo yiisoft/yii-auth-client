@@ -92,6 +92,7 @@ final class AuthChoice extends Widget
      */
     private string $authRoute = '';
 
+    /** @var array<string, OAuth2> */
     private array $clients;
 
     public function __construct(
@@ -150,7 +151,7 @@ final class AuthChoice extends Widget
     {
         $content = '';
         if ($this->autoRender) {
-            $content .= $this->renderMainContent();
+            $content = $this->renderMainContent();
         }
         $content .= Html::tag('div')->close();
         return $content;
@@ -179,7 +180,6 @@ final class AuthChoice extends Widget
 
     /**
      * @return array
-     * @psalm-suppress MixedReturnTypeCoercion
      * @psalm-return array<string, OAuth2>
      */
     public function getClients(): array
@@ -188,7 +188,7 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param OAuth2[] $clients
+     * @param array<string, OAuth2> $clients
      */
     public function setClients(array $clients): void
     {
@@ -262,11 +262,8 @@ final class AuthChoice extends Widget
         if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
-        /* @var $widgetClass Widget */
+        /** @var class-string $widgetClass */
         $widgetClass = $widgetConfig['class'];
-        /**
-         * @psalm-suppress MixedArgument $widgetClass
-         */
         if (!is_subclass_of($widgetClass, AuthChoiceItem::class)) {
             throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
         }
@@ -315,8 +312,12 @@ final class AuthChoice extends Widget
             if ($name === $client->getName()) {
                 if (strlen($client->getClientId()) > 0) {
                     $viewOptions = $client->getViewOptions();
-                    $height = (string) $viewOptions['popupHeight'];
-                    $width = (string) $viewOptions['popupWidth'];
+                    /**
+                     * @var int $viewOptions['popupHeight']
+                     * @var int $viewOptions['popupWidth']
+                     */
+                    $height = $viewOptions['popupHeight'];
+                    $width = $viewOptions['popupWidth'];
                     $this->authRoute($authRoute);
                     return $this->clientLink($client, ' ' . ucfirst((string) $provider['buttonName']), [
                         'onclick' => "window.open(this.href, 'authPopup', 'width=" . $width . ',height=' . $height . "'); return false;",

@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Exception;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
+use Jose\Component\Core\Algorithm;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
@@ -168,9 +169,6 @@ final class OpenIdConnect extends OAuth2
     public function getConfigParam(string $name): mixed
     {
         $params = $this->getConfigParams();
-        /**
-         * @psalm-suppress PossiblyInvalidArrayOffset
-         */
         return $params[$name];
     }
 
@@ -178,9 +176,9 @@ final class OpenIdConnect extends OAuth2
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
      *
-     * @return array|string OpenID provider configuration parameters.
+     * @return array OpenID provider configuration parameters.
      */
-    public function getConfigParams(): array|string
+    public function getConfigParams(): array
     {
         if (empty($this->configParams)) {
             $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
@@ -342,7 +340,7 @@ final class OpenIdConnect extends OAuth2
 
     protected function initUserAttributes(): array
     {
-        return $this->api((array) $this->getConfigParam('userinfo_endpoint'), 'GET');
+        return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');
     }
 
     #[Override]
@@ -447,10 +445,14 @@ final class OpenIdConnect extends OAuth2
         try {
             $jwsLoader = $this->getJwsLoader();
             $signature = null;
-            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
-            return (array) Json::decode($jwsVerified->getPayload(), true);
+            $jwkSet = $this->getJwkSet();
+            if ($jwkSet === null) {
+                throw new ClientException('JWK Set is not available.', 400);
+            }
+            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $jwkSet, $signature);
+            return (array) Json::decode((string) $jwsVerified->getPayload(), true);
         } catch (Exception $e) {
-            throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), $e->getCode());
+            throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), (int) $e->getCode());
         }
     }
 
@@ -467,18 +469,13 @@ final class OpenIdConnect extends OAuth2
             $algorithms = [];
             /** @var string $algorithm */
             foreach ($this->allowedJwsAlgorithms as $algorithm) {
+                /** @var class-string<Algorithm> $class */
                 $class = '\Jose\Component\Signature\Algorithm\\' . $algorithm;
                 if (!class_exists($class)) {
                     throw new InvalidConfigException("Algorithm class $class doesn't exist");
                 }
-                /**
-                 * @psalm-suppress MixedMethodCall new $class()
-                 */
                 $algorithms[] = new $class();
             }
-            /**
-             * @psalm-suppress ArgumentTypeCoercion
-             */
             $algorithmManager = new AlgorithmManager($algorithms);
             $compactSerializer = new CompactSerializer();
             /** @psalm-var string[] $this->allowedJwsAlgorithms */
@@ -486,6 +483,12 @@ final class OpenIdConnect extends OAuth2
             $this->jwsLoader = new JWSLoader(
                 new JWSSerializerManager([$compactSerializer]),
                 new JWSVerifier($algorithmManager),
+                /**
+                 * @infection-ignore-all
+                 * $checker enforces the same $allowedJwsAlgorithms list that $algorithmManager above
+                 * is built from, so JWSVerifier already rejects any "alg" this checker would reject;
+                 * dropping it from the array is behaviorally unobservable from the outside.
+                 */
                 new HeaderCheckerManager(
                     [$checker],
                     [new JWSTokenSupport()]

@@ -39,12 +39,11 @@ final class OAuthToken
 
     /**
      * Returns the token secret value.
-     * @psalm-suppress MixedReturnStatement
-     * @psalm-suppress MixedInferredReturnType
      * @return string token secret value.
      */
     public function getTokenSecret(): string
     {
+        /** @var string */
         return $this->getParam($this->tokenSecretParamKey ?: 'oauth_token_secret');
     }
 
@@ -116,7 +115,8 @@ final class OAuthToken
         foreach ($this->getParams() as $name => $value) {
             if (!str_contains((string)$name, 'expir')) {
             } else {
-                $expireDurationParamKey = (string)$name;
+                /** @var string $name */
+                $expireDurationParamKey = $name;
                 break;
             }
         }
@@ -174,11 +174,10 @@ final class OAuthToken
 
     /**
      * Returns token value.
-     * @psalm-suppress MixedReturnStatement
-     * @psalm-suppress MixedInferredReturnType
      */
     public function getToken(): ?string
     {
+        /** @var string|null */
         return $this->getParam($this->tokenParamKey);
     }
 

@@ -14,6 +14,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ReflectionMethod;
 use Yiisoft\Di\Container;
 use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Factory\Factory as YiisoftFactory;
@@ -492,6 +493,27 @@ final class OAuth2Test extends TestCase
         $this->assertSame([], $token->getParams());
     }
 
+    /**
+     * An empty response body must return [] without ever calling json_decode(): decoding an empty
+     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
+     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
+     * (both branches ultimately produce []).
+     */
+    public function testFetchAccessTokenWithCodeVerifierDoesNotDecodeEmptyResponseBody(): void
+    {
+        $httpClient = $this->httpClientReturning(new Response(200, [], ''));
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+        json_decode('null'); // reset json_last_error() to JSON_ERROR_NONE
+
+        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
+
+        $this->assertSame(JSON_ERROR_NONE, json_last_error());
+    }
+
     public function testFetchAccessTokenWithCodeVerifierCastsScalarJsonResponseToArray(): void
     {
         // A JSON-scalar body (not an object) exercises the `(array)` cast around json_decode().
@@ -586,5 +608,286 @@ final class OAuth2Test extends TestCase
         $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
 
         $this->assertSame('val', $token->getParam('custom.key'));
+    }
+
+    /**
+     * generateAuthState() must stay protected so subclasses can call it (e.g. via buildAuthUrl());
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testGenerateAuthStateIsProtectedAndReturnsNonEmptyHash(): void
+    {
+        $client = $this->createTestClient();
+        $method = new ReflectionMethod($client, 'generateAuthState');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $method->invoke($client));
+    }
+
+    /**
+     * generateAuthState()'s return value is an opaque hash and can't reveal how its seed string was
+     * assembled, so {@see OAuth2::generateAuthStateBaseString()} is tested directly, pinning the exact
+     * class-name / dash / timestamp ordering.
+     */
+    public function testGenerateAuthStateBaseStringFormatWithoutSessionId(): void
+    {
+        $client = $this->createTestClient();
+        $method = new ReflectionMethod($client, 'generateAuthStateBaseString');
+
+        $this->assertTrue($method->isProtected());
+        $before = time();
+        $baseString = $method->invoke($client);
+        $after = time();
+
+        $this->assertMatchesRegularExpression('/^' . preg_quote($client::class, '/') . '-\d+$/', $baseString);
+        $timestamp = (int) substr($baseString, strlen($client::class . '-'));
+        $this->assertGreaterThanOrEqual($before, $timestamp);
+        $this->assertLessThanOrEqual($after, $timestamp);
+    }
+
+    public function testGenerateAuthStateBaseStringAppendsActiveSessionId(): void
+    {
+        $session = new class implements \Yiisoft\Session\SessionInterface {
+            #[\Override]
+            public function open(): void
+            {
+            }
+            #[\Override]
+            public function get(string $key, $default = null)
+            {
+                return $default;
+            }
+            #[\Override]
+            public function set(string $key, $value): void
+            {
+            }
+            #[\Override]
+            public function close(): void
+            {
+            }
+            #[\Override]
+            public function isActive(): bool
+            {
+                return true;
+            }
+            #[\Override]
+            public function getId(): ?string
+            {
+                return 'the-session-id';
+            }
+            #[\Override]
+            public function regenerateId(): void
+            {
+            }
+            #[\Override]
+            public function discard(): void
+            {
+            }
+            #[\Override]
+            public function getName(): string
+            {
+                return 'sess';
+            }
+            #[\Override]
+            public function all(): array
+            {
+                return [];
+            }
+            #[\Override]
+            public function remove(string $key): void
+            {
+            }
+            #[\Override]
+            public function has(string $key): bool
+            {
+                return false;
+            }
+            #[\Override]
+            public function pull(string $key, $default = '')
+            {
+                return $default;
+            }
+            #[\Override]
+            public function clear(): void
+            {
+            }
+            #[\Override]
+            public function destroy(): void
+            {
+            }
+            #[\Override]
+            public function getCookieParameters(): array
+            {
+                return [];
+            }
+            #[\Override]
+            public function setId(string $sessionId): void
+            {
+            }
+        };
+        $client = new TestClient(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new SessionStateStorage($session),
+            new YiisoftFactory(),
+            $session,
+        );
+        $method = new ReflectionMethod($client, 'generateAuthStateBaseString');
+
+        $baseString = $method->invoke($client);
+
+        $this->assertMatchesRegularExpression('/^' . preg_quote($client::class, '/') . '-\d+-the-session-id$/', $baseString);
+    }
+
+    /**
+     * applyClientCredentialsToRequest() must stay protected so subclasses can call it (e.g. via
+     * fetchAccessToken()); the return value alone can't distinguish protected from private, so this
+     * also asserts visibility.
+     */
+    public function testApplyClientCredentialsToRequestIsProtectedAndAddsCredentials(): void
+    {
+        $client = $this->createTestClient();
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
+
+        $this->assertTrue($method->isProtected());
+        $newRequest = $method->invoke($client, $request);
+
+        $params = RequestUtil::getParams($newRequest);
+        $this->assertSame('client-id', $params['client_id']);
+        $this->assertSame('client-secret', $params['client_secret']);
+    }
+
+    /**
+     * parse_str_clean() swaps '.', '%2E', '+', ' ' and '%20' for placeholder tokens pairwise by array
+     * index before restoring them after parse_str(). Dropping '.' from the search list (but not from
+     * the replace list) shifts every later pair out of alignment, so '+' ends up swapped for the "dot"
+     * placeholder instead of the "space" one — restoring a literal '+' as '.' instead of ' '.
+     */
+    public function testFetchAccessTokenRestoresLiteralPlusAsSpaceInValue(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&name=John+Doe&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('John Doe', $token->getParam('name'));
+    }
+
+    /**
+     * "a.b" and "a_b" both collide on the underscore-normalized key "a_b" once parse_str() mangles the
+     * dot. sanitizeKeys()'s regex fallback resolves this collision in a specific (if imperfect) way;
+     * pinning the exact resulting param set catches the several mutants in the fallback's regex and
+     * match-count check that would otherwise resolve the collision differently or not at all.
+     */
+    public function testFetchAccessTokenResolvesDottedAndUnderscoredKeyCollision(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&a.b=1&a_b=2&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('2', $token->getParam('a.b'));
+        $this->assertNull($token->getParam('a_b'));
+    }
+
+    /**
+     * A mix of a dotted key, a literal-space key, an already-underscored key and a %20-encoded key
+     * exercises the haystack-construction mutants in sanitizeKeys()'s regex fallback (missing leading
+     * '&', trailing '&' instead, or dropping the querystring from the haystack entirely), each of which
+     * would resolve this particular combination differently from the real implementation.
+     */
+    public function testFetchAccessTokenHandlesMultipleUnderscoreKeyVariants(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], "access_token=abc&a.b=1&a b=2&a_b=3&a%20b=4&expires_in=3600")
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('3', $token->getParam('a_b'));
+        $this->assertSame('1', $token->getParam('a.b'));
+        $this->assertSame('4', $token->getParam('a b'));
+    }
+
+    /**
+     * $newkey is quoted with preg_quote() before being embedded in the fallback regex. A key
+     * containing an unbalanced parenthesis (reachable via a %28/%29-encoded key, since native
+     * parse_str() percent-decodes key content independently of this file's own placeholder swap)
+     * breaks regex compilation if left unescaped, throwing a TypeError when count(array_unique(null))
+     * is reached — versus a clean, well-formed pattern that simply finds no match.
+     */
+    public function testFetchAccessTokenPreservesKeyWithUnbalancedParenthesis(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&a%28_b=val&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('val', $token->getParam('a(_b'));
+    }
+
+    /**
+     * The fallback regex haystack is built as '&' . urldecode($querystr), so a candidate key can only
+     * be found if it's the *first* parameter in the raw querystring — any other parameter already has
+     * a natural leading '&' from the delimiter before it, which masks a haystack built without (or
+     * with a misplaced) leading '&'.
+     */
+    public function testFetchAccessTokenResolvesCollisionWhenDottedKeyIsFirstParam(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'a.b=1&a_b=2&access_token=abc&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('2', $token->getParam('a.b'));
+        $this->assertNull($token->getParam('a_b'));
+    }
+
+    /**
+     * When the same dotted key appears twice with different values, the regex fallback finds two
+     * matches with identical captured text. array_unique() collapses them to a single candidate before
+     * the count(...) === 1 check; without it, the (inflated) raw count would never equal 1 and the
+     * "a_b" key would wrongly survive unrenamed instead of colliding into "a.b".
+     */
+    public function testFetchAccessTokenDeduplicatesRepeatedMatchesOfSameKey(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc&a.b=1&a.b=9&a_b=3&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('3', $token->getParam('a.b'));
+        $this->assertNull($token->getParam('a_b'));
     }
 }

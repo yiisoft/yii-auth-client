@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Widget;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ReflectionProperty;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Assets\AssetLoader;
 use Yiisoft\Assets\AssetManager;
@@ -14,6 +15,7 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
+use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
@@ -23,9 +25,6 @@ use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 
 final class AuthChoiceTest extends TestCase
 {
-    /**
-     * @psalm-return UrlGeneratorInterface&\PHPUnit\Framework\MockObject\Stub
-     */
     private function createUrlGeneratorStub(): UrlGeneratorInterface
     {
         return $this->createStub(UrlGeneratorInterface::class);
@@ -104,6 +103,42 @@ final class AuthChoiceTest extends TestCase
         } finally {
             ob_end_clean();
         }
+    }
+
+    private function createAssetManager(): AssetManager
+    {
+        $aliases = new Aliases([
+            '@vendor' => dirname(__DIR__, 2) . '/vendor',
+            '@assets' => dirname(__DIR__, 2) . '/resources/assets',
+            '@assetsUrl' => '/assets',
+        ]);
+        return new AssetManager($aliases, new AssetLoader($aliases));
+    }
+
+    /**
+     * @param array<string, \Yiisoft\Yii\AuthClient\OAuth2> $clients
+     */
+    private function createWidgetWithDeps(array $clients, WebView $webView, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
+    {
+        ob_start();
+        try {
+            return new AuthChoice(
+                new Collection($clients),
+                $urlGenerator ?? $this->createUrlGeneratorStub(),
+                $webView,
+                $assetManager,
+            );
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    private function getRegisteredJsScript(WebView $webView): ?string
+    {
+        $state = (new ReflectionProperty($webView, 'state'))->getValue($webView);
+        $entries = $state->getJs()[WebView::POSITION_END] ?? [];
+
+        return $entries === [] ? null : array_values($entries)[0];
     }
 
     public function testGetIdIsFixed(): void
@@ -430,4 +465,41 @@ final class AuthChoiceTest extends TestCase
 
         $this->assertStringContainsString('> Login<', $html);
     }
+
+    public function testConstructorCallsInitAndEchoesOpeningDivTag(): void
+    {
+        ob_start();
+        new AuthChoice(
+            new Collection([]),
+            $this->createUrlGeneratorStub(),
+            new WebView(),
+            $this->createAssetManager(),
+        );
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('<div', $output);
+        $this->assertStringContainsString('id="yii-auth-client"', $output);
+    }
+
+    public function testInitRegistersAuthChoiceAssetInPopupMode(): void
+    {
+        $assetManager = $this->createAssetManager();
+
+        $this->createWidgetWithDeps([], new WebView(), $assetManager);
+
+        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
+    }
+
+    public function testInitRegistersJsWithClientIdAndAuthchoiceInvocation(): void
+    {
+        $webView = new WebView();
+
+        $this->createWidgetWithDeps([], $webView, $this->createAssetManager());
+
+        $js = $this->getRegisteredJsScript($webView);
+        $this->assertNotNull($js);
+        $this->assertStringContainsString("document.getElementById('yii-auth-client')", $js);
+        $this->assertStringContainsString('authchoice(el, )', $js);
+    }
+
 }

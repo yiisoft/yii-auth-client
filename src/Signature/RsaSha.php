@@ -21,11 +21,11 @@ final class RsaSha extends Signature
     /**
      * @var string path to the file, which holds private key certificate.
      */
-    private string $privateCertificateFile;
+    private string $privateCertificateFile = '';
     /**
      * @var string path to the file, which holds public key certificate.
      */
-    private string $publicCertificateFile;
+    private string $publicCertificateFile = '';
 
     /**
      * @var string|null OpenSSL private key certificate content.
@@ -91,7 +91,8 @@ final class RsaSha extends Signature
         } else {
             $algorithmName = strtoupper($this->algorithm);
         }
-        return 'RSA-' . (string) $algorithmName;
+        /** @var string $algorithmName */
+        return 'RSA-' . $algorithmName;
     }
 
     #[Override]
@@ -150,6 +151,9 @@ final class RsaSha extends Signature
         $publicCertificate = $this->getPublicCertificate();
         // Pull the public key ID from the certificate
         $publicKeyId = openssl_pkey_get_public($publicCertificate);
+        if ($publicKeyId === false) {
+            return false;
+        }
         // Check the computed signature against the one passed in the query
         $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
 
@@ -186,11 +190,12 @@ final class RsaSha extends Signature
                 );
             }
             $fp = fopen($this->publicCertificateFile, 'rb');
-
-            while (($fgetsFp = fgets($fp)) !== false) {
-                $content .= $fgetsFp;
+            if ($fp !== false) {
+                while (($fgetsFp = fgets($fp)) !== false) {
+                    $content .= $fgetsFp;
+                }
+                fclose($fp);
             }
-            fclose($fp);
         }
         return $content;
     }

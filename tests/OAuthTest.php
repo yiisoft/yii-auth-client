@@ -6,19 +6,42 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
+use Yiisoft\Yii\AuthClient\OAuth;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
+#[AllowMockObjectsWithoutExpectations]
 final class OAuthTest extends TestCase
 {
+    /**
+     * OAuth2::createToken() unconditionally overwrites tokenParamKey with a string before delegating
+     * to parent::createToken(), so any OAuth2-based test double (like TestClient) never exercises
+     * OAuth::createToken()'s own isset/is_string check with attacker-controlled input. This bare mock
+     * of the abstract OAuth class isolates that logic directly.
+     */
+    private function createBareOAuthClient(): OAuth
+    {
+        return $this->getMockBuilder(OAuth::class)
+            ->setConstructorArgs([
+                $this->createStub(ClientInterface::class),
+                new Psr17Factory(),
+                new SessionStateStorage(new Session()),
+                new YiisoftFactory(),
+            ])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId', 'refreshAccessToken', 'applyAccessTokenToRequest'])
+            ->getMock();
+    }
+
     private function createClient(?ClientInterface $httpClient = null, ?SessionStateStorage $stateStorage = null): TestClient
     {
         return new TestClient(
@@ -245,6 +268,22 @@ final class OAuthTest extends TestCase
         $this->assertSame([], $client->getAccessToken()?->getParams());
     }
 
+    /**
+     * tokenParamKey must be both set AND a string before being applied; OAuthToken::setTokenParamKey()
+     * is strictly typed `string`, so a non-string value reaching it (e.g. if `&&` became `||`) would
+     * throw a TypeError instead of being silently ignored.
+     */
+    public function testCreateTokenIgnoresNonStringTokenParamKeyInConfig(): void
+    {
+        $client = $this->createBareOAuthClient();
+        $method = new ReflectionMethod($client, 'createToken');
+
+        $token = $method->invoke($client, ['tokenParamKey' => 123, 'params' => ['oauth_token' => 'abc123']]);
+
+        $this->assertInstanceOf(OAuthToken::class, $token);
+        $this->assertSame('abc123', $token->getToken());
+    }
+
     public function testStateIsPersistedUnderClassAndNamePrefixedKey(): void
     {
         $session = new Session();
@@ -255,5 +294,53 @@ final class OAuthTest extends TestCase
         $client->setAccessToken($token);
 
         $this->assertArrayHasKey(TestClient::class . '_test_token', $session->all());
+    }
+
+    /**
+     * restoreAccessToken() must stay protected so subclasses can call it (e.g. via getAccessToken());
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testRestoreAccessTokenIsProtectedAndReturnsPersistedToken(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $writer = $this->createClient(stateStorage: $stateStorage);
+        $writer->setAccessToken(['params' => ['access_token' => 'abc123', 'expires_in' => 3600]]);
+        $reader = $this->createClient(stateStorage: $stateStorage);
+        $method = new ReflectionMethod($reader, 'restoreAccessToken');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame('abc123', $method->invoke($reader)?->getToken());
+    }
+
+    /**
+     * saveAccessToken() must stay protected so subclasses can call it (e.g. via setAccessToken());
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testSaveAccessTokenIsProtectedAndPersistsToken(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $client = $this->createClient(stateStorage: $stateStorage);
+        $token = new OAuthToken();
+        $token->setToken('xyz789');
+        $token->setExpireDuration(3600);
+        $method = new ReflectionMethod($client, 'saveAccessToken');
+
+        $this->assertTrue($method->isProtected());
+        $method->invoke($client, $token);
+
+        $this->assertSame('xyz789', $client->getAccessToken()?->getToken());
+    }
+
+    /**
+     * getDefaultScope() must stay protected so subclasses (e.g. GitHub, Google) can override it;
+     * the return value alone can't distinguish protected from private, so this also asserts visibility.
+     */
+    public function testGetDefaultScopeIsProtectedAndReturnsEmptyString(): void
+    {
+        $client = $this->createClient();
+        $method = new ReflectionMethod($client, 'getDefaultScope');
+
+        $this->assertTrue($method->isProtected());
+        $this->assertSame('', $method->invoke($client));
     }
 }

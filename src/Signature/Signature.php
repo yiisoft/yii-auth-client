@@ -28,6 +28,14 @@ abstract class Signature
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $expectedSignature = $this->generateSignature($baseString, $key);
+        /**
+         * @infection-ignore-all
+         * `||` vs `&&` only produce different return values when the two conditions disagree, which
+         * for empty() on strings requires $signature and $expectedSignature to be unequal to begin
+         * with (empty() is true only for '' and '0'). Whenever exactly one is empty(), the two strings
+         * are therefore never strcmp()-equal, so the strcmp() check below always falls through to the
+         * same `false` result the early return would have given — behaviorally unobservable.
+         */
         if (empty($signature) || empty($expectedSignature)) {
             return false;
         }

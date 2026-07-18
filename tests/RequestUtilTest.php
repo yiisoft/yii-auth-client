@@ -134,6 +134,21 @@ final class RequestUtilTest extends TestCase
         $this->assertSame(['flag' => null], $params);
     }
 
+    /**
+     * explode('=', $pair, 2) must split on only the first '=', keeping any further literal '=' as part
+     * of the value. A %3D-encoded '=' (as in the embedded-equals-sign test above) doesn't distinguish
+     * the split limit, since it isn't a literal '=' until rawurldecode() runs afterward — this needs a
+     * second literal, unencoded '=' in the raw query string.
+     */
+    public function testGetParamsPreservesMultipleLiteralEqualsSignsInValue(): void
+    {
+        $request = new Request('GET', 'http://example.com/path?key=a=b=c');
+
+        $params = RequestUtil::getParams($request);
+
+        $this->assertSame(['key' => 'a=b=c'], $params);
+    }
+
     public function testAddHeadersDoesNotMutateOriginalRequest(): void
     {
         $request = new Request('GET', 'http://example.com/path');
