@@ -211,6 +211,23 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('abc123', $token->getToken());
     }
 
+    public function testFetchAccessTokenPersistsAccessTokenWhenAutoExchangeDisabled(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], 'access_token=abc123&expires_in=3600'),
+            $capturedRequest
+        );
+        $client = $this->createFacebookClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('https://graph.facebook.com/oauth/access_token');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame($token, $client->getAccessToken());
+    }
+
     public function testFetchAccessTokenExchangesTokenWhenAutoExchangeEnabled(): void
     {
         $capturedRequests = [];
