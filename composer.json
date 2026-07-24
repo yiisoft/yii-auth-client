@@ -37,7 +37,7 @@
         "psr/http-message-implementation": "1.0",
         "psr/http-server-handler": "^1.0.2",
         "psr/http-server-middleware": "^1.0.2",
-        "psr/simple-cache-implementation": "^1.0",
+        "psr/simple-cache-implementation": "*",
         "web-token/jwt-framework": ">=4.0.6",
         "yiisoft/aliases": "^3.1",
         "yiisoft/assets": "^5.1.1",
