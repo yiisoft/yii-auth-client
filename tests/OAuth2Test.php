@@ -145,6 +145,36 @@ final class OAuth2Test extends TestCase
         $this->assertTrue($token->getIsValid());
     }
 
+    /**
+     * RFC 6749 §4.1.3 requires token-endpoint parameters as an application/x-www-form-urlencoded
+     * request body, not a query string on the POST URI - a strict provider like Google rejects a
+     * query-string-only request outright, unlike GitHub's lenient legacy endpoint.
+     */
+    public function testFetchAccessTokenSendsFormUrlencodedBodyWithGrantType(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('', $capturedRequest->getUri()->getQuery());
+        $this->assertSame('application/x-www-form-urlencoded', $capturedRequest->getHeaderLine('Content-Type'));
+        parse_str((string) $capturedRequest->getBody(), $params);
+        $this->assertSame('authorization_code', $params['grant_type']);
+        $this->assertSame('auth-code', $params['code']);
+        $this->assertSame('client-id', $params['client_id']);
+        $this->assertSame('client-secret', $params['client_secret']);
+    }
+
     public function testFetchAccessTokenPersistsTokenAsAccessToken(): void
     {
         $httpClient = $this->httpClientReturning(
@@ -216,7 +246,7 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('client-id', $params['client_id']);
         $this->assertSame('client-secret', $params['client_secret']);
         $this->assertSame('auth-code', $params['code']);
@@ -802,7 +832,8 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
 
         $this->assertNotNull($capturedRequest);
-        $this->assertSame('http://return.local/callback', RequestUtil::getParams($capturedRequest)['redirect_uri']);
+        parse_str((string) $capturedRequest->getBody(), $params);
+        $this->assertSame('http://return.local/callback', $params['redirect_uri']);
     }
 
     public function testFetchAccessTokenMergesCustomParamsIntoTokenRequest(): void
@@ -820,7 +851,8 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code', ['custom_param' => 'custom-value']);
 
         $this->assertNotNull($capturedRequest);
-        $this->assertSame('custom-value', RequestUtil::getParams($capturedRequest)['custom_param']);
+        parse_str((string) $capturedRequest->getBody(), $params);
+        $this->assertSame('custom-value', $params['custom_param']);
     }
 
     public function testFetchAccessTokenWithCodeVerifierSendsExpectedRequestBody(): void
@@ -948,7 +980,8 @@ final class OAuth2Test extends TestCase
         $client->refreshAccessToken($oldToken);
 
         $this->assertNotNull($capturedRequest);
-        $this->assertSame('refresh_token', RequestUtil::getParams($capturedRequest)['grant_type']);
+        parse_str((string) $capturedRequest->getBody(), $params);
+        $this->assertSame('refresh_token', $params['grant_type']);
     }
 
     public function testRefreshAccessTokenMergesOldTokenParamsIntoRequest(): void
@@ -968,7 +1001,7 @@ final class OAuth2Test extends TestCase
         $client->refreshAccessToken($oldToken);
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('the-refresh-token', $params['refresh_token']);
         $this->assertSame('refresh_token', $params['grant_type']);
     }
@@ -1149,7 +1182,7 @@ final class OAuth2Test extends TestCase
         $this->assertTrue($method->isProtected());
         $newRequest = $method->invoke($client, $request);
 
-        $params = RequestUtil::getParams($newRequest);
+        parse_str((string) $newRequest->getBody(), $params);
         $this->assertSame('client-id', $params['client_id']);
         $this->assertSame('client-secret', $params['client_secret']);
     }

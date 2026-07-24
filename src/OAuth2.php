@@ -183,12 +183,12 @@ abstract class OAuth2 extends OAuth
         }
 
         $defaultParams = [
+            'grant_type' => 'authorization_code',
             'code' => $authCode,
             'redirect_uri' => $this->getOauth2ReturnUrl(),
         ];
 
-        $request = $this->createRequest('POST', $this->tokenUrl);
-        $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
+        $request = $this->createTokenRequest(array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
@@ -283,19 +283,28 @@ abstract class OAuth2 extends OAuth
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      *
+     * Assumes `$request` already carries a `createTokenRequest()`-built `application/x-www-form-urlencoded`
+     * body - the credentials are appended to that body, not the URI query string, matching how every
+     * caller of this method builds its request. Overrides (e.g. `OpenIdConnect`, which may instead add
+     * an `Authorization` header for `client_secret_basic`) aren't bound by that assumption.
+     *
      * @param RequestInterface $request HTTP request instance.
      *
      * @return RequestInterface
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
-        return RequestUtil::addParams(
-            $request,
+        $request->getBody()->write('&' . http_build_query(
             [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
-            ]
-        );
+            ],
+            '',
+            '&',
+            PHP_QUERY_RFC3986,
+        ));
+
+        return $request;
     }
 
     /**
@@ -407,9 +416,7 @@ abstract class OAuth2 extends OAuth
         ];
         $params = array_merge($token->getParams(), $params);
 
-        $request = $this->createRequest('POST', $this->tokenUrl);
-
-        $request = RequestUtil::addParams($request, $params);
+        $request = $this->createTokenRequest($params);
 
         $request = $this->applyClientCredentialsToRequest($request);
 
@@ -460,6 +467,23 @@ abstract class OAuth2 extends OAuth
         unset($params['code'], $params['state']);
 
         return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * Builds a `POST` request to {@see tokenUrl} with `$params` as an `application/x-www-form-urlencoded`
+     * body. RFC 6749 §4.1.3 requires token-endpoint parameters in the request body, not the URI query
+     * string - a strict provider like Google rejects a query-string-only request outright (with no
+     * usable `access_token` in its error response), while a lenient one like GitHub's legacy endpoint
+     * happens to tolerate it. {@see applyClientCredentialsToRequest()} is expected to append further
+     * params to this same body afterward, not build a request of its own.
+     */
+    protected function createTokenRequest(array $params): RequestInterface
+    {
+        $request = $this->createRequest('POST', $this->tokenUrl)
+            ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+
+        return $request;
     }
 
     /**
