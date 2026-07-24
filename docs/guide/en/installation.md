@@ -50,6 +50,11 @@ return [
     Google::class => [
         'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
         'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
+        // Required: OAuth2::getOauth2ReturnUrl() has no request-derived fallback, so an unset
+        // redirect_uri is sent as empty. Google rejects that outright ("Missing required
+        // parameter: redirect_uri"); must match the callback URL registered in the Google Cloud
+        // Console exactly.
+        'setOauth2ReturnUrl()' => ['https://example.com/auth/google'],
     ],
     Facebook::class => [
         'setClientId()' => [$_ENV['FACEBOOK_CLIENT_ID']],
