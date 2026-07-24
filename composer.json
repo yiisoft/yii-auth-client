@@ -29,7 +29,6 @@
     ],
     "require": {
         "php": "8.2 - 8.5",
-        "phpseclib/phpseclib": ">=3.0.46",
         "psr/container": "^2.0.2",
         "psr/http-client": "^1.0.3",
         "psr/http-factory": "^1.1",
@@ -38,7 +37,6 @@
         "psr/http-message-implementation": "1.0",
         "psr/http-server-handler": "^1.0.2",
         "psr/http-server-middleware": "^1.0.2",
-        "psr/log-implementation": "^2.0",
         "psr/simple-cache-implementation": "^1.0",
         "web-token/jwt-framework": ">=4.0.6",
         "yiisoft/aliases": "^3.1",
@@ -64,9 +62,11 @@
         "vimeo/psalm": "^6.13.1",
         "yiisoft/cache": "^3.1",
         "yiisoft/di": "^1.4",
-        "yiisoft/log": "^2.1.1",
         "yiisoft/router-fastroute": "^4.0.1",
         "yiisoft/psr-dummy-provider": "^1.0.2"
+    },
+    "suggest": {
+        "ext-openssl": "Required to use the RsaSha OAuth1 signature method."
     },
     "repositories": [
         {

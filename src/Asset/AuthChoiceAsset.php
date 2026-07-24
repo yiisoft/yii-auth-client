@@ -11,7 +11,7 @@ use Yiisoft\Assets\AssetBundle;
  *
  * @see AuthChoiceStyleAsset
  */
-class AuthChoiceAsset extends AssetBundle
+final class AuthChoiceAsset extends AssetBundle
 {
     /**
      * Note: Aliases convert to actual file paths
@@ -42,9 +42,7 @@ class AuthChoiceAsset extends AssetBundle
 
     public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
 
-    /**
-     * @psalm-suppress NonInvariantDocblockPropertyType $js
-     */
+    /** @var array */
     public array $js = [
         'authchoice.js',
     ];

@@ -6,7 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
 
 /**
  * GitHub allows authentication via GitHub OAuth.
@@ -15,19 +15,18 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * Example application configuration:
  *
- * config/common/params.php
- *
+ * config/common/params.php:
  * 'yiisoft/yii-auth-client' => [
- *       'enabled' => true,
- *       'clients' => [
- *           'github' => [
- *               'class' => 'Yiisoft\Yii\AuthClient\Client\Github::class',
- *               'clientId' => $_ENV['GITHUB_API_CLIENT_ID'] ?? '',
- *               'clientSecret' => $_ENV['GITHUB_API_CLIENT_SECRET'] ?? '',
- *               'returnUrl' => $_ENV['GITHUB_API_CLIENT_RETURN_URL'] ?? '',
- *           ],
- *       ],
- *   ],
+ *     'clients' => [
+ *         'github' => GitHub::class,
+ *     ],
+ * ],
+ *
+ * config/common/di.php:
+ * GitHub::class => [
+ *     'setClientId()' => [$_ENV['GITHUB_API_CLIENT_ID'] ?? ''],
+ *     'setClientSecret()' => [$_ENV['GITHUB_API_CLIENT_SECRET'] ?? ''],
+ * ],
  *
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
@@ -48,29 +47,10 @@ final class GitHub extends OAuth2
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        // Here is the actual 'access-token' which the user has allowed us to access their basic info.
-        $tokenString = (string)$token->getParam('access_token');
-
-        if ($tokenString !== '') {
-            $request = $this->createRequest('GET', 'https://api.github.com/user');
-
-            $request = RequestUtil::addHeaders(
-                $request,
-                [
-                    'Authorization' => 'Bearer ' . $tokenString,
-                ]
-            );
-
-            $response = $this->sendRequest($request);
-
-            // the array returns basic info of the user including login i.e. username, and github id
-            // which will be used later to concatenate or build-up a username for our purposes.
-            return (array)json_decode($response->getBody()->getContents(), true);
-        }
-
-        return [];
+        return $this->fetchCurrentUserJsonArray($token, 'https://api.github.com/user');
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -80,19 +60,19 @@ final class GitHub extends OAuth2
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'github';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'GitHub';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-github';
@@ -103,7 +83,7 @@ final class GitHub extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -117,7 +97,7 @@ final class GitHub extends OAuth2
      *
      * @psalm-return 'user'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'user';

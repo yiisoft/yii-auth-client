@@ -9,6 +9,8 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
+use Override;
+use Throwable;
 
 /**
  * VKontakte allows authentication via VKontakte OAuth 2.0
@@ -86,7 +88,7 @@ final class VKontakte extends OAuth2
             if (strlen($body) > 0) {
                 return json_decode($body, true);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return [
                 'error' => 'Exception: ' . $e->getMessage(),
             ];
@@ -109,30 +111,13 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        $url = 'https://id.vk.ru/oauth2/user_info';
-        $tokenString = (string)$token->getParam('access_token');
-
-        if (strlen($tokenString) === 0) {
-            return [];
-        }
-
-        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&access_token=' . urlencode($tokenString);
-
-        $request = $requestFactory->createRequest('GET', $fullUrl);
-
-        try {
-            /** @var ResponseInterface $response */
-            $response = $httpClient->sendRequest($request);
-            $body = $response->getBody()->getContents();
-            if (!empty($body)) {
-                return (array) json_decode($body, true);
-            }
-        } catch (\Throwable) {
-            // Optionally log error: $e->getMessage()
-            return [];
-        }
-
-        return [];
+        return $this->requestWithClientIdAndAccessToken(
+            'https://id.vk.ru/oauth2/logout',
+            $token,
+            $clientId,
+            $httpClient,
+            $requestFactory,
+        );
     }
 
     /**
@@ -160,14 +145,47 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory
     ): array {
-        $url = 'https://id.vk.ru/oauth2/user_info';
+        return $this->getUserInfoByClientId($token, $clientId, $httpClient, $requestFactory);
+    }
+
+    /**
+     * Fetches user data from the `user_info` endpoint, used by {@see step8ObtainingUserDataArrayWithClientId()}.
+     */
+    private function getUserInfoByClientId(
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
+        return $this->requestWithClientIdAndAccessToken(
+            'https://id.vk.ru/oauth2/user_info',
+            $token,
+            $clientId,
+            $httpClient,
+            $requestFactory,
+        );
+    }
+
+    /**
+     * Shared GET request builder for VK ID endpoints authenticated by `client_id` and `access_token`
+     * query parameters, used by {@see step7TokenInvalidationWithClientId()} and {@see getUserInfoByClientId()}.
+     */
+    private function requestWithClientIdAndAccessToken(
+        string $url,
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory
+    ): array {
         $tokenString = (string)$token->getParam('access_token');
 
         if (strlen($tokenString) === 0) {
             return [];
         }
 
-        $fullUrl = $url . '?client_id=' . urlencode($clientId) . '&access_token=' . urlencode($tokenString);
+        $fullUrl = $url
+            . '?client_id=' . urlencode($clientId)
+            . '&access_token=' . urlencode($tokenString);
 
         $request = $requestFactory->createRequest('GET', $fullUrl);
 
@@ -178,7 +196,13 @@ final class VKontakte extends OAuth2
             if (strlen($body) > 0) {
                 return (array)json_decode($body, true);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
+            /**
+             * @infection-ignore-all
+             * This return is redundant with (and unobservably identical to) the unconditional
+             * `return [];` immediately following the try/catch, which control flow falls through to
+             * either way once the catch block finishes.
+             */
             // Optionally log error: $e->getMessage()
             return [];
         }
@@ -218,7 +242,13 @@ final class VKontakte extends OAuth2
             if (strlen($body) > 0) {
                 return (array) json_decode($body, true);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
+            /**
+             * @infection-ignore-all
+             * This return is redundant with (and unobservably identical to) the unconditional
+             * `return [];` immediately following the try/catch, which control flow falls through to
+             * either way once the catch block finishes.
+             */
             // Optionally log error: $e->getMessage()
             return [];
         }
@@ -226,19 +256,37 @@ final class VKontakte extends OAuth2
         return [];
     }
 
-    #[\Override]
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if (!$token instanceof OAuthToken) {
+            return [];
+        }
+
+        $data = $this->step8ObtainingUserDataArrayWithClientId(
+            $token,
+            $this->getClientId(),
+            $this->httpClient,
+            $this->requestFactory,
+        );
+
+        return (array) ($data['user'] ?? []);
+    }
+
+    #[Override]
     public function getName(): string
     {
         return 'vkontakte';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'VKontakte';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark';
@@ -249,7 +297,7 @@ final class VKontakte extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -263,7 +311,7 @@ final class VKontakte extends OAuth2
      *
      * @psalm-return 'email phone'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'email phone';

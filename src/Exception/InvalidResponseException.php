@@ -11,7 +11,7 @@ use Throwable;
 /**
  * InvalidResponseException represents an exception caused by invalid remote server response.
  */
-class InvalidResponseException extends RuntimeException
+final class InvalidResponseException extends RuntimeException
 {
     /**
      * Constructor.
@@ -21,8 +21,21 @@ class InvalidResponseException extends RuntimeException
      * @param int $code error code
      * @param Throwable $previous The previous exception used for the exception chaining.
      */
-    public function __construct(private readonly ResponseInterface $response, string $message, $code = 0, Throwable $previous = null)
+    public function __construct(
+        private readonly ResponseInterface $response,
+        string $message,
+        $code = 0,
+        ?Throwable $previous = null
+    )
     {
         parent::__construct($message, $code, $previous);
+    }
+
+    /**
+     * @return ResponseInterface HTTP response instance that caused this exception.
+     */
+    public function getResponse(): ResponseInterface
+    {
+        return $this->response;
     }
 }

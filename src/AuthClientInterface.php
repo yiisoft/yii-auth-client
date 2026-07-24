@@ -26,6 +26,11 @@ interface AuthClientInterface
      */
     public function getViewOptions(): array;
 
+    /**
+     * @return array authenticated user's attributes.
+     */
+    public function getUserAttributes(): array;
+
     public function getButtonClass(): string;
 
     /**

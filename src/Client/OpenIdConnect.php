@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Exception;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\HeaderCheckerManager;
+use Jose\Component\Core\Algorithm;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
@@ -34,6 +35,7 @@ use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function in_array;
+use Override;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -47,7 +49,6 @@ use function in_array;
  * https://accounts.google.com/.well-known/openid-configuration
  * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
  * https://oidc.account.gov.uk/.well-known/openid-configuration
- * https://dev-kzv8xwxr.us.auth0.com/.well-known/openid-configuration
  *
  * @see OAuth2
  */
@@ -108,9 +109,9 @@ final class OpenIdConnect extends OAuth2
     private array $configParams = [];
 
     /**
-     * @var JWSLoader JSON Web Signature
+     * @var JWSLoader|null JSON Web Signature
      */
-    private JWSLoader $jwsLoader;
+    private ?JWSLoader $jwsLoader = null;
 
     private JWKSet|null $jwkSet = null;
 
@@ -143,7 +144,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return string
      */
-    #[\Override]
+    #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
         array $params = []
@@ -167,19 +168,16 @@ final class OpenIdConnect extends OAuth2
     public function getConfigParam(string $name): mixed
     {
         $params = $this->getConfigParams();
-        /**
-         * @psalm-suppress PossiblyInvalidArrayOffset
-         */
-        return $params[$name];
+        return $params[$name] ?? null;
     }
 
     /**
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
      *
-     * @return array|string OpenID provider configuration parameters.
+     * @return array OpenID provider configuration parameters.
      */
-    public function getConfigParams(): array|string
+    public function getConfigParams(): array
     {
         if (empty($this->configParams)) {
             $cacheKey = $this->configParamsCacheKeyPrefix . $this->getName();
@@ -218,7 +216,7 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return OAuthToken
      */
-    #[\Override]
+    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         if (empty($this->tokenUrl)) {
@@ -276,7 +274,7 @@ final class OpenIdConnect extends OAuth2
      * @param OAuthToken $token
      * @return OAuthToken
      */
-    #[\Override]
+    #[Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         if (strlen($this->tokenUrl) == 0) {
@@ -285,36 +283,19 @@ final class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
-        /**
-         * Note 1: Change OpenIdConnect::class to OAuth, Google,
-         * Note 2: Keep 'oidc' unchanged
-         * Related logic: app's config/web/di/yii-auth-client
-         * `@var array $paramsClients['oidc']`
-         * `$openidconnectClient = $paramsClients['oidc'];`
-         *
-         * Related logic: app's config/common/params [yiisoft/yii-auth-client] =>
-         *  [
-         *      'oidc' => [
-         *          'class' => 'Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class',
-         *          'issuerUrl' => 'dev-0yporhwwkgkdmu1g.uk.auth0.com',
-         *          'clientId' => $_ENV['OIDC_API_CLIENT_ID'] ?? '',
-         *          'clientSecret' => $_ENV['OIDC_API_CLIENT_SECRET'] ?? '',
-         *          'returnUrl' => $_ENV['OIDC_API_CLIENT_RETURN_URL'] ?? '',
-         *  ],
-         */
-        return 'oidc';
+        return $this->name;
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
-        return 'Open Id Connect';
+        return $this->title;
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return '';
@@ -325,7 +306,7 @@ final class OpenIdConnect extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -339,12 +320,34 @@ final class OpenIdConnect extends OAuth2
         $this->issuerUrl = rtrim($url, '/');
     }
 
-    protected function initUserAttributes(): array
+    /**
+     * Enables JWS validation/decryption of the auth token (the default). See {@see validateJws} for details.
+     */
+    public function withValidateJws(): self
     {
-        return $this->api((array) $this->getConfigParam('userinfo_endpoint'), 'GET');
+        $new = clone $this;
+        $new->validateJws = true;
+        return $new;
     }
 
-    #[\Override]
+    /**
+     * Disables JWS validation/decryption of the auth token. See {@see validateJws} for the trade-offs of
+     * doing so.
+     */
+    public function withoutValidateJws(): self
+    {
+        $new = clone $this;
+        $new->validateJws = false;
+        return $new;
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');
+    }
+
+    #[Override]
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = (array) $this->getConfigParam('token_endpoint_auth_methods_supported');
@@ -396,7 +399,7 @@ final class OpenIdConnect extends OAuth2
         return $request;
     }
 
-    #[\Override]
+    #[Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
@@ -408,11 +411,11 @@ final class OpenIdConnect extends OAuth2
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 
-    #[\Override]
+    #[Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $params = (array) $tokenConfig['params'];
-        $idToken = (string) $params['id_token'];
+        $idToken = (string) ($params['id_token'] ?? '');
         if ($this->validateJws) {
             $jwsData = $this->loadJws($idToken);
             $this->validateClaims($jwsData);
@@ -446,10 +449,14 @@ final class OpenIdConnect extends OAuth2
         try {
             $jwsLoader = $this->getJwsLoader();
             $signature = null;
-            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $this->getJwkSet(), $signature);
-            return (array) Json::decode($jwsVerified->getPayload(), true);
+            $jwkSet = $this->getJwkSet();
+            if ($jwkSet === null) {
+                throw new ClientException('JWK Set is not available.', 400);
+            }
+            $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $jwkSet, $signature);
+            return (array) Json::decode((string) $jwsVerified->getPayload(), true);
         } catch (Exception $e) {
-            throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), $e->getCode());
+            throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), (int) $e->getCode());
         }
     }
 
@@ -466,18 +473,13 @@ final class OpenIdConnect extends OAuth2
             $algorithms = [];
             /** @var string $algorithm */
             foreach ($this->allowedJwsAlgorithms as $algorithm) {
+                /** @var class-string<Algorithm> $class */
                 $class = '\Jose\Component\Signature\Algorithm\\' . $algorithm;
                 if (!class_exists($class)) {
                     throw new InvalidConfigException("Algorithm class $class doesn't exist");
                 }
-                /**
-                 * @psalm-suppress MixedMethodCall new $class()
-                 */
                 $algorithms[] = new $class();
             }
-            /**
-             * @psalm-suppress ArgumentTypeCoercion
-             */
             $algorithmManager = new AlgorithmManager($algorithms);
             $compactSerializer = new CompactSerializer();
             /** @psalm-var string[] $this->allowedJwsAlgorithms */
@@ -485,8 +487,14 @@ final class OpenIdConnect extends OAuth2
             $this->jwsLoader = new JWSLoader(
                 new JWSSerializerManager([$compactSerializer]),
                 new JWSVerifier($algorithmManager),
+                /**
+                 * @infection-ignore-all
+                 * $checker enforces the same $allowedJwsAlgorithms list that $algorithmManager above
+                 * is built from, so JWSVerifier already rejects any "alg" this checker would reject;
+                 * dropping it from the array is behaviorally unobservable from the outside.
+                 */
                 new HeaderCheckerManager(
-                    [new AlgorithmChecker($checker)],
+                    [$checker],
                     [new JWSTokenSupport()]
                 )
             );

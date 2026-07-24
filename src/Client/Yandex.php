@@ -8,8 +8,7 @@ use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
+use Override;
 
 /**
  * Yandex allows authentication via Yandex OAuth.
@@ -28,7 +27,7 @@ final class Yandex extends OAuth2
 
     protected string $endpoint = 'https://login.yandex.ru';
 
-    #[\Override]
+    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $params = RequestUtil::getParams($request);
@@ -44,44 +43,22 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-    public function getCurrentUserJsonArray(
-        OAuthToken $oAuthToken,
-        ClientInterface $clientInterface,
-        RequestFactoryInterface $requestFactoryInterface
-    ): array {
-        $tokenString = (string)$oAuthToken->getParam('access_token');
-
-        if ($tokenString !== '') {
-            $request = $requestFactoryInterface
-                ->createRequest('GET', $this->endpoint)
-                ->withHeader('Authorization', "OAuth $tokenString");
-
-            try {
-                $response = $clientInterface->sendRequest($request);
-                $body = (string)$response->getBody();
-                if (!empty($body)) {
-                    return (array) json_decode($body, true);
-                }
-                return [];
-            } catch (\Psr\Http\Client\ClientExceptionInterface) {
-                return [];
-            }
-        }
-
-        return [];
+    public function getCurrentUserJsonArray(OAuthToken $token): array
+    {
+        return $this->fetchCurrentUserJsonArray($token, $this->endpoint, authScheme: 'OAuth');
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
         if ($token instanceof OAuthToken) {
-            // Use $this->httpClient and $this->requestFactory from the parent OAuth2 class
-            return $this->getCurrentUserJsonArray($token, $this->httpClient, $this->requestFactory);
+            return $this->getCurrentUserJsonArray($token);
         }
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi';
@@ -92,7 +69,7 @@ final class Yandex extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -108,19 +85,19 @@ final class Yandex extends OAuth2
      *
      * @psalm-return 'login:info'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'login:info';
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'yandex';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'Yandex';

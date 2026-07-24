@@ -17,32 +17,34 @@ use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
+use Override;
 
 /**
- * AuthAction performs authentication via different auth clients.
- * It supports {@see OpenId}, {@see OAuth1} and {@see OAuth2} client types.
+ * AuthAction is a PSR-15 middleware, which performs authentication via {@see OAuth2} auth clients
+ * (including {@see \Yiisoft\Yii\AuthClient\Client\OpenIdConnect}).
  *
- * Usage:
+ * Usage, registered as a DI definition and attached to a route:
  *
  * ```php
- * class SiteController extends Controller
- * {
- *     public function actions()
- *     {
- *         return [
- *             'auth' => [
- *                 'class' => \Yiisoft\Yii\AuthClient\AuthAction::class,
- *                 'successCallback' => [$this, 'successCallback'],
- *             ],
- *         ]
- *     }
- *
- *     public function successCallback($client)
- *     {
+ * // config/di.php
+ * AuthAction::class => static fn (
+ *     Collection $clientCollection,
+ *     Aliases $aliases,
+ *     WebView $view,
+ *     ResponseFactoryInterface $responseFactory,
+ * ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory))
+ *     ->withSuccessUrl('/site/index')
+ *     ->withCancelUrl('/site/login')
+ *     ->withSuccessCallback(function (AuthClientInterface $client) {
  *         $attributes = $client->getUserAttributes();
  *         // user login or signup comes here
- *     }
- * }
+ *     })
+ *     ->withCancelCallback(function (AuthClientInterface $client) {
+ *         // set flash, logging, etc.
+ *     }),
+ *
+ * // config/routes.php
+ * Route::methods(['GET', 'POST'], '/auth/{authclient}')->action(AuthAction::class),
  * ```
  *
  * Usually authentication via external services is performed inside the popup window.
@@ -67,7 +69,7 @@ final class AuthAction implements MiddlewareInterface
      * For example:
 
      * ```php
-     * public function onAuthSuccess(ClientInterface $client)
+     * public function onAuthSuccess(AuthClientInterface $client)
      * {
      *     $attributes = $client->getUserAttributes();
      *     // user login or signup comes here
@@ -77,9 +79,9 @@ final class AuthAction implements MiddlewareInterface
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see successUrl} will be performed.
      *
-     * @var callable
+     * @var callable|null
      */
-    private $successCallback;
+    private $successCallback = null;
     /**
      * @psalm-param TCallableString $cancelCallback PHP callback, which should be triggered in case of authentication cancellation.
      *
@@ -88,7 +90,7 @@ final class AuthAction implements MiddlewareInterface
      * For example:
 
      * ```php
-     * public function onAuthCancel(ClientInterface $client)
+     * public function onAuthCancel(AuthClientInterface $client)
      * {
      *     // set flash, logging, etc.
      * }
@@ -97,9 +99,9 @@ final class AuthAction implements MiddlewareInterface
      * If this callback returns {@see ResponseInterface} instance, it will be used as action response,
      * otherwise redirection to {@see cancelUrl} will be performed.
      *
-     * @var callable
+     * @var callable|null
      */
-    private $cancelCallback;
+    private $cancelCallback = null;
     /**
      * @var string name or alias of the view file, which should be rendered in order to perform redirection.
      * If not set - default one will be used.
@@ -109,9 +111,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * @var string the redirect url after successful authorization.
      */
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
     private readonly string $successUrl;
     /**
      * @var string the redirect url after unsuccessful authorization (e.g. user canceled).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
      */
     private readonly string $cancelUrl;
 
@@ -151,7 +158,37 @@ final class AuthAction implements MiddlewareInterface
         return $new;
     }
 
-    #[\Override]
+    /**
+     * @param callable $callback PHP callback, which should be triggered in case of successful authentication.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
+     * If it returns a {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see successUrl} will be performed.
+     *
+     * @return AuthAction
+     */
+    public function withSuccessCallback(callable $callback): self
+    {
+        $new = clone $this;
+        $new->successCallback = $callback;
+        return $new;
+    }
+
+    /**
+     * @param callable $callback PHP callback, which should be triggered in case of authentication cancellation.
+     * This callback should accept {@see AuthClientInterface} instance as an argument.
+     * If it returns a {@see ResponseInterface} instance, it will be used as action response,
+     * otherwise redirection to {@see cancelUrl} will be performed.
+     *
+     * @return AuthAction
+     */
+    public function withCancelCallback(callable $callback): self
+    {
+        $new = clone $this;
+        $new->cancelCallback = $callback;
+        return $new;
+    }
+
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $clientId = (string)$request->getAttribute($this->clientIdGetParamName);
@@ -170,7 +207,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Perform authentication for the given client.
      *
-     * @param mixed $client auth client instance.
+     * @param AuthClientInterface $client auth client instance.
      * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
@@ -186,9 +223,6 @@ final class AuthAction implements MiddlewareInterface
         if ($client instanceof OAuth2) {
             return $this->authOAuth2($client, $request);
         }
-        /**
-         * @psalm-suppress MixedArgument $client
-         */
         throw new NotSupportedException('Provider "' . $client::class . '" is not supported.');
     }
 
@@ -298,7 +332,7 @@ final class AuthAction implements MiddlewareInterface
     {
         $viewFile = $this->redirectView;
         if ($viewFile === null) {
-            $viewFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
+            $viewFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'redirect.php';
         } else {
             $viewFile = $this->aliases->get($viewFile);
         }
@@ -335,7 +369,7 @@ final class AuthAction implements MiddlewareInterface
         }
 
         /**
-         * @psalm-suppress MixedAssignment
+         * @var ResponseInterface $response
          */
         $response = ($this->successCallback)($client);
         if ($response instanceof ResponseInterface) {

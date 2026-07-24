@@ -10,6 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Override;
 
 /**
  * AuthClient is a base Auth Client class.
@@ -43,7 +44,7 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @var array $viewOptions view options in format: optionName => optionValue
      */
-    protected array $viewOptions;
+    protected array $viewOptions = [];
 
     public function __construct(
         protected PsrClientInterface $httpClient,
@@ -91,9 +92,85 @@ abstract class AuthClient implements AuthClientInterface
     }
 
     /**
+     * Returns the authenticated user's attributes, as fetched by {@see initUserAttributes()} and normalized
+     * according to {@see normalizeUserAttributeMap}.
+     *
+     * @return array user attributes.
+     */
+    public function getUserAttributes(): array
+    {
+        $attributes = $this->initUserAttributes();
+        $normalizeMap = $this->getNormalizeUserAttributeMap();
+
+        return array_merge($attributes, $this->normalizeUserAttributes($attributes, $normalizeMap));
+    }
+
+    /**
+     * Fetches the authenticated user's raw attribute data from the external auth provider.
+     * Particular client should override this method in order to provide actual attribute fetching.
+     *
+     * @return array raw user attributes.
+     */
+    protected function initUserAttributes(): array
+    {
+        return [];
+    }
+
+    /**
+     * Applies {@see normalizeUserAttributeMap} to raw user attributes.
+     *
+     * @param array $attributes raw user attributes.
+     * @param array $normalizeMap normalize attribute map.
+     *
+     * @return array normalized attributes, keyed by their normalized name.
+     */
+    private function normalizeUserAttributes(array $attributes, array $normalizeMap): array
+    {
+        $normalized = [];
+
+        foreach ($normalizeMap as $normalizedName => $sourceSpecification) {
+            if (is_callable($sourceSpecification)) {
+                $normalized[$normalizedName] = $sourceSpecification($attributes);
+                continue;
+            }
+
+            if (is_array($sourceSpecification)) {
+                $value = $attributes;
+                foreach ($sourceSpecification as $key) {
+                    /** @var array-key $key path segment, per the {@see normalizeUserAttributeMap} format. */
+                    if (!is_array($value) || !array_key_exists($key, $value)) {
+                        $value = null;
+                        /**
+                         * @infection-ignore-all
+                         * Once $value is null, every remaining iteration re-hits the `!is_array($value)`
+                         * branch of the guard above and re-assigns null, so `break` vs `continue` here is
+                         * unobservable: both leave $value null after the loop.
+                         */
+                        break;
+                    }
+                    $value = $value[$key];
+                }
+                $normalized[$normalizedName] = $value;
+                continue;
+            }
+
+            /**
+             * @infection-ignore-all
+             * Per the {@see normalizeUserAttributeMap} format, $sourceSpecification is a raw attribute name
+             * here. PHP normalizes any array-key-compatible scalar identically whether cast to string first
+             * or not, so this cast is unobservable for every value this format allows; it exists only to
+             * narrow the type for static analysis.
+             */
+            $normalized[$normalizedName] = $attributes[(string) $sourceSpecification] ?? null;
+        }
+
+        return $normalized;
+    }
+
+    /**
      * @return array view options in format: optionName => optionValue
      */
-    #[\Override]
+    #[Override]
     public function getViewOptions(): array
     {
         if (empty($this->viewOptions)) {
@@ -119,7 +196,7 @@ abstract class AuthClient implements AuthClientInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface

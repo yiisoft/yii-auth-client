@@ -13,19 +13,23 @@ use RuntimeException;
  * Example application configuration:
  *
  * ```php
- * 'authClients' => [
- *     'google' => [
- *         'class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
- *         'setClientId()' => ['google_client_id'],
- *         'setClientSecret()' => ['google_client_secret'],
- *      ],
- *     'facebook' => [
- *         'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
- *         'setClientId()' => ['facebook_client_id'],
- *         'setClientSecret()' => ['facebook_client_secret'],
- *     ]
- *     ...
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'google' => Yiisoft\Yii\AuthClient\Client\Google::class,
+ *         'facebook' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+ *         ...
+ *     ],
  * ]
+ * ```
+ *
+ * Each client class referenced above must itself be registered as a DI definition (e.g. in `config/di.php`)
+ * so its `clientId`/`clientSecret` can be configured:
+ *
+ * ```php
+ * Yiisoft\Yii\AuthClient\Client\Google::class => [
+ *     'setClientId()' => ['google_client_id'],
+ *     'setClientSecret()' => ['google_client_secret'],
+ * ],
  * ```
  */
 final class Collection

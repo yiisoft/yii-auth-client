@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
 
 /**
  * Facebook allows authentication via Facebook OAuth.
@@ -17,19 +18,18 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * Example application configuration:
  *
- * config/common/params.php
- *
+ * config/common/params.php:
  * 'yiisoft/yii-auth-client' => [
- *       'enabled' => true,
- *       'clients' => [
- *           'facebook' => [
- *               'class' => 'Yiisoft\Yii\AuthClient\Client\Facebook::class',
- *               'clientId' => $_ENV['FACEBOOK_API_CLIENT_ID'] ?? '',
- *               'clientSecret' => $_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? '',
- *               'returnUrl' => $_ENV['FACEBOOK_API_CLIENT_RETURN_URL'] ?? '',
- *           ],
- *       ],
- *   ],
+ *     'clients' => [
+ *         'facebook' => Facebook::class,
+ *     ],
+ * ],
+ *
+ * config/common/di.php:
+ * Facebook::class => [
+ *     'setClientId()' => [$_ENV['FACEBOOK_API_CLIENT_ID'] ?? ''],
+ *     'setClientSecret()' => [$_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? ''],
+ * ],
  *
  * @link https://developers.facebook.com/apps
  * @link https://developers.facebook.com/docs/graph-api
@@ -62,39 +62,19 @@ final class Facebook extends OAuth2
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        $params = $token->getParams();
-        $finalValue = '';
-        $finalValue = array_key_last($params);
+        $queryParams = [
+            'fields' => implode(',', $this->endpointFields),
+        ];
+        $url = sprintf(
+            $this->endpoint . '/%s/me?%s',
+            urlencode($this->graphApiVersion),
+            http_build_query($queryParams)
+        );
 
-        /**
-         * @var string $finalValue
-         * @var array $array
-         */
-        $array = json_decode($finalValue, true);
-        $tokenString = (string)($array['access_token'] ?? '');
-
-        if ($tokenString !== '') {
-            $queryParams = [
-                'fields' => implode(',', $this->endpointFields),
-            ];
-            $url = sprintf(
-                $this->endpoint . '/%s/me?%s',
-                urlencode($this->graphApiVersion),
-                http_build_query($queryParams)
-            );
-            $request = $this->createRequest('GET', $url);
-            $request = RequestUtil::addHeaders(
-                $request,
-                [
-                    'Authorization' => 'Bearer ' . $tokenString,
-                ]
-            );
-            $response = $this->sendRequest($request);
-            return (array) json_decode($response->getBody()->getContents(), true);
-        }
-        return [];
+        return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -104,7 +84,7 @@ final class Facebook extends OAuth2
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -119,7 +99,7 @@ final class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
@@ -142,17 +122,18 @@ final class Facebook extends OAuth2
      */
     public function exchangeAccessToken(OAuthToken $token): OAuthToken
     {
-        [
+        $params = [
             'grant_type' => 'fb_exchange_token',
             'fb_exchange_token' => $token->getToken(),
         ];
 
         $request = $this->createRequest('POST', $this->getTokenUrl());
-        //->setParams($params);
-        $this->applyClientCredentialsToRequest($request);
+        $request = RequestUtil::addParams($request, $params);
+        $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 
         return $token;
@@ -175,7 +156,7 @@ final class Facebook extends OAuth2
      */
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
-        OAuthToken $token = null,
+        ?OAuthToken $token = null,
         array $params = []
     ): string {
         if ($token === null) {
@@ -233,25 +214,26 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        $token = $this->createToken(['params' => $response]);
+        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 
         return $token;
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'facebook';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'Facebook';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-facebook';
@@ -262,7 +244,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -276,7 +258,7 @@ final class Facebook extends OAuth2
      *
      * @psalm-return 'public_profile'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'public_profile';

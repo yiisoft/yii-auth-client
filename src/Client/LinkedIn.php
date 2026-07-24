@@ -6,9 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
+use Override;
 
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
@@ -26,69 +24,36 @@ final class LinkedIn extends OAuth2
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
 
-    /**
-     * Fetch current user information using PSR-18 HTTP Client and PSR-17 Request Factory.
-     *
-     * @param OAuthToken $token
-     * @param ClientInterface $httpClient PSR-18 HTTP Client
-     * @param RequestFactoryInterface $requestFactory PSR-17 Request Factory
-     * @return array
-     */
-    public function getCurrentUserJsonArray(
-        OAuthToken $token,
-        ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
-    ): array {
-        $tokenString = (string)$token->getParam('access_token');
-        if ($tokenString !== '') {
-            return [];
-        }
+    public function getCurrentUserJsonArray(OAuthToken $token): array
+    {
+        $url = sprintf('https://api.linkedin.com/%s/userinfo', $this->version);
 
-        $url = sprintf(
-            'https://api.linkedin.com/%s/userinfo',
-            $this->version
-        );
-
-        $request = $requestFactory->createRequest('GET', $url)
-            ->withHeader('Authorization', 'Bearer ' . $tokenString);
-
-        try {
-            /** @var ResponseInterface $response */
-            $response = $httpClient->sendRequest($request);
-            $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                return (array)json_decode($body, true);
-            }
-        } catch (\Throwable) {
-            return [];
-        }
-
-        return [];
+        return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
         if ($token instanceof OAuthToken) {
-            // Use $this->httpClient and $this->requestFactory from the parent OAuth2 class
-            return $this->getCurrentUserJsonArray($token, $this->httpClient, $this->requestFactory);
+            return $this->getCurrentUserJsonArray($token);
         }
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'linkedin';
     }
 
-    #[\Override]
+    #[Override]
     public function getTitle(): string
     {
         return 'LinkedIn';
     }
 
-    #[\Override]
+    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-info bi bi-linkedin';
@@ -99,7 +64,7 @@ final class LinkedIn extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[\Override]
+    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -118,7 +83,7 @@ final class LinkedIn extends OAuth2
      *
      * @psalm-return 'openid profile email w_member_social'
      */
-    #[\Override]
+    #[Override]
     protected function getDefaultScope(): string
     {
         return 'openid profile email w_member_social';

@@ -1,82 +1,68 @@
 Getting additional data via extra API calls
 ===========================================
 
-Both [[\Yiisoft\Yii\AuthClient\OAuth1]] and [[\Yiisoft\Yii\AuthClient\OAuth2]] provide method `api()`, which
-can be used to access external auth provider REST API.
+[[\Yiisoft\Yii\AuthClient\OAuth2]] provides a method `api()`, which can be used to access the external auth
+provider's REST API once an access token has been obtained.
 
-To use API calls, you need to setup [[\Yiisoft\Yii\AuthClient\BaseOAuth::apiBaseUrl]] according to the
-API specification. Then you can call [[\Yiisoft\Yii\AuthClient\BaseOAuth::api()]] method:
+Requests made through `api()`/`createApiRequest()` are relative to the client's `$endpoint` property, which each
+built-in client hardcodes to its provider's API base (e.g. `Google::$endpoint` already points at the userinfo
+endpoint). This is most useful in a client you write yourself, see [Creating your own auth clients](creating-your-own-auth-clients.md).
+For example:
 
 ```php
 use Yiisoft\Yii\AuthClient\OAuth2;
 
-$client = new OAuth2();
+final class MyClient extends OAuth2
+{
+    protected string $endpoint = 'https://www.my.com/apis/oauth2/v1/';
 
-// ...
+    // ...
+}
 
-$client->apiBaseUrl = 'https://www.googleapis.com/oauth2/v1';
+/** @var MyClient $client */
 $userInfo = $client->api('userinfo', 'GET');
 ```
 
-Method [[\Yiisoft\Yii\AuthClient\BaseOAuth::api()]] is very basic and does not provide enough flexibility required for
-some API commands. You may use [[\Yiisoft\Yii\AuthClient\BaseOAuth::createApiRequest()]] instead - it will create an
-instance of [[\yii\httpclient\Request]], which allows much more control over HTTP request composition.
-For example:
+Method [[\Yiisoft\Yii\AuthClient\OAuth::api()]] is very basic: it returns the decoded JSON response body as an
+array, or throws [[\Yiisoft\Yii\AuthClient\Exception\InvalidResponseException]] (which exposes the failed
+`ResponseInterface` via `getResponse()`) if the response status is not `200`.
+
+If you need more control, use [[\Yiisoft\Yii\AuthClient\OAuth::createApiRequest()]] instead - it returns a PSR-7
+`RequestInterface`, so you can shape it with the usual `with*()` methods, and with
+[[\Yiisoft\Yii\AuthClient\RequestUtil::addParams()]]/[[\Yiisoft\Yii\AuthClient\RequestUtil::addHeaders()]] to add
+several query parameters/headers at once. `createApiRequest()`/`createRequest()` only build the request - sending
+it is up to you, via your own PSR-18 `ClientInterface` instance (the auth client's internal HTTP client is not
+exposed):
 
 ```php
-/* @var $client \Yiisoft\Yii\AuthClient\OAuth2 */
-$client = Yii::getApp()->authClientCollection->getClient('someOAuth2');
+use Psr\Http\Client\ClientInterface;
 
-// find user to add to external service:
-$user = User::find()->andWhere(['email' => 'johndoe@domain.com'])->one();
+/** @var MyClient $client */
+/** @var ClientInterface $httpClient your own PSR-18 client */
+$request = $client->createApiRequest('GET', 'users');
+$request = \Yiisoft\Yii\AuthClient\RequestUtil::addParams($request, ['id' => $userId]);
+$request = \Yiisoft\Yii\AuthClient\RequestUtil::addHeaders($request, ['MyHeader' => 'my-value']);
 
-$response = $client->createApiRequest()
-    ->setMethod('GET')
-    ->setUrl('users')
-    ->setParams([
-        'id' => $user->id,
-    ])
-    ->send();
+// createApiRequest() does not sign the request; apply the access token before sending, see below
+$request = $client->beforeApiRequestSend($request);
 
-if ($response->statusCode != 404) {
-    throw new \Exception('User "johndoe@domain.com" already exist');
-}
-
-$response = $client->createApiRequest()
-    ->setMethod('PUT')
-    ->setUrl('users')
-    ->setParams($user->attributes)
-    ->addHeaders([
-        'MyHeader' => 'my-value'
-    ])
-    ->send();
-
-if (!$response->isOk) {
-    // failure
-}
-echo $response->parsedBody['id'];
+$response = $httpClient->sendRequest($request);
 ```
 
-Please refer to [yii2-httpclient](https://github.com/yiisoft/yii2-httpclient) documentation for details about HTTP
-request sending.
-
-Request created via [[\Yiisoft\Yii\AuthClient\BaseOAuth::createApiRequest()]] will be automatically signed up (in case of
-OAuth 1.0 usage) and have access token applied before being sent. If you wish to gain full control over these processes,
-you should use [[\Yiisoft\Yii\AuthClient\BaseClient::createRequest()]] instead.
-You may use [[\Yiisoft\Yii\AuthClient\BaseOAuth::applyAccessTokenToRequest()]] and [[Yiisoft\Yii\AuthClient\OAuth1::signRequest()]] method
-to perform missing actions for the API request.
-For example:
+Request created via [[\Yiisoft\Yii\AuthClient\OAuth::createApiRequest()]] still needs the access token applied
+before being sent - `api()` does this automatically via `beforeApiRequestSend()`. If you build the request via
+[[\Yiisoft\Yii\AuthClient\AuthClient::createRequest()]] directly instead, you're responsible for calling
+[[\Yiisoft\Yii\AuthClient\OAuth2::applyAccessTokenToRequest()]] yourself:
 
 ```php
-/* @var $client \Yiisoft\Yii\AuthClient\OAuth1 */
-$client = Yii::getApp()->authClientCollection->getClient('someOAuth1');
+/** @var MyClient $client */
+/** @var ClientInterface $httpClient your own PSR-18 client */
+$request = $client->createRequest('GET', 'https://www.my.com/apis/oauth2/v1/users');
 
-$request = $client->createRequest()
-    ->setMethod('GET')
-    ->setUrl('users');
+$token = $client->getAccessToken();
+if ($token !== null) {
+    $request = $client->applyAccessTokenToRequest($request, $token); // use custom access token for API
+}
 
-$client->applyAccessTokenToRequest($request, $myAccessToken); // use custom access token for API
-$client->signRequest($request, $myAccessToken); // sign request with custom access token
-
-$response = $request->send();
+$response = $httpClient->sendRequest($request);
 ```

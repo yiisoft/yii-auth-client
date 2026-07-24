@@ -1,52 +1,41 @@
 Настройка HTTP клиента
 ======================
 
-Расширение использует [yii2-httpclient](https://github.com/yiisoft/yii2-httpclient) для отправки HTTP запросов.
-Вам может понадобиться изменить конфигурацию по умолчанию для используемого HTTP клиента, например, в случае если вам
-нужно использовать особый транспорт для запросов.
+Расширение отправляет HTTP-запросы (процесс аутентификации, обмен токена, вызовы `api()`) через
+[PSR-18](https://www.php-fig.org/psr/psr-18/) `Psr\Http\Client\ClientInterface`, внедряемый в каждый
+[[\Yiisoft\Yii\AuthClient\AuthClient]] через конструктор. Сам пакет зависит только от интерфейса PSR-18
+(`psr/http-client`) - ваше приложение должно предоставить конкретную реализацию (например,
+[Guzzle](https://github.com/guzzle/guzzle) через `php-http/guzzle7-adapter`, или
+[Buzz](https://github.com/kriswallsmith/buzz)) и привязать её в DI-контейнере.
 
-Каждый Auth клиент имеет свойство `httpClient`, которое может быть использовано для задания HTTP клиента для Auth клиента.
-Например:
-
-```php
-use Yiisoft\Yii\AuthClient\Google;
-
-$authClient = new Google([
-    'httpClient' => [
-        'transport' => 'yii\httpclient\CurlTransport',
-    ],
-]);
-```
-
-В случае, если вы используете компонент [[\Yiisoft\Yii\AuthClient\Collection]], вы можете воспользоваться его свойством `httpClient`
-для задания конфигурации HTTP клиента для всех внутренних Auth клиентов.
-Пример конфигурации приложения:
+Так как все клиенты аутентификации используют одну и ту же зависимость конструктора `Psr\Http\Client\ClientInterface`,
+привязка её один раз в `config/common/di.php` настраивает HTTP клиент сразу для всех клиентов аутентификации:
 
 ```php
+use Psr\Http\Client\ClientInterface;
+use Buzz\Client\Curl;
+
 return [
-    'components' => [
-        'authClientCollection' => [
-            'class' => Yiisoft\Yii\AuthClient\Collection::class,
-            // все Auth клиенты будут использовать эту конфигурацию для HTTP клиента:
-            'httpClient' => [
-                'transport' => yii\httpclient\CurlTransport::class,
-            ],
-            'clients' => [
-                'google' => [
-                    'class' => Yiisoft\Yii\AuthClient\Clients\Google::class,
-                    'clientId' => 'google_client_id',
-                    'clientSecret' => 'google_client_secret',
-                ],
-                'facebook' => [
-                    'class' => Yiisoft\Yii\AuthClient\Clients\Facebook::class,
-                    'clientId' => 'facebook_client_id',
-                    'clientSecret' => 'facebook_client_secret',
-                ],
-                // etc.
-            ],
-        ]
-        //...
-    ],
-    // ...
+    ClientInterface::class => Curl::class,
 ];
 ```
+
+Если конкретному клиенту нужен другой HTTP клиент (особый таймаут, прокси и т.д.), переопределите только этот
+аргумент конструктора в его собственном определении:
+
+```php
+use Yiisoft\Yii\AuthClient\Client\Google;
+
+return [
+    Google::class => [
+        '__construct()' => [
+            'httpClient' => MyCustomPsr18Client::class,
+        ],
+        'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
+        'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
+    ],
+];
+```
+
+Аналогично, для построения исходящих запросов (`AuthClient::createRequest()`) требуется PSR-17
+`Psr\Http\Message\RequestFactoryInterface`; привяжите реализацию этого интерфейса таким же образом.

@@ -12,11 +12,11 @@ use Yiisoft\Yii\AuthClient\OAuth2;
  */
 final class TestClient extends OAuth2
 {
-    /**
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
     protected array $viewOptions;
 
+    protected string $endpoint = 'http://api.test.local';
+
+    #[\Override]
     protected function initUserAttributes(): array
     {
         return [];

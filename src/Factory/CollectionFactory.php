@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Factory;
 
+use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
-class CollectionFactory
+final readonly class CollectionFactory
 {
-    public function __construct(private readonly array $clients = [])
+    public function __construct(private array $clients = [])
     {
     }
 
     /**
      * @param ContainerInterface $container
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @return Collection
-     * @psalm-suppress MixedAssignment
      */
     public function __invoke(ContainerInterface $container): Collection
     {
@@ -27,9 +28,11 @@ class CollectionFactory
          */
         foreach ($this->clients as $name => $client) {
             if (!is_string($name)) {
-                throw new \InvalidArgumentException('Client name must be set.');
+                throw new InvalidArgumentException('Client name must be set.');
             }
-            $clients[$name] = $container->get($client);
+            /** @var OAuth2 $resolvedClient */
+            $resolvedClient = $container->get($client);
+            $clients[$name] = $resolvedClient;
         }
         return new Collection($clients);
     }

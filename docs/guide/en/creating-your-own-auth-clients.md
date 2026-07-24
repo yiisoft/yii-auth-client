@@ -1,115 +1,136 @@
 Creating your own auth clients
 ==============================
 
-You may create your own auth client for any external auth provider, which supports
-OpenId or OAuth protocol. To do so, first of all, you need to find out which protocol is
-supported by the external auth provider, this will give you the name of the base class
-for your extension:
+You may create your own auth client for any external auth provider that supports the OAuth 2 protocol
+(this includes OpenID Connect providers - extend [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect]] instead if the
+provider exposes a standard `.well-known/openid-configuration` discovery document).
 
- - For OAuth 2 use [[Yiisoft\Yii\AuthClient\OAuth2]].
- - For OAuth 1/1.0a use [[Yiisoft\Yii\AuthClient\OAuth1]].
- - For OpenID use [[Yiisoft\Yii\AuthClient\OpenId]].
+Extend [[\Yiisoft\Yii\AuthClient\OAuth2]] and provide, at minimum:
 
-At this stage you can determine auth client default name, title and view options, declaring
-corresponding methods:
+- `authUrl` - the provider's authorization endpoint.
+- `tokenUrl` - the provider's access token endpoint.
+- `endpoint` - the API base URL used by `api()`/`createApiRequest()` (see [Getting additional data via extra API calls](usage-api.md)).
+- `getName()`, `getTitle()`, `getButtonClass()` - required by [[\Yiisoft\Yii\AuthClient\AuthClientInterface]].
+- `getClientId()` - required by [[\Yiisoft\Yii\AuthClient\OAuth2Interface]]; already implemented by `OAuth2` via
+  the `clientId` property set through `setClientId()`, so you rarely need to override it.
+- `getCurrentUserJsonArray(OAuthToken $token): array` - by convention (used by all built-in clients, though not
+  part of the interface), the method that fetches the authenticated user's data. `OAuth2` provides a
+  `fetchCurrentUserJsonArray()` helper that applies the token as a `Bearer` `Authorization` header for you.
+- `initUserAttributes(): array` - a protected hook on [[\Yiisoft\Yii\AuthClient\AuthClient]] (default: empty
+  array) feeding the public [[\Yiisoft\Yii\AuthClient\AuthClientInterface::getUserAttributes()|getUserAttributes()]].
+  Override it to call your `getCurrentUserJsonArray()` once an access token is available - this is what every
+  built-in client does.
+
+For example, a minimal client for a hypothetical `my.com` OAuth2 provider:
 
 ```php
-use Yiisoft\Yii\AuthClient\OAuth2;
+<?php
 
-class MyAuthClient extends OAuth2
+declare(strict_types=1);
+
+namespace App\AuthClient;
+
+use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Override;
+
+final class MyAuthClient extends OAuth2
 {
-    protected function defaultName()
+    protected string $authUrl = 'https://www.my.com/oauth2/auth';
+
+    protected string $tokenUrl = 'https://www.my.com/oauth2/token';
+
+    protected string $endpoint = 'https://www.my.com/apis/oauth2/v1';
+
+    public function getCurrentUserJsonArray(OAuthToken $token): array
+    {
+        return $this->fetchCurrentUserJsonArray($token, $this->endpoint . '/userinfo');
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+
+        return $token instanceof OAuthToken ? $this->getCurrentUserJsonArray($token) : [];
+    }
+
+    #[Override]
+    public function getName(): string
     {
         return 'my_auth_client';
     }
 
-    protected function defaultTitle()
+    #[Override]
+    public function getTitle(): string
     {
         return 'My Auth Client';
     }
 
-    protected function defaultViewOptions()
+    #[Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary';
+    }
+
+    #[Override]
+    protected function defaultViewOptions(): array
     {
         return [
             'popupWidth' => 800,
             'popupHeight' => 500,
         ];
     }
-}
-```
 
-Depending on actual base class, you will need to redeclare different fields and methods.
-
-## [[Yiisoft\Yii\AuthClient\OAuth2]]
-
-You will need to specify:
-
-- Auth URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth2::authUrl|authUrl]] field.
-- Token request URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth2::tokenUrl|tokenUrl]] field.
-- API base URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth2::apiBaseUrl|apiBaseUrl]] field.
-- User attribute fetching strategy by redeclaring [[Yiisoft\Yii\AuthClient\OAuth2::initUserAttributes()|initUserAttributes()]] 
-method.
-
-For example:
-
-```php
-use Yiisoft\Yii\AuthClient\OAuth2;
-
-class MyAuthClient extends OAuth2
-{
-    public $authUrl = 'https://www.my.com/oauth2/auth';
-
-    public $tokenUrl = 'https://www.my.com/oauth2/token';
-
-    public $apiBaseUrl = 'https://www.my.com/apis/oauth2/v1';
-
-    protected function initUserAttributes()
+    #[Override]
+    protected function getDefaultScope(): string
     {
-        return $this->api('userinfo', 'GET');
+        return 'profile email';
     }
 }
 ```
 
-You may also specify default auth scopes.
+`getDefaultScope()` sets the scope requested by every instance of your client. If you instead need to vary the
+scope per DI configuration without another subclass, call the inherited `setScope()` (e.g. `'setScope()' => [...]`
+in the client's DI definition) to override it at registration time.
 
-> Note: Some OAuth providers may not follow OAuth standards clearly, introducing
-  differences, and may require additional efforts to implement clients for.
-
-## [[Yiisoft\Yii\AuthClient\OAuth1]]
-
-You will need to specify:
-
-- Auth URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth1::authUrl|authUrl]] field.
-- Request token URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth1::requestTokenUrl|requestTokenUrl]] field.
-- Access token URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth1::accessTokenUrl|accessTokenUrl]] field.
-- API base URL by redeclaring [[Yiisoft\Yii\AuthClient\OAuth1::apiBaseUrl|apiBaseUrl]] field.
-- User attribute fetching strategy by redeclaring [[Yiisoft\Yii\AuthClient\OAuth1::initUserAttributes()|initUserAttributes()]] 
-method.
-
-For example:
+Then register it exactly like a built-in client (see [Installation](installation.md)):
 
 ```php
-use Yiisoft\Yii\AuthClient\OAuth1;
+// config/common/params.php
+'yiisoft/yii-auth-client' => [
+    'clients' => [
+        'my_auth_client' => \App\AuthClient\MyAuthClient::class,
+    ],
+],
 
-class MyAuthClient extends OAuth1
+// config/common/di.php
+\App\AuthClient\MyAuthClient::class => [
+    'setClientId()' => [$_ENV['MY_CLIENT_ID']],
+    'setClientSecret()' => [$_ENV['MY_CLIENT_SECRET']],
+],
+```
+
+Once authenticated, application code calls `$client->getUserAttributes()` (see [Quick Start](quick-start.md)) to
+get the data returned by your `initUserAttributes()` override. If the provider's raw field names don't match what
+your application expects, or you want a consistent shape across several different providers, override
+`defaultNormalizeUserAttributeMap()` to remap/derive attributes without changing `initUserAttributes()` itself:
+
+```php
+#[Override]
+protected function defaultNormalizeUserAttributeMap(): array
 {
-    public $authUrl = 'https://www.my.com/oauth/auth';
-
-    public $requestTokenUrl = 'https://www.my.com/oauth/request_token';
-
-    public $accessTokenUrl = 'https://www.my.com/oauth/access_token';
-
-    public $apiBaseUrl = 'https://www.my.com/apis/oauth/v1';
-
-    protected function initUserAttributes()
-    {
-        return $this->api('userinfo', 'GET');
-    }
+    return [
+        'about' => 'bio',
+        'language' => ['languages', 0, 'name'],
+        'fullName' => static fn (array $attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
+    ];
 }
 ```
 
-You may also specify default auth scopes.
+Each entry maps a normalized attribute name to either a raw attribute name (string), a path into nested raw
+attributes (array of keys), or a callback receiving the raw attributes array. `getUserAttributes()` returns the
+raw attributes merged with these normalized ones.
 
-> Note: Some OAuth providers may not follow OAuth standards clearly, introducing
-  differences, and may require additional efforts to implement clients for.
-
+> Note: Some OAuth providers may not follow the OAuth standard clearly, introducing differences that require
+  additional effort to implement a client for.
