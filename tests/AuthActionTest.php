@@ -14,6 +14,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionProperty;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Router\CurrentRoute;
+use Yiisoft\Router\Route;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\AuthAction;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
@@ -27,14 +29,25 @@ use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
 final class AuthActionTest extends TestCase
 {
-    private function createAction(Collection $collection): AuthAction
+    private function createAction(Collection $collection, ?string $authClientId = null): AuthAction
     {
         return new AuthAction(
             $collection,
             new Aliases(),
             new WebView(),
             new Psr17Factory(),
+            $this->createCurrentRoute($authClientId),
         );
+    }
+
+    private function createCurrentRoute(?string $authClientId): CurrentRoute
+    {
+        $currentRoute = new CurrentRoute();
+        if ($authClientId !== null) {
+            $currentRoute->setRouteWithArguments(Route::get('/auth/{authclient}'), ['authclient' => $authClientId]);
+        }
+
+        return $currentRoute;
     }
 
     private function setCallback(AuthAction $action, string $property, callable $callback): void
@@ -60,7 +73,7 @@ final class AuthActionTest extends TestCase
         return $this->createStub(RequestHandlerInterface::class);
     }
 
-    public function testProcessReturnsNotFoundWithoutClientIdAttribute(): void
+    public function testProcessReturnsNotFoundWithoutClientIdRouteArgument(): void
     {
         $action = $this->createAction(new Collection([]));
         $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/auth');
@@ -75,10 +88,8 @@ final class AuthActionTest extends TestCase
 
     public function testProcessReturnsNotFoundForUnknownClient(): void
     {
-        $action = $this->createAction(new Collection([]));
-        $request = (new Psr17Factory())
-            ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'unknown');
+        $action = $this->createAction(new Collection([]), 'unknown');
+        $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/auth');
 
         $response = $action->process($request, $this->createRequestHandlerStub());
 
@@ -89,10 +100,8 @@ final class AuthActionTest extends TestCase
     public function testProcessRedirectsToAuthUrlWhenNoCodeOrError(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
-        $request = (new Psr17Factory())
-            ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
+        $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/auth');
 
         $response = $action->process($request, $this->createRequestHandlerStub());
 
@@ -103,10 +112,9 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsGenericExceptionForNonAccessDeniedError(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_description' => 'bad request']);
 
         $this->expectException(\Exception::class);
@@ -118,7 +126,7 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesCancelCallbackOnAccessDenied(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]))->withCancelUrl('http://cancel.local');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')->withCancelUrl('http://cancel.local');
         $receivedClient = null;
         $this->setCallback($action, 'cancelCallback', function (AuthClientInterface $c) use (&$receivedClient) {
             $receivedClient = $c;
@@ -126,7 +134,6 @@ final class AuthActionTest extends TestCase
         });
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -138,12 +145,11 @@ final class AuthActionTest extends TestCase
     public function testProcessReturnsCancelCallbackResponseDirectly(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $customResponse = (new Psr17Factory())->createResponse(418);
         $this->setCallback($action, 'cancelCallback', fn () => $customResponse);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -154,10 +160,9 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsWhenCancelCallbackNotConfigured(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $this->expectException(InvalidConfigException::class);
@@ -177,7 +182,7 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
-        $action = $this->createAction(new Collection(['test' => $client]))->withSuccessUrl('http://success.local');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')->withSuccessUrl('http://success.local');
         $receivedClient = null;
         $this->setCallback($action, 'successCallback', function (AuthClientInterface $c) use (&$receivedClient) {
             $receivedClient = $c;
@@ -185,7 +190,6 @@ final class AuthActionTest extends TestCase
         });
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -207,7 +211,7 @@ final class AuthActionTest extends TestCase
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
         $receivedClient = null;
-        $action = $this->createAction(new Collection(['test' => $client]))
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')
             ->withSuccessUrl('http://success.local')
             ->withSuccessCallback(function (AuthClientInterface $c) use (&$receivedClient) {
                 $receivedClient = $c;
@@ -215,7 +219,6 @@ final class AuthActionTest extends TestCase
             });
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -237,7 +240,7 @@ final class AuthActionTest extends TestCase
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
         $cancelCallbackInvoked = false;
-        $action = $this->createAction(new Collection(['test' => $client]))
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')
             ->withCancelUrl('http://cancel.local')
             ->withCancelCallback(function () use (&$cancelCallbackInvoked) {
                 $cancelCallbackInvoked = true;
@@ -245,7 +248,6 @@ final class AuthActionTest extends TestCase
             });
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $action->process($request, $this->createRequestHandlerStub());
@@ -265,7 +267,7 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
-        $action = $this->createAction(new Collection(['test' => $client]))->withCancelUrl('http://cancel.local');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')->withCancelUrl('http://cancel.local');
         $cancelCallbackInvoked = false;
         $this->setCallback($action, 'cancelCallback', function () use (&$cancelCallbackInvoked) {
             $cancelCallbackInvoked = true;
@@ -273,7 +275,6 @@ final class AuthActionTest extends TestCase
         });
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $action->process($request, $this->createRequestHandlerStub());
@@ -320,10 +321,9 @@ final class AuthActionTest extends TestCase
     public function testProcessHandlesNonStringErrorQueryParamWithoutCrashing(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 12345, 'error_message' => '']);
 
         $this->expectException(\Exception::class);
@@ -335,10 +335,9 @@ final class AuthActionTest extends TestCase
     public function testProcessUsesErrorMessageFallbackWhenErrorDescriptionMissing(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_message' => 'fallback message']);
 
         $this->expectException(\Exception::class);
@@ -359,11 +358,10 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
-        $action = $this->createAction(new Collection(['test' => $client]))->withSuccessUrl('http://success.local');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')->withSuccessUrl('http://success.local');
         $this->setCallback($action, 'successCallback', fn () => null);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 12345]);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -374,10 +372,9 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsWithExactMessageWhenCancelCallbackNotConfigured(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $this->expectException(InvalidConfigException::class);
@@ -389,11 +386,10 @@ final class AuthActionTest extends TestCase
     public function testCancelRedirectDisablesEnforceRedirectUnlikeSuccessRedirect(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]))->withCancelUrl('http://cancel.local');
+        $action = $this->createAction(new Collection(['test' => $client]), 'test')->withCancelUrl('http://cancel.local');
         $this->setCallback($action, 'cancelCallback', fn () => null);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -413,10 +409,9 @@ final class AuthActionTest extends TestCase
     public function testProcessRedirectsToAuthUrlWhenErrorQueryParamIsEmptyString(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => '']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -428,10 +423,9 @@ final class AuthActionTest extends TestCase
     public function testProcessRedirectsToAuthUrlWhenCodeQueryParamIsEmptyString(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => '']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -502,13 +496,13 @@ final class AuthActionTest extends TestCase
             new Aliases(['@app' => dirname(__DIR__) . '/resources']),
             new WebView(),
             new Psr17Factory(),
+            $this->createCurrentRoute('test'),
         );
         $action = $action->withCancelUrl('http://cancel.local');
         $this->setCallback($action, 'cancelCallback', fn () => null);
         (new ReflectionProperty($action, 'redirectView'))->setValue($action, '@app/views/redirect.php');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'access_denied']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -528,10 +522,9 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $this->expectException(InvalidConfigException::class);
@@ -552,12 +545,11 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $customResponse = (new Psr17Factory())->createResponse(418);
         $this->setCallback($action, 'successCallback', fn () => $customResponse);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['code' => 'auth-code']);
 
         $response = $action->process($request, $this->createRequestHandlerStub());
@@ -568,10 +560,9 @@ final class AuthActionTest extends TestCase
     public function testProcessCastsErrorMessageToStringBeforeElvisCheck(): void
     {
         $client = $this->createTestClient();
-        $action = $this->createAction(new Collection(['test' => $client]));
+        $action = $this->createAction(new Collection(['test' => $client]), 'test');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
-            ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_message' => -0.0]);
 
         $this->expectException(\Exception::class);
