@@ -175,6 +175,31 @@ final class OAuth2Test extends TestCase
         $this->assertSame('val', $token->getParam('custom.key'));
     }
 
+    /**
+     * RFC 6749 §5.1 mandates a JSON token response, and every modern provider (Google, Microsoft,
+     * LinkedIn, etc.) sends one - only GitHub's legacy endpoint still defaults to the query-string
+     * form covered by the other fetchAccessToken tests here.
+     */
+    public function testFetchAccessTokenParsesJsonResponseBody(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode([
+                'access_token' => 'json-token',
+                'token_type' => 'Bearer',
+                'expires_in' => 3600,
+            ])),
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('json-token', $token->getToken());
+        $this->assertTrue($token->getIsValid());
+    }
+
     public function testFetchAccessTokenAppliesClientCredentialsToTokenRequest(): void
     {
         $capturedRequest = null;
@@ -619,6 +644,22 @@ final class OAuth2Test extends TestCase
         $newToken = $client->refreshAccessToken($oldToken);
 
         $this->assertSame('refreshed', $newToken->getToken());
+    }
+
+    public function testRefreshAccessTokenParsesJsonResponseBody(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode(['access_token' => 'refreshed-json', 'expires_in' => 3600])),
+        );
+        $client = $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $oldToken = new OAuthToken();
+        $oldToken->setToken('old-token');
+
+        $newToken = $client->refreshAccessToken($oldToken);
+
+        $this->assertSame('refreshed-json', $newToken->getToken());
     }
 
     public function testApplyAccessTokenToRequestAddsAccessTokenParam(): void

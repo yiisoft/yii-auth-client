@@ -192,7 +192,7 @@ abstract class OAuth2 extends OAuth
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
-        $output = $this->parse_str_clean($contents);
+        $output = $this->parseTokenResponse($contents);
 
         $token = $this->createToken(['params' => $output]);
         $this->setAccessToken($token);
@@ -417,7 +417,7 @@ abstract class OAuth2 extends OAuth
 
         $contents = $response->getBody()->getContents();
 
-        $output = $this->parse_str_clean($contents);
+        $output = $this->parseTokenResponse($contents);
 
         return $this->createToken(['params' => $output]);
     }
@@ -460,6 +460,23 @@ abstract class OAuth2 extends OAuth
         unset($params['code'], $params['state']);
 
         return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * Parses a token endpoint response body. RFC 6749 §5.1 mandates a JSON object, which every
+     * modern provider (Google, Microsoft, LinkedIn, etc.) sends - {@see parse_str_clean()} can't
+     * parse that (it expects `key=value&key=value` query-string form) and silently returns
+     * unusable, mangled keys instead of throwing, so a naive `parse_str()`-only implementation
+     * here would leave every token empty without ever surfacing an error. GitHub's legacy
+     * `/login/oauth/access_token` endpoint still defaults to the query-string form, so that path
+     * is kept as a fallback for providers not sending valid JSON.
+     */
+    private function parseTokenResponse(string $contents): array
+    {
+        /** @var mixed $decoded */
+        $decoded = json_decode($contents, true);
+
+        return is_array($decoded) ? $decoded : $this->parse_str_clean($contents);
     }
 
     /**
