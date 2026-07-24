@@ -145,6 +145,21 @@ final class OAuth2Test extends TestCase
         $this->assertTrue($token->getIsValid());
     }
 
+    public function testFetchAccessTokenPersistsTokenAsAccessToken(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], 'access_token=abc123&expires_in=3600')
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame($token, $client->getAccessToken());
+    }
+
     public function testFetchAccessTokenParsesDottedResponseKeys(): void
     {
         $httpClient = $this->httpClientReturning(
@@ -299,6 +314,25 @@ final class OAuth2Test extends TestCase
         ]);
 
         $this->assertSame('pkce-token', $token->getToken());
+    }
+
+    public function testFetchAccessTokenWithCodeVerifierPersistsTokenAsAccessToken(): void
+    {
+        $httpClient = $this->httpClientReturning(
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token', 'expires_in' => 3600]))
+        );
+        $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('http://token.local');
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', [
+            'redirect_uri' => 'http://return.local',
+            'code_verifier' => 'verifier-value',
+        ]);
+
+        $this->assertSame($token, $client->getAccessToken());
     }
 
     public function testFetchAccessTokenWithCodeVerifierThrowsWhenIncomingStateIsMissing(): void

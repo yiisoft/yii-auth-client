@@ -194,7 +194,10 @@ abstract class OAuth2 extends OAuth
         $contents = $response->getBody()->getContents();
         $output = $this->parse_str_clean($contents);
 
-        return $this->createToken(['params' => $output]);
+        $token = $this->createToken(['params' => $output]);
+        $this->setAccessToken($token);
+
+        return $token;
     }
 
     /**
@@ -270,7 +273,10 @@ abstract class OAuth2 extends OAuth
             $output = [];
         }
 
-        return $this->createToken(['params' => $output]);
+        $token = $this->createToken(['params' => $output]);
+        $this->setAccessToken($token);
+
+        return $token;
     }
 
     /**
