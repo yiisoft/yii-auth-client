@@ -14,26 +14,12 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Override;
 
 final class GoogleTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(Google::class);
-    }
-
-    private function createGoogleClient(?ClientInterface $httpClient = null): Google
-    {
-        return new Google(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -68,7 +54,7 @@ final class GoogleTest extends ProviderClientTestCase
 
         $this->assertSame(
             'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-            $client->getScope()
+            $client->getScope(),
         );
     }
 
@@ -95,12 +81,10 @@ final class GoogleTest extends ProviderClientTestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?\Psr\Http\Message\RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
-            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
                 return new Response(200, [], (string) json_encode(['email' => 'user@example.com']));
@@ -136,5 +120,22 @@ final class GoogleTest extends ProviderClientTestCase
         $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['email' => 'user@example.com'], $method->invoke($client));
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(Google::class);
+    }
+
+    private function createGoogleClient(?ClientInterface $httpClient = null): Google
+    {
+        return new Google(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

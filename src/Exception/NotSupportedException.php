@@ -6,6 +6,4 @@ namespace Yiisoft\Yii\AuthClient\Exception;
 
 use RuntimeException;
 
-final class NotSupportedException extends RuntimeException
-{
-}
+final class NotSupportedException extends RuntimeException {}

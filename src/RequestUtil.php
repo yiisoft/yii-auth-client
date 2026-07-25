@@ -8,6 +8,8 @@ use Psr\Http\Message\RequestInterface;
 
 use function is_array;
 
+use const PHP_QUERY_RFC3986;
+
 final class RequestUtil
 {
     /**

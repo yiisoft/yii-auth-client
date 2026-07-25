@@ -77,18 +77,8 @@ final class MicrosoftOnline extends OAuth2
         return $this->fetchCurrentUserJsonArray(
             $token,
             'https://graph.microsoft.com/v1.0/me',
-            ['Content-Type' => 'application/json']
+            ['Content-Type' => 'application/json'],
         );
-    }
-
-    #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
     }
 
     #[Override]
@@ -107,6 +97,16 @@ final class MicrosoftOnline extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-warning bi bi-microsoft';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

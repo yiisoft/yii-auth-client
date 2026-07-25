@@ -8,6 +8,8 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Override;
 
+use function sprintf;
+
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
  *
@@ -32,16 +34,6 @@ final class LinkedIn extends OAuth2
     }
 
     #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
-    }
-
-    #[Override]
     public function getName(): string
     {
         return 'linkedin';
@@ -57,6 +49,16 @@ final class LinkedIn extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-info bi bi-linkedin';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

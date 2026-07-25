@@ -11,6 +11,8 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Override;
 
+use function sprintf;
+
 /**
  * Facebook allows authentication via Facebook OAuth.
  *
@@ -68,20 +70,10 @@ final class Facebook extends OAuth2
         $url = sprintf(
             $this->endpoint . '/%s/me?%s',
             urlencode($this->graphApiVersion),
-            http_build_query($queryParams)
+            http_build_query($queryParams),
         );
 
         return $this->fetchCurrentUserJsonArray($token, $url);
-    }
-
-    #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
     }
 
     #[Override]
@@ -89,7 +81,7 @@ final class Facebook extends OAuth2
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
         $params = [];
-        if (!empty($machineId = (string)$accessToken->getParam('machine_id'))) {
+        if (!empty($machineId = (string) $accessToken->getParam('machine_id'))) {
             $params['machine_id'] = $machineId;
         }
         $token = $accessToken->getToken();
@@ -156,7 +148,7 @@ final class Facebook extends OAuth2
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
         ?OAuthToken $token = null,
-        array $params = []
+        array $params = [],
     ): string {
         if ($token === null) {
             $token = $this->getAccessToken();
@@ -167,7 +159,7 @@ final class Facebook extends OAuth2
                     'access_token' => $token->getToken(),
                     'redirect_uri' => $this->getReturnUrl($incomingRequest),
                 ],
-                $params
+                $params,
             );
         }
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl)
@@ -178,7 +170,7 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        return (string)$response->getStatusCode();
+        return (string) $response->getStatusCode();
     }
 
     /**
@@ -198,7 +190,7 @@ final class Facebook extends OAuth2
     public function fetchClientAccessToken(
         ServerRequestInterface $incomingRequest,
         string $authCode,
-        array $params = []
+        array $params = [],
     ): OAuthToken {
         $params = array_merge(
             [
@@ -206,7 +198,7 @@ final class Facebook extends OAuth2
                 'redirect_uri' => $this->getReturnUrl($incomingRequest),
                 'client_id' => $this->clientId,
             ],
-            $params
+            $params,
         );
 
         $request = $this->createTokenRequest($params);
@@ -236,6 +228,16 @@ final class Facebook extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-facebook';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

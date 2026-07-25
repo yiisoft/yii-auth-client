@@ -10,6 +10,4 @@ use Yiisoft\Widget\Widget;
  * AuthChoiceItem is a base class for creating widgets, which can be used to render link
  * for auth client at {@see AuthChoice}.
  */
-abstract class AuthChoiceItem extends Widget
-{
-}
+abstract class AuthChoiceItem extends Widget {}
