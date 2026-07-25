@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Yiisoft\Yii\AuthClient\OAuth2;
-use Yiisoft\Yii\AuthClient\OAuthToken;
+use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
-use Override;
 use Throwable;
+use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuthToken;
 
 use function strlen;
 

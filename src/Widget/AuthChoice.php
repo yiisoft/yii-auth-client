@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Widget;
 
+use Override;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
@@ -14,12 +15,11 @@ use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
-use Yiisoft\Yii\AuthClient\Collection;
-use Yiisoft\Yii\AuthClient\OAuth2;
-use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\AuthClientInterface;
-use Override;
 use Yiisoft\Yii\AuthClient\AuthAction;
+use Yiisoft\Yii\AuthClient\AuthClientInterface;
+use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\OAuth2;
 
 use function strlen;
 

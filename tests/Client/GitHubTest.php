@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
+use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use ReflectionMethod;
@@ -15,7 +16,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 
 final class GitHubTest extends ProviderClientTestCase
 {

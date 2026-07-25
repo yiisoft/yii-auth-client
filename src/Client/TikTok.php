@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
+use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Override;
 
 final class TikTok extends OAuth2
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
-use Yiisoft\Session\SessionInterface;
 use Override;
+use Yiisoft\Session\SessionInterface;
 
 /**
  * Web session class mock.

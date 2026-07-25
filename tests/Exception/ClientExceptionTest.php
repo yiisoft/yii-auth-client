@@ -6,8 +6,8 @@ namespace Yiisoft\Yii\AuthClient\Tests\Exception;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientExceptionInterface;
-use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use RuntimeException;
+use Yiisoft\Yii\AuthClient\Exception\ClientException;
 
 final class ClientExceptionTest extends TestCase
 {

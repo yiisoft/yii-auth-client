@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests;
 
+use Exception;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use ReflectionMethod;
 use ReflectionProperty;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Factory\Factory as YiisoftFactory;
@@ -26,10 +30,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
-use Psr\Http\Message\ServerRequestInterface;
-use Exception;
-use Override;
-use ReflectionMethod;
 
 use function dirname;
 

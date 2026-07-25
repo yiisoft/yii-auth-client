@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use Override;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
 
 use function array_key_exists;
 use function is_array;

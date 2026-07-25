@@ -12,28 +12,28 @@ use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use ReflectionMethod;
+use ReflectionProperty;
+use RuntimeException;
+use Throwable;
 use Yiisoft\Cache\ArrayCache;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Yii\AuthClient\AuthClient;
 use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
-use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Yii\AuthClient\AuthClient;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
-use ReflectionMethod;
-use ReflectionProperty;
-use RuntimeException;
-use Throwable;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 final class OpenIdConnectTest extends TestCase
 {

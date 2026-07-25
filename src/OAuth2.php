@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
+use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
-use Throwable;
 
 use function count;
 use function is_array;

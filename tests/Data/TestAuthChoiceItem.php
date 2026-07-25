@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
+use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
-use Override;
 
 /**
  * Mock for a custom {@see AuthChoice} item widget, configurable via `viewOptions['widget']`.

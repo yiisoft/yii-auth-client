@@ -9,15 +9,15 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Definitions\Exception\InvalidConfigException;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Yiisoft\Definitions\Exception\InvalidConfigException;
 
+use function array_key_exists;
 use function is_array;
 use function is_object;
-use function array_key_exists;
 use function is_string;
 
 /**

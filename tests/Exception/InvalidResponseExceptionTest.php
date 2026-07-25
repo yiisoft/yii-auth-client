@@ -6,8 +6,8 @@ namespace Yiisoft\Yii\AuthClient\Tests\Exception;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use RuntimeException;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 
 final class InvalidResponseExceptionTest extends TestCase
 {

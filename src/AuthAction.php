@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
+use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,10 +17,9 @@ use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-use Override;
-use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 
 use function dirname;

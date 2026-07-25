@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Override;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Interface for OAuth2 client functionality.
