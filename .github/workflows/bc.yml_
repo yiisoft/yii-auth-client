@@ -1,15 +1,26 @@
-on:
-    - pull_request
-    - push
-
 name: backwards compatibility
+
+on:
+  pull_request:
+    paths: &paths
+      - 'src/**'
+      - 'config/**'
+      - 'resources/**'
+      - 'composer.json'
+      - '.github/workflows/bc.yml'
+  push:
+    branches: ['master']
+    paths: *paths
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-    roave_bc_check:
-        name: Roave BC Check
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@master
-            - name: fetch tags
-              run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-            - name: Roave BC Check
-              uses: docker://nyholm/roave-bc-check-ga
+  roave_bc_check:
+    uses: yiisoft/actions/.github/workflows/bc.yml@master
+    with:
+      php: '8.5'
