@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
+use RuntimeException;
 
 final class InvalidResponseExceptionTest extends TestCase
 {
@@ -19,13 +20,13 @@ final class InvalidResponseExceptionTest extends TestCase
 
     public function testCarriesMessageCodeAndPrevious(): void
     {
-        $previous = new \RuntimeException('cause');
+        $previous = new RuntimeException('cause');
 
         $exception = new InvalidResponseException(
             $this->createStub(ResponseInterface::class),
             'message',
             500,
-            $previous
+            $previous,
         );
 
         $this->assertSame('message', $exception->getMessage());

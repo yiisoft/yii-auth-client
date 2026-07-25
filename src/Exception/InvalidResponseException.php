@@ -25,9 +25,8 @@ final class InvalidResponseException extends RuntimeException
         private readonly ResponseInterface $response,
         string $message,
         $code = 0,
-        ?Throwable $previous = null
-    )
-    {
+        ?Throwable $previous = null,
+    ) {
         parent::__construct($message, $code, $previous);
     }
 

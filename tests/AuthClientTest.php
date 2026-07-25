@@ -18,26 +18,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 #[AllowMockObjectsWithoutExpectations]
 final class AuthClientTest extends TestCase
 {
-    private function getRequestFactory(): RequestFactoryInterface
-    {
-        return new Psr17Factory();
-    }
-
-    /**
-     * Creates test OAuth client instance.
-     *
-     * @return AuthClient oauth client.
-     */
-    private function createClient()
-    {
-        $httpClient = $this->createStub(ClientInterface::class);
-
-        return $this->getMockBuilder(AuthClient::class)
-            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId'])
-            ->getMock();
-    }
-
     public function testCreateRequestIsPubliclyCallable(): void
     {
         $request = $this->createClient()->createRequest('GET', 'http://example.com/');
@@ -155,7 +135,7 @@ final class AuthClientTest extends TestCase
         $client->method('defaultNormalizeUserAttributeMap')->willReturn([
             'about' => 'bio',
             'language' => ['languages', 0, 'name'],
-            'fullName' => static fn (array $attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
+            'fullName' => static fn(array $attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
             'missing' => 'doesNotExist',
             'missingPath' => ['languages', 99, 'name'],
         ]);
@@ -169,5 +149,25 @@ final class AuthClientTest extends TestCase
         $this->assertNull($attributes['missingPath']);
         // raw attributes remain available alongside the normalized ones
         $this->assertSame('Loves PHP', $attributes['bio']);
+    }
+
+    private function getRequestFactory(): RequestFactoryInterface
+    {
+        return new Psr17Factory();
+    }
+
+    /**
+     * Creates test OAuth client instance.
+     *
+     * @return AuthClient oauth client.
+     */
+    private function createClient()
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+
+        return $this->getMockBuilder(AuthClient::class)
+            ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId'])
+            ->getMock();
     }
 }

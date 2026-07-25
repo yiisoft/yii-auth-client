@@ -17,42 +17,13 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
+
+use function count;
 
 final class FacebookTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(Facebook::class);
-    }
-
-    private function createFacebookClient(?ClientInterface $httpClient = null): Facebook
-    {
-        return new Facebook(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
-    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
-    {
-        return new class ($response, $capturedRequest) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                $this->capturedRequest = $request;
-                return $this->response;
-            }
-        };
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -117,7 +88,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $newRequest = $client->applyAccessTokenToRequest($request, $token);
 
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest);
+        $params = RequestUtil::getParams($newRequest);
         $this->assertSame('the-access-token', $params['access_token']);
         $this->assertSame(hash_hmac('sha256', 'the-access-token', 'the-client-secret'), $params['appsecret_proof']);
     }
@@ -133,7 +104,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $newRequest = $client->applyAccessTokenToRequest($request, $token);
 
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest);
+        $params = RequestUtil::getParams($newRequest);
         $this->assertSame('the-machine-id', $params['machine_id']);
     }
 
@@ -152,7 +123,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $newRequest = $client->applyAccessTokenToRequest($request, $token);
 
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest);
+        $params = RequestUtil::getParams($newRequest);
         $this->assertSame('-0', $params['machine_id']);
     }
 
@@ -161,7 +132,7 @@ final class FacebookTest extends ProviderClientTestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['id' => '123', 'name' => 'Jane'])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createFacebookClient($httpClient);
         $token = new OAuthToken();
@@ -199,7 +170,7 @@ final class FacebookTest extends ProviderClientTestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=abc123&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createFacebookClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('https://graph.facebook.com/oauth/access_token');
@@ -215,11 +186,9 @@ final class FacebookTest extends ProviderClientTestCase
     {
         $capturedRequests = [];
         $httpClient = new class ($capturedRequests) implements ClientInterface {
-            public function __construct(private array &$capturedRequests)
-            {
-            }
+            public function __construct(private array &$capturedRequests) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequests[] = $request;
@@ -246,7 +215,7 @@ final class FacebookTest extends ProviderClientTestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['access_token' => 'long-lived-token', 'expires_in' => 5184000])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createFacebookClient($httpClient);
         $client->setClientId('cid');
@@ -261,7 +230,7 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertNotNull($capturedRequest);
         $this->assertSame('POST', $capturedRequest->getMethod());
         $this->assertStringStartsWith('https://graph.facebook.com/oauth/access_token', (string) $capturedRequest->getUri());
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('fb_exchange_token', $params['grant_type']);
         $this->assertSame('old-token', $params['fb_exchange_token']);
         $this->assertSame('cid', $params['client_id']);
@@ -283,7 +252,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $this->assertSame('201', $result);
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('the-access-token', $params['access_token']);
         $this->assertSame('http://example.com/callback', $params['redirect_uri']);
     }
@@ -301,7 +270,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest);
 
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('stored-token', $params['access_token']);
     }
 
@@ -317,7 +286,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest);
 
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertArrayNotHasKey('access_token', $params);
     }
 
@@ -326,7 +295,7 @@ final class FacebookTest extends ProviderClientTestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['access_token' => 'client-access-token', 'expires_in' => 3600])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createFacebookClient($httpClient);
         $client->setClientId('cid');
@@ -337,7 +306,7 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('client-access-token', $token->getToken());
         $this->assertSame($token, $client->getAccessToken());
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('auth-code', $params['code']);
         $this->assertSame('cid', $params['client_id']);
         $this->assertSame('http://example.com/callback', $params['redirect_uri']);
@@ -386,7 +355,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest, $token, ['extra' => 'custom-value']);
 
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('custom-value', $params['extra']);
         $this->assertSame('the-access-token', $params['access_token']);
     }
@@ -402,8 +371,39 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAccessToken($incomingRequest, 'auth-code', ['extra' => 'custom-value']);
 
         $this->assertNotNull($capturedRequest);
-        $params = \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest);
+        $params = RequestUtil::getParams($capturedRequest);
         $this->assertSame('custom-value', $params['extra']);
         $this->assertSame('auth-code', $params['code']);
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(Facebook::class);
+    }
+
+    private function createFacebookClient(?ClientInterface $httpClient = null): Facebook
+    {
+        return new Facebook(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
+    {
+        return new class ($response, $capturedRequest) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return $this->response;
+            }
+        };
     }
 }

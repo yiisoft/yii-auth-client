@@ -18,10 +18,18 @@ use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 use Override;
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
+use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+
+use function dirname;
+use function is_callable;
+use function strlen;
+
+use const DIRECTORY_SEPARATOR;
 
 /**
  * AuthAction is a PSR-15 middleware, which performs authentication via {@see OAuth2} auth clients
- * (including {@see \Yiisoft\Yii\AuthClient\Client\OpenIdConnect}).
+ * (including {@see OpenIdConnect}).
  *
  * Usage, registered as a DI definition and attached to a route:
  *
@@ -51,7 +59,7 @@ use Override;
  * This action handles the redirection and closing of popup window correctly.
  *
  * @see Collection
- * @see \Yiisoft\Yii\AuthClient\Widget\AuthChoice
+ * @see AuthChoice
  */
 final class AuthAction implements MiddlewareInterface
 {
@@ -130,9 +138,8 @@ final class AuthAction implements MiddlewareInterface
         private readonly Collection $clientCollection,
         private readonly Aliases $aliases,
         private readonly WebView $view,
-        private readonly ResponseFactoryInterface $responseFactory
-    ) {
-    }
+        private readonly ResponseFactoryInterface $responseFactory,
+    ) {}
 
     /**
      * @param string $url successful URL.
@@ -191,7 +198,7 @@ final class AuthAction implements MiddlewareInterface
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $clientId = (string)$request->getAttribute($this->clientIdGetParamName);
+        $clientId = (string) $request->getAttribute($this->clientIdGetParamName);
         if (strlen($clientId) > 0) {
             if (!$this->clientCollection->hasClient($clientId)) {
                 return $this->responseFactory->createResponse(Status::NOT_FOUND, "Unknown auth client '{$clientId}'");
@@ -242,7 +249,7 @@ final class AuthAction implements MiddlewareInterface
     {
         $queryParams = $request->getQueryParams();
 
-        if (isset($queryParams['error']) && (strlen($error = (string)$queryParams['error']) > 0)) {
+        if (isset($queryParams['error']) && (strlen($error = (string) $queryParams['error']) > 0)) {
             if ($error === 'access_denied') {
                 // user denied error
                 return $this->authCancel($client);
@@ -250,7 +257,7 @@ final class AuthAction implements MiddlewareInterface
             /**
              * @var string|null $queryParams['error_description']
              */
-            $errorMessage = $queryParams['error_description'] ?? ((string)$queryParams['error_message'] ?: null);
+            $errorMessage = $queryParams['error_description'] ?? ((string) $queryParams['error_message'] ?: null);
             if ($errorMessage === null) {
                 $errorMessage = http_build_query($queryParams);
             }
@@ -258,7 +265,7 @@ final class AuthAction implements MiddlewareInterface
         }
 
         // Get the access_token and save them to the session.
-        if (isset($queryParams['code']) && (strlen($code = (string)$queryParams['code']) > 0)) {
+        if (isset($queryParams['code']) && (strlen($code = (string) $queryParams['code']) > 0)) {
             $token = $client->fetchAccessToken($request, $code);
             if (strlen((string) $token->getToken()) > 0) {
                 return $this->authSuccess($client);
@@ -285,7 +292,7 @@ final class AuthAction implements MiddlewareInterface
     {
         if (!is_callable($this->cancelCallback)) {
             throw new InvalidConfigException(
-                '"' . self::class . '::$successCallback" should be a valid callback.'
+                '"' . self::class . '::$successCallback" should be a valid callback.',
             );
         }
         /**
@@ -364,7 +371,7 @@ final class AuthAction implements MiddlewareInterface
     {
         if (!is_callable($this->successCallback)) {
             throw new InvalidConfigException(
-                '"' . self::class . '::$successCallback" should be a valid callback.'
+                '"' . self::class . '::$successCallback" should be a valid callback.',
             );
         }
 

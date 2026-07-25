@@ -49,6 +49,24 @@ final class Yandex extends OAuth2
     }
 
     #[Override]
+    public function getButtonClass(): string
+    {
+        return 'btn btn-dark bi';
+    }
+
+    #[Override]
+    public function getName(): string
+    {
+        return 'yandex';
+    }
+
+    #[Override]
+    public function getTitle(): string
+    {
+        return 'Yandex';
+    }
+
+    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -56,12 +74,6 @@ final class Yandex extends OAuth2
             return $this->getCurrentUserJsonArray($token);
         }
         return [];
-    }
-
-    #[Override]
-    public function getButtonClass(): string
-    {
-        return 'btn btn-dark bi';
     }
 
     /**
@@ -89,17 +101,5 @@ final class Yandex extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'login:info';
-    }
-
-    #[Override]
-    public function getName(): string
-    {
-        return 'yandex';
-    }
-
-    #[Override]
-    public function getTitle(): string
-    {
-        return 'Yandex';
     }
 }

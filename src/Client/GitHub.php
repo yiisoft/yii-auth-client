@@ -51,16 +51,6 @@ final class GitHub extends OAuth2
     }
 
     #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
-    }
-
-    #[Override]
     public function getName(): string
     {
         return 'github';
@@ -76,6 +66,16 @@ final class GitHub extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-github';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

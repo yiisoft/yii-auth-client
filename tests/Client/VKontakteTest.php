@@ -16,62 +16,14 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Override;
+use ReflectionMethod;
+use RuntimeException;
+
+use const JSON_ERROR_NONE;
 
 final class VKontakteTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(VKontakte::class);
-    }
-
-    private function createVKontakteClient(?ClientInterface $httpClient = null): VKontakte
-    {
-        if ($httpClient === null) {
-            return $this->instantiate(VKontakte::class);
-        }
-
-        return new VKontakte(
-            $httpClient,
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
-    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
-    {
-        return new class ($response, $capturedRequest) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                $this->capturedRequest = $request;
-                return $this->response;
-            }
-        };
-    }
-
-    private function httpClientCountingCalls(ResponseInterface $response, int &$callCount): ClientInterface
-    {
-        return new class ($response, $callCount) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response, private int &$callCount)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                $this->callCount++;
-                return $this->response;
-            }
-        };
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -173,7 +125,7 @@ final class VKontakteTest extends ProviderClientTestCase
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void
     {
         $client = $this->createVKontakteClient();
-        $method = new \ReflectionMethod($client, 'initUserAttributes');
+        $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertTrue($method->isProtected());
         $this->assertSame([], $method->invoke($client));
@@ -188,7 +140,7 @@ final class VKontakteTest extends ProviderClientTestCase
         $client = $this->createVKontakteClient($httpClient);
         $client->setClientId('client-id');
         $client->setAccessToken(['params' => ['access_token' => 'the-token']]);
-        $method = new \ReflectionMethod($client, 'initUserAttributes');
+        $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['user_id' => '123', 'first_name' => 'Ivan'], $method->invoke($client));
     }
@@ -256,7 +208,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'device-id',
             'state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertIsArray($result);
@@ -278,7 +230,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'device-id',
             'state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertSame(['access_token' => 'new-token'], $result);
@@ -297,7 +249,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'the-device-id',
             'the-state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertNotNull($capturedRequest);
@@ -315,10 +267,10 @@ final class VKontakteTest extends ProviderClientTestCase
     {
         $client = $this->createVKontakteClient();
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
-                throw new \RuntimeException('network failure');
+                throw new RuntimeException('network failure');
             }
         };
         $requestFactory = new Psr17Factory();
@@ -329,7 +281,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'device-id',
             'state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertSame(['error' => 'Exception: network failure'], $result);
@@ -341,10 +293,10 @@ final class VKontakteTest extends ProviderClientTestCase
         $token = new OAuthToken();
         $token->setParam('access_token', 'the-token');
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
-                throw new \RuntimeException('network failure');
+                throw new RuntimeException('network failure');
             }
         };
         $requestFactory = new Psr17Factory();
@@ -358,10 +310,10 @@ final class VKontakteTest extends ProviderClientTestCase
     {
         $client = $this->createVKontakteClient();
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
-                throw new \RuntimeException('network failure');
+                throw new RuntimeException('network failure');
             }
         };
         $requestFactory = new Psr17Factory();
@@ -384,7 +336,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'device-id',
             'state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertSame(['error' => 'Error:Bad Request'], $result);
@@ -403,7 +355,7 @@ final class VKontakteTest extends ProviderClientTestCase
             'device-id',
             'state',
             $httpClient,
-            $requestFactory
+            $requestFactory,
         );
 
         $this->assertSame([], $result);
@@ -501,5 +453,54 @@ final class VKontakteTest extends ProviderClientTestCase
         $this->assertStringStartsWith('https://id.vk.ru/oauth2/user_info?', $uri);
         $this->assertSame('the-client-id', RequestUtil::getParams($capturedRequest)['client_id']);
         $this->assertSame('the-user-id', RequestUtil::getParams($capturedRequest)['user_id']);
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(VKontakte::class);
+    }
+
+    private function createVKontakteClient(?ClientInterface $httpClient = null): VKontakte
+    {
+        if ($httpClient === null) {
+            return $this->instantiate(VKontakte::class);
+        }
+
+        return new VKontakte(
+            $httpClient,
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
+    {
+        return new class ($response, $capturedRequest) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return $this->response;
+            }
+        };
+    }
+
+    private function httpClientCountingCalls(ResponseInterface $response, int &$callCount): ClientInterface
+    {
+        return new class ($response, $callCount) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response, private int &$callCount) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->callCount++;
+                return $this->response;
+            }
+        };
     }
 }

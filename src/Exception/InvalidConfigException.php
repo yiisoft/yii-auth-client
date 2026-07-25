@@ -6,6 +6,4 @@ namespace Yiisoft\Yii\AuthClient\Exception;
 
 use RuntimeException;
 
-final class InvalidConfigException extends RuntimeException
-{
-}
+final class InvalidConfigException extends RuntimeException {}

@@ -24,42 +24,15 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
+use Psr\Http\Message\ServerRequestInterface;
+use Exception;
+use Override;
+use ReflectionMethod;
+
+use function dirname;
 
 final class AuthActionTest extends TestCase
 {
-    private function createAction(Collection $collection): AuthAction
-    {
-        return new AuthAction(
-            $collection,
-            new Aliases(),
-            new WebView(),
-            new Psr17Factory(),
-        );
-    }
-
-    private function setCallback(AuthAction $action, string $property, callable $callback): void
-    {
-        (new ReflectionProperty($action, $property))->setValue($action, $callback);
-    }
-
-    private function createTestClient(?ClientInterface $httpClient = null): OAuth2
-    {
-        $client = new TestClient(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-
-        return $client->withoutValidateAuthState();
-    }
-
-    private function createRequestHandlerStub(): RequestHandlerInterface
-    {
-        return $this->createStub(RequestHandlerInterface::class);
-    }
-
     public function testProcessReturnsNotFoundWithoutClientIdAttribute(): void
     {
         $action = $this->createAction(new Collection([]));
@@ -109,7 +82,7 @@ final class AuthActionTest extends TestCase
             ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_description' => 'bad request']);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Auth error: bad request');
 
         $action->process($request, $this->createRequestHandlerStub());
@@ -140,7 +113,7 @@ final class AuthActionTest extends TestCase
         $client = $this->createTestClient();
         $action = $this->createAction(new Collection(['test' => $client]));
         $customResponse = (new Psr17Factory())->createResponse(418);
-        $this->setCallback($action, 'cancelCallback', fn () => $customResponse);
+        $this->setCallback($action, 'cancelCallback', fn() => $customResponse);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
             ->withAttribute('authclient', 'test')
@@ -168,7 +141,7 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesSuccessCallbackOnValidCode(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -197,7 +170,7 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesCallbackConfiguredViaWithSuccessCallback(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -227,7 +200,7 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesCallbackConfiguredViaWithCancelCallback(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'token_type=bearer');
@@ -256,7 +229,7 @@ final class AuthActionTest extends TestCase
     public function testProcessCancelsWhenTokenExchangeYieldsNoToken(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'token_type=bearer');
@@ -303,7 +276,7 @@ final class AuthActionTest extends TestCase
     {
         $action = $this->createAction(new Collection([]));
 
-        $withCallback = $action->withSuccessCallback(fn () => null);
+        $withCallback = $action->withSuccessCallback(fn() => null);
 
         $this->assertNotSame($action, $withCallback);
     }
@@ -312,7 +285,7 @@ final class AuthActionTest extends TestCase
     {
         $action = $this->createAction(new Collection([]));
 
-        $withCallback = $action->withCancelCallback(fn () => null);
+        $withCallback = $action->withCancelCallback(fn() => null);
 
         $this->assertNotSame($action, $withCallback);
     }
@@ -326,7 +299,7 @@ final class AuthActionTest extends TestCase
             ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 12345, 'error_message' => '']);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Auth error:');
 
         $action->process($request, $this->createRequestHandlerStub());
@@ -341,7 +314,7 @@ final class AuthActionTest extends TestCase
             ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_message' => 'fallback message']);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Auth error: fallback message');
 
         $action->process($request, $this->createRequestHandlerStub());
@@ -350,7 +323,7 @@ final class AuthActionTest extends TestCase
     public function testProcessHandlesNonStringCodeQueryParam(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&expires_in=3600');
@@ -360,7 +333,7 @@ final class AuthActionTest extends TestCase
         $client->setTokenUrl('http://token.local');
         $client->setClientSecret('secret');
         $action = $this->createAction(new Collection(['test' => $client]))->withSuccessUrl('http://success.local');
-        $this->setCallback($action, 'successCallback', fn () => null);
+        $this->setCallback($action, 'successCallback', fn() => null);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
             ->withAttribute('authclient', 'test')
@@ -390,7 +363,7 @@ final class AuthActionTest extends TestCase
     {
         $client = $this->createTestClient();
         $action = $this->createAction(new Collection(['test' => $client]))->withCancelUrl('http://cancel.local');
-        $this->setCallback($action, 'cancelCallback', fn () => null);
+        $this->setCallback($action, 'cancelCallback', fn() => null);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
             ->withAttribute('authclient', 'test')
@@ -405,7 +378,7 @@ final class AuthActionTest extends TestCase
     {
         $action = $this->createAction(new Collection([]))->withSuccessUrl('http://success.local');
 
-        $response = (new \ReflectionMethod($action, 'redirectSuccess'))->invoke($action);
+        $response = (new ReflectionMethod($action, 'redirectSuccess'))->invoke($action);
 
         $this->assertStringContainsString('true);', (string) $response->getBody());
     }
@@ -443,44 +416,44 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsNotSupportedExceptionForNonOAuth2Client(): void
     {
         $client = new class implements AuthClientInterface {
-            #[\Override]
+            #[Override]
             public function getName(): string
             {
                 return 'not-oauth2';
             }
 
-            #[\Override]
+            #[Override]
             public function getTitle(): string
             {
                 return 'Not OAuth2';
             }
 
-            #[\Override]
+            #[Override]
             public function getViewOptions(): array
             {
                 return [];
             }
 
-            #[\Override]
+            #[Override]
             public function getUserAttributes(): array
             {
                 return [];
             }
 
-            #[\Override]
+            #[Override]
             public function getButtonClass(): string
             {
                 return '';
             }
 
-            #[\Override]
+            #[Override]
             public function getClientId(): string
             {
                 return '';
             }
 
-            #[\Override]
-            public function buildAuthUrl(\Psr\Http\Message\ServerRequestInterface $incomingRequest, array $params): string
+            #[Override]
+            public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string
             {
                 return '';
             }
@@ -491,7 +464,7 @@ final class AuthActionTest extends TestCase
         $this->expectException(NotSupportedException::class);
         $this->expectExceptionMessage('Provider "' . $client::class . '" is not supported.');
 
-        (new \ReflectionMethod($action, 'auth'))->invoke($action, $client, $request);
+        (new ReflectionMethod($action, 'auth'))->invoke($action, $client, $request);
     }
 
     public function testRedirectResolvesRedirectViewThroughAliases(): void
@@ -504,7 +477,7 @@ final class AuthActionTest extends TestCase
             new Psr17Factory(),
         );
         $action = $action->withCancelUrl('http://cancel.local');
-        $this->setCallback($action, 'cancelCallback', fn () => null);
+        $this->setCallback($action, 'cancelCallback', fn() => null);
         (new ReflectionProperty($action, 'redirectView'))->setValue($action, '@app/views/redirect.php');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
@@ -519,7 +492,7 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsWhenSuccessCallbackNotConfigured(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -543,7 +516,7 @@ final class AuthActionTest extends TestCase
     public function testProcessReturnsSuccessCallbackResponseDirectly(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -554,7 +527,7 @@ final class AuthActionTest extends TestCase
         $client->setClientSecret('secret');
         $action = $this->createAction(new Collection(['test' => $client]));
         $customResponse = (new Psr17Factory())->createResponse(418);
-        $this->setCallback($action, 'successCallback', fn () => $customResponse);
+        $this->setCallback($action, 'successCallback', fn() => $customResponse);
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/auth')
             ->withAttribute('authclient', 'test')
@@ -574,9 +547,42 @@ final class AuthActionTest extends TestCase
             ->withAttribute('authclient', 'test')
             ->withQueryParams(['error' => 'invalid_request', 'error_message' => -0.0]);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Auth error: -0');
 
         $action->process($request, $this->createRequestHandlerStub());
+    }
+
+    private function createAction(Collection $collection): AuthAction
+    {
+        return new AuthAction(
+            $collection,
+            new Aliases(),
+            new WebView(),
+            new Psr17Factory(),
+        );
+    }
+
+    private function setCallback(AuthAction $action, string $property, callable $callback): void
+    {
+        (new ReflectionProperty($action, $property))->setValue($action, $callback);
+    }
+
+    private function createTestClient(?ClientInterface $httpClient = null): OAuth2
+    {
+        $client = new TestClient(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+
+        return $client->withoutValidateAuthState();
+    }
+
+    private function createRequestHandlerStub(): RequestHandlerInterface
+    {
+        return $this->createStub(RequestHandlerInterface::class);
     }
 }

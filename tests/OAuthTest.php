@@ -19,55 +19,13 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
+use Yiisoft\Yii\AuthClient\RequestUtil;
+use Exception;
+use Override;
 
 #[AllowMockObjectsWithoutExpectations]
 final class OAuthTest extends TestCase
 {
-    /**
-     * OAuth2::createToken() unconditionally overwrites tokenParamKey with a string before delegating
-     * to parent::createToken(), so any OAuth2-based test double (like TestClient) never exercises
-     * OAuth::createToken()'s own isset/is_string check with attacker-controlled input. This bare mock
-     * of the abstract OAuth class isolates that logic directly.
-     */
-    private function createBareOAuthClient(): OAuth
-    {
-        return $this->getMockBuilder(OAuth::class)
-            ->setConstructorArgs([
-                $this->createStub(ClientInterface::class),
-                new Psr17Factory(),
-                new SessionStateStorage(new Session()),
-                new YiisoftFactory(),
-            ])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId', 'refreshAccessToken', 'applyAccessTokenToRequest'])
-            ->getMock();
-    }
-
-    private function createClient(?ClientInterface $httpClient = null, ?SessionStateStorage $stateStorage = null): TestClient
-    {
-        return new TestClient(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            $stateStorage ?? new SessionStateStorage(new Session()),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
-    private function httpClientReturning(ResponseInterface $response): ClientInterface
-    {
-        return new class ($response) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-    }
-
     public function testApiReturnsDecodedJsonOnSuccess(): void
     {
         $httpClient = $this->httpClientReturning(new Response(200, [], '{"login":"octocat"}'));
@@ -94,7 +52,7 @@ final class OAuthTest extends TestCase
     {
         $client = $this->createClient();
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid access token.');
 
         $client->api('/user', 'GET');
@@ -147,7 +105,7 @@ final class OAuthTest extends TestCase
         $writer->setAccessToken(['params' => ['access_token' => 'expired-token', 'expires_in' => -3600]]);
 
         $refreshHttpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=refreshed-token&expires_in=3600')
+            new Response(200, [], 'access_token=refreshed-token&expires_in=3600'),
         );
         $reader = $this->createClient($refreshHttpClient, $stateStorage);
         $reader->setTokenUrl('http://token.local');
@@ -210,11 +168,9 @@ final class OAuthTest extends TestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -248,11 +204,9 @@ final class OAuthTest extends TestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -265,7 +219,7 @@ final class OAuthTest extends TestCase
         $client->api('/user', 'GET', ['foo' => 'bar']);
 
         $this->assertNotNull($capturedRequest);
-        $this->assertSame('bar', \Yiisoft\Yii\AuthClient\RequestUtil::getParams($capturedRequest)['foo']);
+        $this->assertSame('bar', RequestUtil::getParams($capturedRequest)['foo']);
     }
 
     public function testApiThrowsWithExactFailureMessage(): void
@@ -297,7 +251,7 @@ final class OAuthTest extends TestCase
 
         $newRequest = $client->beforeApiRequestSend($request);
 
-        $this->assertSame('abc123', \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest)['access_token']);
+        $this->assertSame('abc123', RequestUtil::getParams($newRequest)['access_token']);
     }
 
     public function testSetAccessTokenWithTokenInstancePersistsToState(): void
@@ -398,5 +352,48 @@ final class OAuthTest extends TestCase
 
         $this->assertTrue($method->isProtected());
         $this->assertSame('', $method->invoke($client));
+    }
+
+    /**
+     * OAuth2::createToken() unconditionally overwrites tokenParamKey with a string before delegating
+     * to parent::createToken(), so any OAuth2-based test double (like TestClient) never exercises
+     * OAuth::createToken()'s own isset/is_string check with attacker-controlled input. This bare mock
+     * of the abstract OAuth class isolates that logic directly.
+     */
+    private function createBareOAuthClient(): OAuth
+    {
+        return $this->getMockBuilder(OAuth::class)
+            ->setConstructorArgs([
+                $this->createStub(ClientInterface::class),
+                new Psr17Factory(),
+                new SessionStateStorage(new Session()),
+                new YiisoftFactory(),
+            ])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId', 'refreshAccessToken', 'applyAccessTokenToRequest'])
+            ->getMock();
+    }
+
+    private function createClient(?ClientInterface $httpClient = null, ?SessionStateStorage $stateStorage = null): TestClient
+    {
+        return new TestClient(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            $stateStorage ?? new SessionStateStorage(new Session()),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function httpClientReturning(ResponseInterface $response): ClientInterface
+    {
+        return new class ($response) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return $this->response;
+            }
+        };
     }
 }
