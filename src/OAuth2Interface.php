@@ -38,7 +38,7 @@ interface OAuth2Interface extends OAuthInterface
     #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
-        array $params = []
+        array $params = [],
     ): string;
 
     public function getSessionAuthState(): mixed;
@@ -46,12 +46,12 @@ interface OAuth2Interface extends OAuthInterface
     public function fetchAccessToken(
         ServerRequestInterface $incomingRequest,
         string $authCode,
-        array $params = []
+        array $params = [],
     ): OAuthToken;
 
     public function fetchAccessTokenWithCodeVerifier(
         ServerRequestInterface $incomingRequest,
         string $authCode,
-        array $params = []
+        array $params = [],
     ): OAuthToken;
 }

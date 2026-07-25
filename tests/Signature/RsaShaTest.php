@@ -9,17 +9,10 @@ use PHPUnit\Framework\TestCase;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Signature\RsaSha;
 
+use const OPENSSL_ALGO_SHA256;
+
 final class RsaShaTest extends TestCase
 {
-    private function createSignature(): RsaSha
-    {
-        $signature = new RsaSha('SHA1');
-        $signature->setPrivateCertificateFile(__DIR__ . '/../Data/private.key');
-        $signature->setPublicCertificateFile(__DIR__ . '/../Data/public.key');
-
-        return $signature;
-    }
-
     public function testGetName(): void
     {
         $signature = new RsaSha('SHA1');
@@ -145,5 +138,14 @@ final class RsaShaTest extends TestCase
         $isValid = @$signature->verify('signature', 'base-string', 'unused');
 
         $this->assertFalse($isValid);
+    }
+
+    private function createSignature(): RsaSha
+    {
+        $signature = new RsaSha('SHA1');
+        $signature->setPrivateCertificateFile(__DIR__ . '/../Data/private.key');
+        $signature->setPublicCertificateFile(__DIR__ . '/../Data/public.key');
+
+        return $signature;
     }
 }

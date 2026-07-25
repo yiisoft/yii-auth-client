@@ -17,17 +17,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
 final class CollectionFactoryTest extends TestCase
 {
-    private function createTestClient(): TestClient
-    {
-        return new TestClient(
-            $this->createStub(ClientInterface::class),
-            $this->createStub(RequestFactoryInterface::class),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testInvokeBuildsCollectionFromContainer(): void
     {
         $client = $this->createTestClient();
@@ -58,5 +47,16 @@ final class CollectionFactoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $factory($container);
+    }
+
+    private function createTestClient(): TestClient
+    {
+        return new TestClient(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

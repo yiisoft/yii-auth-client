@@ -76,7 +76,7 @@ interface OAuthInterface extends AuthClientInterface
      */
     public function applyAccessTokenToRequest(
         RequestInterface $request,
-        OAuthToken $accessToken
+        OAuthToken $accessToken,
     ): RequestInterface;
 
     /**

@@ -25,9 +25,8 @@ final readonly class SessionStateStorage implements StateStorageInterface
          * If not set - application 'session' component will be used, but only, if it is available (e.g. in web application),
          * otherwise - no session will be used and no data saving will be performed.
          */
-        private SessionInterface $session
-    ) {
-    }
+        private SessionInterface $session,
+    ) {}
 
     #[Override]
     public function set(string $key, $value): void

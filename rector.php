@@ -12,6 +12,8 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
         __DIR__ . '/tests',
+        __DIR__ . '/config',
+        __DIR__ . '/resources/views',
     ])
     ->withPhpSets(php82: true)
     ->withRules([

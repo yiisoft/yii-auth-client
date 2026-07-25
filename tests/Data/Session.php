@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
 use Yiisoft\Session\SessionInterface;
+use Override;
 
 /**
  * Web session class mock.
@@ -18,83 +19,83 @@ class Session implements SessionInterface
         // blank, preventing shutdown function registration
     }
 
-    #[\Override]
+    #[Override]
     public function open(): void
     {
         // blank, preventing session start
     }
 
-    #[\Override]
+    #[Override]
     public function get(string $key, $default = null)
     {
         return $this->data[$key] ?? $default;
     }
 
-    #[\Override]
+    #[Override]
     public function set(string $key, $value): void
     {
         $this->open();
         $this->data[$key] = $value;
     }
 
-    #[\Override]
+    #[Override]
     public function close(): void
     {
         // blank, preventing session close
     }
 
-    #[\Override]
+    #[Override]
     public function isActive(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function getId(): ?string
     {
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function regenerateId(): void
     {
         // blank, preventing session re-generate id
     }
 
-    #[\Override]
+    #[Override]
     public function discard(): void
     {
         // blank, preventing session discard
     }
 
-    #[\Override]
+    #[Override]
     public function getName(): string
     {
         return 'mock-session';
     }
 
-    #[\Override]
+    #[Override]
     public function all(): array
     {
         $this->open();
         return $this->data;
     }
 
-    #[\Override]
+    #[Override]
     public function remove(string $key): void
     {
         $this->open();
         unset($this->data[$key]);
     }
 
-    #[\Override]
+    #[Override]
     public function has(string $key): bool
     {
         $this->open();
         return isset($this->data[$key]);
     }
 
-    #[\Override]
+    #[Override]
     public function pull(string $key, $default = '')
     {
         $value = $this->data[$key] ?? $default;
@@ -102,26 +103,26 @@ class Session implements SessionInterface
         return $value;
     }
 
-    #[\Override]
+    #[Override]
     public function clear(): void
     {
         $this->open();
         $this->data = [];
     }
 
-    #[\Override]
+    #[Override]
     public function destroy(): void
     {
         // blank, preventing session destroy
     }
 
-    #[\Override]
+    #[Override]
     public function getCookieParameters(): array
     {
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function setId(string $sessionId): void
     {
         // blank, preventing session id

@@ -53,18 +53,8 @@ final class X extends OAuth2
         return $this->fetchCurrentUserJsonArray(
             $token,
             $this->endpoint,
-            ['Content-Type' => 'application/json']
+            ['Content-Type' => 'application/json'],
         );
-    }
-
-    #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
     }
 
     #[Override]
@@ -83,6 +73,16 @@ final class X extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi bi-twitter';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

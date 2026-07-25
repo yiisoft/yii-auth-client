@@ -14,26 +14,10 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Override;
 
 final class TikTokTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(TikTok::class);
-    }
-
-    private function createTikTokClient(?ClientInterface $httpClient = null): TikTok
-    {
-        return new TikTok(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -93,5 +77,22 @@ final class TikTokTest extends ProviderClientTestCase
         $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['open_id' => 'abc'], $method->invoke($client));
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(TikTok::class);
+    }
+
+    private function createTikTokClient(?ClientInterface $httpClient = null): TikTok
+    {
+        return new TikTok(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

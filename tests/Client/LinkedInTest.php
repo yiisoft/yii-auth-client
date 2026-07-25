@@ -14,26 +14,10 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Override;
 
 final class LinkedInTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(LinkedIn::class);
-    }
-
-    private function createLinkedInClient(?ClientInterface $httpClient = null): LinkedIn
-    {
-        return new LinkedIn(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -119,5 +103,22 @@ final class LinkedInTest extends ProviderClientTestCase
         $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['sub' => 'abc'], $method->invoke($client));
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(LinkedIn::class);
+    }
+
+    private function createLinkedInClient(?ClientInterface $httpClient = null): LinkedIn
+    {
+        return new LinkedIn(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

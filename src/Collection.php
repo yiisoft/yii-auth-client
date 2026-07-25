@@ -7,6 +7,8 @@ namespace Yiisoft\Yii\AuthClient;
 use InvalidArgumentException;
 use RuntimeException;
 
+use function array_key_exists;
+
 /**
  * Collection is a storage for all auth clients in the application.
  *
@@ -38,9 +40,8 @@ final class Collection
         /**
          * @var array|OAuth2Interface[] list of OAuth2 clients with their configuration in format: 'clientName' => [...]
          */
-        private array $clients
-    ) {
-    }
+        private array $clients,
+    ) {}
 
     public function getClient(string $name): OAuth2
     {
@@ -51,7 +52,7 @@ final class Collection
         $client = $this->clients[$name];
         if (!($client instanceof OAuth2)) {
             throw new RuntimeException(
-                'The Client should be an OAuth2 Interface.'
+                'The Client should be an OAuth2 Interface.',
             );
         }
         return $client;

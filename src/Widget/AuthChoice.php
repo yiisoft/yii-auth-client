@@ -19,11 +19,14 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Override;
+use Yiisoft\Yii\AuthClient\AuthAction;
+
+use function strlen;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
  * It opens a popup window for the client authentication process.
- * By default this widget relies on presence of {@see \Yiisoft\Yii\AuthClient\Collection} among application components
+ * By default this widget relies on presence of {@see Collection} among application components
  * to get auth clients information.
  *
  * Example:
@@ -62,7 +65,7 @@ use Override;
  *  - widget: array, configuration for the widget, which should be used to render a client link;
  *    such widget should be a subclass of {@see AuthChoiceItem}.
  *
- * @see \Yiisoft\Yii\AuthClient\AuthAction
+ * @see AuthAction
  */
 final class AuthChoice extends Widget
 {
@@ -126,40 +129,6 @@ final class AuthChoice extends Widget
         return null;
     }
 
-    /**
-     * Registers assets/JS and builds the opening `<div>` tag markup, exactly once per widget instance.
-     * Subsequent calls (e.g. from both {@see begin()} and {@see render()} in a begin()/end() usage) return ''.
-     */
-    private function renderOpenTag(): string
-    {
-        if ($this->openTagRendered) {
-            return '';
-        }
-        $this->openTagRendered = true;
-
-        if ($this->popupMode) {
-            $this->assetManager->register(AuthChoiceAsset::class);
-
-            if (empty($this->clientOptions)) {
-                $options = '';
-            } else {
-                $options = Json::htmlEncode($this->clientOptions);
-            }
-
-            $this->webView->registerJs("
-                const el = document.getElementById('" . $this->getId() . "');
-                if (el && typeof authchoice === 'function') {
-                    authchoice(el, {$options});
-                }
-            ");
-        } else {
-            $this->assetManager->register(AuthChoiceStyleAsset::class);
-        }
-
-        $this->options['id'] = $this->getId();
-        return Html::div('', $this->options)->open();
-    }
-
     public function getId(): string
     {
         return 'yii-auth-client';
@@ -184,28 +153,6 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Renders the main content, which includes all external services links.
-     *
-     * @throws InvalidConfigException
-     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
-     *
-     * @return string generated HTML.
-     */
-    protected function renderMainContent(): string
-    {
-        $items = [];
-        /**
-         * @var OAuth2 $externalService
-         */
-        foreach ($this->getClients() as $externalService) {
-            // encode(false): clientLink() already returns rendered, safe-to-embed HTML.
-            $items[] = Html::li($this->clientLink($externalService))->encode(false);
-        }
-
-        return Html::ul(['class' => 'auth-clients'])->items(...$items)->render();
-    }
-
-    /**
      * @return array
      * @psalm-return array<string, OAuth2>
      */
@@ -226,7 +173,7 @@ final class AuthChoice extends Widget
     {
         $clients = array_filter(
             $this->getClients(),
-            fn($client) => $client->getName() === $name
+            fn($client) => $client->getName() === $name,
         );
         $client = end($clients);
 
@@ -288,7 +235,7 @@ final class AuthChoice extends Widget
             return Html::a($text, $this->createClientUrl($client), $htmlOptions)->encode($encodeText)->render();
         }
 
-        $widgetConfig = (array)$viewOptions['widget'];
+        $widgetConfig = (array) $viewOptions['widget'];
         if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');
         }
@@ -418,5 +365,61 @@ final class AuthChoice extends Widget
             }
         }
         return '';
+    }
+
+    /**
+     * Renders the main content, which includes all external services links.
+     *
+     * @throws InvalidConfigException
+     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
+     *
+     * @return string generated HTML.
+     */
+    protected function renderMainContent(): string
+    {
+        $items = [];
+        /**
+         * @var OAuth2 $externalService
+         */
+        foreach ($this->getClients() as $externalService) {
+            // encode(false): clientLink() already returns rendered, safe-to-embed HTML.
+            $items[] = Html::li($this->clientLink($externalService))->encode(false);
+        }
+
+        return Html::ul(['class' => 'auth-clients'])->items(...$items)->render();
+    }
+
+    /**
+     * Registers assets/JS and builds the opening `<div>` tag markup, exactly once per widget instance.
+     * Subsequent calls (e.g. from both {@see begin()} and {@see render()} in a begin()/end() usage) return ''.
+     */
+    private function renderOpenTag(): string
+    {
+        if ($this->openTagRendered) {
+            return '';
+        }
+        $this->openTagRendered = true;
+
+        if ($this->popupMode) {
+            $this->assetManager->register(AuthChoiceAsset::class);
+
+            if (empty($this->clientOptions)) {
+                $options = '';
+            } else {
+                $options = Json::htmlEncode($this->clientOptions);
+            }
+
+            $this->webView->registerJs("
+                const el = document.getElementById('" . $this->getId() . "');
+                if (el && typeof authchoice === 'function') {
+                    authchoice(el, {$options});
+                }
+            ");
+        } else {
+            $this->assetManager->register(AuthChoiceStyleAsset::class);
+        }
+
+        $this->options['id'] = $this->getId();
+        return Html::div('', $this->options)->open();
     }
 }

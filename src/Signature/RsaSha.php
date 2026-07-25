@@ -10,6 +10,7 @@ use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 use function function_exists;
 use function is_int;
+use function strlen;
 
 /**
  * RsaSha1 represents 'SHAwithRSA' (also known as RSASSA-PKCS1-V1_5-SIGN with the SHA hash) signature method.
@@ -45,7 +46,7 @@ final class RsaSha extends Signature
      * @link https://php.net/manual/en/openssl.signature-algos.php
      */
     public function __construct(
-        private readonly int|string $algorithm = ''
+        private readonly int|string $algorithm = '',
     ) {
         // @codeCoverageIgnoreStart
         /**
@@ -125,31 +126,6 @@ final class RsaSha extends Signature
         return $this->privateCertificate;
     }
 
-    /**
-     * Creates initial value for {@see privateCertificate}.
-     * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
-     *
-     * @throws InvalidConfigException on failure.
-     *
-     * @return string private certificate content.
-     */
-    protected function initPrivateCertificate(): string
-    {
-        if (!empty($this->privateCertificateFile)) {
-            if (!file_exists($this->privateCertificateFile)) {
-                throw new InvalidConfigException(
-                    "Private certificate file '{$this->privateCertificateFile}' does not exist!"
-                );
-            }
-            $privateCertificateFile = file_get_contents($this->privateCertificateFile);
-            if ($privateCertificateFile === false) {
-                throw new InvalidConfigException('Failed to fetch private certificate file');
-            }
-            return $privateCertificateFile;
-        }
-        return '';
-    }
-
     #[Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
@@ -180,6 +156,31 @@ final class RsaSha extends Signature
     }
 
     /**
+     * Creates initial value for {@see privateCertificate}.
+     * This method will attempt to fetch the certificate value from {@see privateCertificateFile} file.
+     *
+     * @throws InvalidConfigException on failure.
+     *
+     * @return string private certificate content.
+     */
+    protected function initPrivateCertificate(): string
+    {
+        if (!empty($this->privateCertificateFile)) {
+            if (!file_exists($this->privateCertificateFile)) {
+                throw new InvalidConfigException(
+                    "Private certificate file '{$this->privateCertificateFile}' does not exist!",
+                );
+            }
+            $privateCertificateFile = file_get_contents($this->privateCertificateFile);
+            if ($privateCertificateFile === false) {
+                throw new InvalidConfigException('Failed to fetch private certificate file');
+            }
+            return $privateCertificateFile;
+        }
+        return '';
+    }
+
+    /**
      * Creates initial value for {@see publicCertificate}.
      * This method will attempt to fetch the certificate value from {@see publicCertificateFile} file.
      *
@@ -193,7 +194,7 @@ final class RsaSha extends Signature
         if (!empty($this->publicCertificateFile)) {
             if (!file_exists($this->publicCertificateFile)) {
                 throw new InvalidConfigException(
-                    "Public certificate file '{$this->publicCertificateFile}' does not exist!"
+                    "Public certificate file '{$this->publicCertificateFile}' does not exist!",
                 );
             }
             $fp = fopen($this->publicCertificateFile, 'rb');

@@ -24,80 +24,18 @@ use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
+use Yiisoft\Session\SessionInterface;
+use Override;
+use RuntimeException;
+
+use function strlen;
+
+use const JSON_ERROR_NONE;
+use const PHP_URL_QUERY;
 
 #[AllowMockObjectsWithoutExpectations]
 final class OAuth2Test extends TestCase
 {
-    /**
-     * Creates test OAuth2 client instance. Only the abstract methods are mocked; everything else
-     * (buildAuthUrl, fetchAccessToken, state handling, etc.) runs the real OAuth2/OAuth implementation.
-     *
-     * @return OAuth2 oauth client.
-     */
-    protected function createClient(?ClientInterface $httpClient = null)
-    {
-        $httpClient ??= $this->createStub(ClientInterface::class);
-
-        $requestFactory = new Psr17Factory();
-
-        $yiisoftFactory = new YiisoftFactory(
-            new Container(ContainerConfig::create())
-        );
-
-        $session = new Session();
-
-        $sessionStateStorage = new SessionStateStorage($session);
-
-        return $this->getMockBuilder(OAuth2::class)
-            ->setConstructorArgs(
-                [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session]
-            )
-            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
-            ->getMock();
-    }
-
-    private function httpClientReturning(ResponseInterface $response): ClientInterface
-    {
-        return new class ($response) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-    }
-
-    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
-    {
-        return new class ($response, $capturedRequest) implements ClientInterface {
-            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest)
-            {
-            }
-
-            #[\Override]
-            public function sendRequest(RequestInterface $request): ResponseInterface
-            {
-                $this->capturedRequest = $request;
-                return $this->response;
-            }
-        };
-    }
-
-    private function createTestClient(?ClientInterface $httpClient = null, ?SessionStateStorage $stateStorage = null): TestClient
-    {
-        return new TestClient(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            $stateStorage ?? new SessionStateStorage(new Session()),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     // Tests :
 
     public function testBuildAuthUrl(): void
@@ -121,8 +59,8 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenPopulatesUsableToken(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
-            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
             }
@@ -148,7 +86,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenParsesDottedResponseKeys(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&custom.key=val&expires_in=3600')
+            new Response(200, [], 'access_token=abc&custom.key=val&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -165,7 +103,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=abc123&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -228,7 +166,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenHandlesArrayValuedParameterRecursively(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&scope[]=read&scope[]=write&expires_in=3600')
+            new Response(200, [], 'access_token=abc&scope[]=read&scope[]=write&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -248,7 +186,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenResolvesNestedArrayKeyCollisionViaRecursion(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&scope[a.b]=1&scope[a_b]=2&expires_in=3600')
+            new Response(200, [], 'access_token=abc&scope[a.b]=1&scope[a_b]=2&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -285,7 +223,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierPopulatesToken(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token', 'expires_in' => 3600]))
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token', 'expires_in' => 3600])),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -347,7 +285,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierSucceedsWhenIncomingStateMatches(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token'])),
         );
         $client = $this->createClient($httpClient);
         $client->setAuthUrl('http://auth.local');
@@ -368,7 +306,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierQueryStateTakesPriorityOverBodyState(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token'])),
         );
         $client = $this->createClient($httpClient);
         $client->setAuthUrl('http://auth.local');
@@ -391,7 +329,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierRemovesAuthStateAfterSuccess(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token']))
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token'])),
         );
         $client = $this->createClient($httpClient);
         $client->setAuthUrl('http://auth.local');
@@ -412,10 +350,10 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierReturnsEmptyTokenWhenHttpClientThrows(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
-                throw new \RuntimeException('network failure');
+                throw new RuntimeException('network failure');
             }
         };
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
@@ -471,11 +409,9 @@ final class OAuth2Test extends TestCase
     {
         $callCount = 0;
         $httpClient = new class ($callCount) implements ClientInterface {
-            public function __construct(private int &$callCount)
-            {
-            }
+            public function __construct(private int &$callCount) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
@@ -510,7 +446,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['login' => 'octocat'])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient);
         $token = new OAuthToken();
@@ -529,7 +465,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['id' => 1])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient);
         $token = new OAuthToken();
@@ -557,10 +493,10 @@ final class OAuth2Test extends TestCase
     public function testFetchCurrentUserJsonArrayReturnsEmptyArrayWhenHttpClientThrows(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
-                throw new \RuntimeException('network failure');
+                throw new RuntimeException('network failure');
             }
         };
         $client = $this->createTestClient($httpClient);
@@ -574,7 +510,7 @@ final class OAuth2Test extends TestCase
     public function testRefreshAccessTokenReturnsNewToken(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=refreshed&expires_in=3600')
+            new Response(200, [], 'access_token=refreshed&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
@@ -752,7 +688,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=abc123&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -771,7 +707,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=abc123&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -789,7 +725,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['access_token' => 'pkce-token'])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -819,7 +755,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], (string) json_encode(['access_token' => 'pkce-token'])),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -898,7 +834,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=refreshed&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
@@ -917,7 +853,7 @@ final class OAuth2Test extends TestCase
         $capturedRequest = null;
         $httpClient = $this->httpClientCapturing(
             new Response(200, [], 'access_token=refreshed&expires_in=3600'),
-            $capturedRequest
+            $capturedRequest,
         );
         $client = $this->createTestClient($httpClient);
         $client->setTokenUrl('http://token.local');
@@ -954,7 +890,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenRestoresUrlEncodedDottedKey(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&custom%2Ekey=val&expires_in=3600')
+            new Response(200, [], 'access_token=abc&custom%2Ekey=val&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1002,83 +938,81 @@ final class OAuth2Test extends TestCase
 
     public function testGenerateAuthStateBaseStringAppendsActiveSessionId(): void
     {
-        $session = new class implements \Yiisoft\Session\SessionInterface {
-            #[\Override]
-            public function open(): void
-            {
-            }
-            #[\Override]
+        $session = new class implements SessionInterface {
+            #[Override]
+            public function open(): void {}
+
+            #[Override]
             public function get(string $key, $default = null)
             {
                 return $default;
             }
-            #[\Override]
-            public function set(string $key, $value): void
-            {
-            }
-            #[\Override]
-            public function close(): void
-            {
-            }
-            #[\Override]
+
+            #[Override]
+            public function set(string $key, $value): void {}
+
+            #[Override]
+            public function close(): void {}
+
+            #[Override]
             public function isActive(): bool
             {
                 return true;
             }
-            #[\Override]
+
+            #[Override]
             public function getId(): ?string
             {
                 return 'the-session-id';
             }
-            #[\Override]
-            public function regenerateId(): void
-            {
-            }
-            #[\Override]
-            public function discard(): void
-            {
-            }
-            #[\Override]
+
+            #[Override]
+            public function regenerateId(): void {}
+
+            #[Override]
+            public function discard(): void {}
+
+            #[Override]
             public function getName(): string
             {
                 return 'sess';
             }
-            #[\Override]
+
+            #[Override]
             public function all(): array
             {
                 return [];
             }
-            #[\Override]
-            public function remove(string $key): void
-            {
-            }
-            #[\Override]
+
+            #[Override]
+            public function remove(string $key): void {}
+
+            #[Override]
             public function has(string $key): bool
             {
                 return false;
             }
-            #[\Override]
+
+            #[Override]
             public function pull(string $key, $default = '')
             {
                 return $default;
             }
-            #[\Override]
-            public function clear(): void
-            {
-            }
-            #[\Override]
-            public function destroy(): void
-            {
-            }
-            #[\Override]
+
+            #[Override]
+            public function clear(): void {}
+
+            #[Override]
+            public function destroy(): void {}
+
+            #[Override]
             public function getCookieParameters(): array
             {
                 return [];
             }
-            #[\Override]
-            public function setId(string $sessionId): void
-            {
-            }
+
+            #[Override]
+            public function setId(string $sessionId): void {}
         };
         $client = new TestClient(
             $this->createStub(ClientInterface::class),
@@ -1124,7 +1058,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenRestoresLiteralPlusAsSpaceInValue(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&name=John+Doe&expires_in=3600')
+            new Response(200, [], 'access_token=abc&name=John+Doe&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1145,7 +1079,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenResolvesDottedAndUnderscoredKeyCollision(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&a.b=1&a_b=2&expires_in=3600')
+            new Response(200, [], 'access_token=abc&a.b=1&a_b=2&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1167,7 +1101,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenHandlesMultipleUnderscoreKeyVariants(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], "access_token=abc&a.b=1&a b=2&a_b=3&a%20b=4&expires_in=3600")
+            new Response(200, [], "access_token=abc&a.b=1&a b=2&a_b=3&a%20b=4&expires_in=3600"),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1191,7 +1125,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenPreservesKeyWithUnbalancedParenthesis(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&a%28_b=val&expires_in=3600')
+            new Response(200, [], 'access_token=abc&a%28_b=val&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1212,7 +1146,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenResolvesCollisionWhenDottedKeyIsFirstParam(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'a.b=1&a_b=2&access_token=abc&expires_in=3600')
+            new Response(200, [], 'a.b=1&a_b=2&access_token=abc&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1234,7 +1168,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenDeduplicatesRepeatedMatchesOfSameKey(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc&a.b=1&a.b=9&a_b=3&expires_in=3600')
+            new Response(200, [], 'access_token=abc&a.b=1&a.b=9&a_b=3&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -1245,5 +1179,71 @@ final class OAuth2Test extends TestCase
 
         $this->assertSame('3', $token->getParam('a.b'));
         $this->assertNull($token->getParam('a_b'));
+    }
+
+    /**
+     * Creates test OAuth2 client instance. Only the abstract methods are mocked; everything else
+     * (buildAuthUrl, fetchAccessToken, state handling, etc.) runs the real OAuth2/OAuth implementation.
+     *
+     * @return OAuth2 oauth client.
+     */
+    protected function createClient(?ClientInterface $httpClient = null)
+    {
+        $httpClient ??= $this->createStub(ClientInterface::class);
+
+        $requestFactory = new Psr17Factory();
+
+        $yiisoftFactory = new YiisoftFactory(
+            new Container(ContainerConfig::create()),
+        );
+
+        $session = new Session();
+
+        $sessionStateStorage = new SessionStateStorage($session);
+
+        return $this->getMockBuilder(OAuth2::class)
+            ->setConstructorArgs(
+                [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session],
+            )
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
+            ->getMock();
+    }
+
+    private function httpClientReturning(ResponseInterface $response): ClientInterface
+    {
+        return new class ($response) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                return $this->response;
+            }
+        };
+    }
+
+    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
+    {
+        return new class ($response, $capturedRequest) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
+
+            #[Override]
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return $this->response;
+            }
+        };
+    }
+
+    private function createTestClient(?ClientInterface $httpClient = null, ?SessionStateStorage $stateStorage = null): TestClient
+    {
+        return new TestClient(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            $stateStorage ?? new SessionStateStorage(new Session()),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

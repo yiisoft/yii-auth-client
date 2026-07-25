@@ -9,11 +9,11 @@ use Psr\Container\ContainerInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\OAuth2;
 
+use function is_string;
+
 final readonly class CollectionFactory
 {
-    public function __construct(private array $clients = [])
-    {
-    }
+    public function __construct(private array $clients = []) {}
 
     /**
      * @param ContainerInterface $container

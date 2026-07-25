@@ -7,17 +7,18 @@ namespace Yiisoft\Yii\AuthClient\Tests\Data;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use RuntimeException;
+use Override;
+
+use function array_key_exists;
 
 /**
  * Container stub resolving entries from a fixed map, used where a full DI container is unnecessary.
  */
 final readonly class Container implements ContainerInterface
 {
-    public function __construct(private readonly array $entries = [])
-    {
-    }
+    public function __construct(private readonly array $entries = []) {}
 
-    #[\Override]
+    #[Override]
     public function get(string $id): mixed
     {
         if (!$this->has($id)) {
@@ -32,7 +33,7 @@ final readonly class Container implements ContainerInterface
         return $this->entries[$id];
     }
 
-    #[\Override]
+    #[Override]
     public function has(string $id): bool
     {
         return array_key_exists($id, $this->entries);

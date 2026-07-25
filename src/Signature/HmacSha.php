@@ -22,7 +22,7 @@ final class HmacSha extends Signature
      * @link https://php.net/manual/ru/function.hash-algos.php
      */
     public function __construct(
-        private readonly string $algorithm
+        private readonly string $algorithm,
     ) {
         // @codeCoverageIgnoreStart
         /**

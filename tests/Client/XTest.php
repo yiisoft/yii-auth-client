@@ -16,26 +16,10 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Override;
 
 final class XTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(X::class);
-    }
-
-    private function createXClient(?ClientInterface $httpClient = null): X
-    {
-        return new X(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -94,11 +78,9 @@ final class XTest extends ProviderClientTestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -134,5 +116,22 @@ final class XTest extends ProviderClientTestCase
         $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['data' => ['id' => '123']], $method->invoke($client));
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(X::class);
+    }
+
+    private function createXClient(?ClientInterface $httpClient = null): X
+    {
+        return new X(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }
