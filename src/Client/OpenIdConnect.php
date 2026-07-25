@@ -33,8 +33,14 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
-use function in_array;
 use Override;
+
+use function in_array;
+use function is_array;
+use function is_string;
+use function strlen;
+
+use const PHP_QUERY_RFC3986;
 
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
@@ -112,7 +118,7 @@ final class OpenIdConnect extends OAuth2
      */
     private ?JWSLoader $jwsLoader = null;
 
-    private JWKSet|null $jwkSet = null;
+    private ?JWKSet $jwkSet = null;
 
     /**
      * OpenIdConnect constructor.
@@ -146,7 +152,7 @@ final class OpenIdConnect extends OAuth2
     #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
-        array $params = []
+        array $params = [],
     ): string {
         if (strlen($this->authUrl) == 0) {
             $this->authUrl = (string) $this->getConfigParam('authorization_endpoint');
@@ -191,25 +197,6 @@ final class OpenIdConnect extends OAuth2
     }
 
     /**
-     * Discovers OpenID Provider configuration parameters.
-     *
-     * @throws InvalidConfigException
-     *
-     * @return array OpenID Provider configuration parameters.
-     */
-    private function discoverConfig(): array
-    {
-        if (empty($this->issuerUrl)) {
-            throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
-        }
-        $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
-        $request = $this->createRequest('GET', $configUrl);
-        $response = $this->sendRequest($request);
-
-        return (array)json_decode($response->getBody()->getContents(), true);
-    }
-
-    /**
      * @param ServerRequestInterface $incomingRequest
      * @param string $authCode
      * @param array $params
@@ -243,7 +230,7 @@ final class OpenIdConnect extends OAuth2
             $this->validateAuthNonce = $this->validateJws && in_array(
                 'nonce',
                 (array) $this->getConfigParam('claims_supported'),
-                true
+                true,
             );
         }
         return $this->validateAuthNonce;
@@ -255,18 +242,6 @@ final class OpenIdConnect extends OAuth2
     public function setValidateAuthNonce($validateAuthNonce): void
     {
         $this->validateAuthNonce = $validateAuthNonce;
-    }
-
-    /**
-     * Generates the auth nonce value.
-     *
-     * @throws Exception
-     *
-     * @return string auth nonce value.
-     */
-    protected function generateAuthNonce(): string
-    {
-        return Random::string();
     }
 
     /**
@@ -300,20 +275,6 @@ final class OpenIdConnect extends OAuth2
         return '';
     }
 
-    /**
-     * @return int[]
-     *
-     * @psalm-return array{popupWidth: 860, popupHeight: 480}
-     */
-    #[Override]
-    protected function defaultViewOptions(): array
-    {
-        return [
-            'popupWidth' => 860,
-            'popupHeight' => 480,
-        ];
-    }
-
     public function setIssuerUrl(string $url): void
     {
         $this->issuerUrl = rtrim($url, '/');
@@ -340,6 +301,32 @@ final class OpenIdConnect extends OAuth2
         return $new;
     }
 
+    /**
+     * Generates the auth nonce value.
+     *
+     * @throws Exception
+     *
+     * @return string auth nonce value.
+     */
+    protected function generateAuthNonce(): string
+    {
+        return Random::string();
+    }
+
+    /**
+     * @return int[]
+     *
+     * @psalm-return array{popupWidth: 860, popupHeight: 480}
+     */
+    #[Override]
+    protected function defaultViewOptions(): array
+    {
+        return [
+            'popupWidth' => 860,
+            'popupHeight' => 480,
+        ];
+    }
+
     #[Override]
     protected function initUserAttributes(): array
     {
@@ -354,7 +341,7 @@ final class OpenIdConnect extends OAuth2
         if (in_array('client_secret_basic', $supportedAuthMethods, true)) {
             $request = $request->withHeader(
                 'Authorization',
-                'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)
+                'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
             );
         } elseif (in_array('client_secret_post', $supportedAuthMethods, true)) {
             // Appended to the body, not the query string: fetchAccessToken()/refreshAccessToken() already
@@ -391,7 +378,7 @@ final class OpenIdConnect extends OAuth2
             $request->getBody()->write('&' . http_build_query(['assertion' => $assertion], '', '&', PHP_QUERY_RFC3986));
         } else {
             throw new InvalidConfigException(
-                'Unable to authenticate request: No auth method supported'
+                'Unable to authenticate request: No auth method supported',
             );
         }
         return $request;
@@ -404,7 +391,6 @@ final class OpenIdConnect extends OAuth2
         // OAuth2 specifics :
         unset($params['code'], $params['state'], $params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
         // OpenIdConnect specifics :
-
 
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
@@ -493,8 +479,8 @@ final class OpenIdConnect extends OAuth2
                  */
                 new HeaderCheckerManager(
                     [$checker],
-                    [new JWSTokenSupport()]
-                )
+                    [new JWSTokenSupport()],
+                ),
             );
         }
         return $this->jwsLoader;
@@ -545,5 +531,24 @@ final class OpenIdConnect extends OAuth2
         if (!isset($claims['aud']) || (strcmp((string) $claims['aud'], $this->clientId) !== 0)) {
             throw new ClientException('Invalid "aud"', 400);
         }
+    }
+
+    /**
+     * Discovers OpenID Provider configuration parameters.
+     *
+     * @throws InvalidConfigException
+     *
+     * @return array OpenID Provider configuration parameters.
+     */
+    private function discoverConfig(): array
+    {
+        if (empty($this->issuerUrl)) {
+            throw new InvalidConfigException('Cannot discover config because issuer URL is not set.');
+        }
+        $configUrl = $this->issuerUrl . '/.well-known/openid-configuration';
+        $request = $this->createRequest('GET', $configUrl);
+        $response = $this->sendRequest($request);
+
+        return (array) json_decode($response->getBody()->getContents(), true);
     }
 }

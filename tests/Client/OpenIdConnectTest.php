@@ -22,78 +22,24 @@ use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Yii\AuthClient\AuthClient;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Override;
+use ReflectionMethod;
+use ReflectionProperty;
+use RuntimeException;
+use Throwable;
 
 final class OpenIdConnectTest extends TestCase
 {
     private const SECRET = 'my-256-bit-secret-my-256-bit-secret';
     private const ISSUER_URL = 'https://issuer.example.com';
     private const CLIENT_ID = 'client-id';
-
-    private function createHmacJwk(): JWK
-    {
-        return JWKFactory::createFromSecret(self::SECRET, ['alg' => 'HS256', 'use' => 'sig']);
-    }
-
-    private function signJws(JWK $jwk, array $claims): string
-    {
-        $algorithmManager = new AlgorithmManager([new HS256()]);
-        $jwsBuilder = new JWSBuilder($algorithmManager);
-        $jws = $jwsBuilder
-            ->create()
-            ->withPayload((string) json_encode($claims))
-            ->addSignature($jwk, ['alg' => 'HS256'])
-            ->build();
-
-        return (new CompactSerializer())->serialize($jws, 0);
-    }
-
-    /**
-     * @param array<string, mixed> $configParams
-     */
-    private function createClient(
-        array $configParams = [],
-        ?ClientInterface $httpClient = null,
-        ?\Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface $stateStorage = null,
-    ): OpenIdConnect {
-        $cache = new ArrayCache();
-        if ($configParams !== []) {
-            $cache->set('config-params-oidc', $configParams);
-        }
-
-        $client = new OpenIdConnect(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            $stateStorage ?? new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-            $cache,
-            'oidc',
-            'OIDC',
-        );
-        $client->setIssuerUrl(self::ISSUER_URL);
-        $client->setClientId(self::CLIENT_ID);
-
-        return $client;
-    }
-
-    private function primeJwkSetCache(OpenIdConnect $client, JWKSet $jwkSet): void
-    {
-        (new \ReflectionProperty($client, 'jwkSet'))->setValue($client, $jwkSet);
-    }
-
-    private function invokeCreateToken(OpenIdConnect $client, array $tokenConfig): \Yiisoft\Yii\AuthClient\OAuthToken
-    {
-        /** @var \Yiisoft\Yii\AuthClient\OAuthToken */
-        return (new \ReflectionMethod($client, 'createToken'))->invoke($client, $tokenConfig);
-    }
-
-    private function disableJwsValidation(OpenIdConnect $client): void
-    {
-        (new \ReflectionProperty($client, 'validateJws'))->setValue($client, false);
-    }
 
     public function testGetName(): void
     {
@@ -104,7 +50,7 @@ final class OpenIdConnectTest extends TestCase
 
     /**
      * getName() must return the name configured per-instance via the constructor: it feeds both the
-     * session-state key prefix ({@see \Yiisoft\Yii\AuthClient\AuthClient::getStateKeyPrefix()}) and the
+     * session-state key prefix ({@see AuthClient::getStateKeyPrefix()}) and the
      * config-discovery cache key ({@see getConfigParams()}), so two different providers configured with
      * distinct names in the same app must not collide on either.
      */
@@ -126,7 +72,7 @@ final class OpenIdConnectTest extends TestCase
 
     public function testGetConfigParamsDoesNotLeakAcrossDifferentlyNamedProviders(): void
     {
-        $cache = new \Yiisoft\Cache\ArrayCache();
+        $cache = new ArrayCache();
         $auth0Client = new OpenIdConnect(
             $this->createStub(ClientInterface::class),
             new Psr17Factory(),
@@ -208,7 +154,7 @@ final class OpenIdConnectTest extends TestCase
     public function testGetConfigParamReturnsCachedValueWithoutHttpCall(): void
     {
         $httpClient = $this->createStub(ClientInterface::class);
-        $httpClient->method('sendRequest')->willThrowException(new \RuntimeException('HTTP should not be called'));
+        $httpClient->method('sendRequest')->willThrowException(new RuntimeException('HTTP should not be called'));
         $client = $this->createClient(['authorization_endpoint' => 'https://issuer.example.com/authorize'], $httpClient);
 
         $value = $client->getConfigParam('authorization_endpoint');
@@ -224,10 +170,10 @@ final class OpenIdConnectTest extends TestCase
             ->willReturnCallback(function (RequestInterface $request): ResponseInterface {
                 $this->assertSame(
                     'https://issuer.example.com/.well-known/openid-configuration',
-                    (string) $request->getUri()
+                    (string) $request->getUri(),
                 );
 
-                return new \Nyholm\Psr7\Response(200, [], (string) json_encode([
+                return new Response(200, [], (string) json_encode([
                     'authorization_endpoint' => 'https://issuer.example.com/authorize',
                 ]));
             });
@@ -242,7 +188,7 @@ final class OpenIdConnectTest extends TestCase
     {
         $client = $this->createClient(['authorization_endpoint' => 'https://issuer.example.com/authorize']);
 
-        $authUrl = $client->buildAuthUrl($this->createStub(\Psr\Http\Message\ServerRequestInterface::class));
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class));
 
         $this->assertStringStartsWith('https://issuer.example.com/authorize?', $authUrl);
         $this->assertStringContainsString('client_id=client-id', $authUrl);
@@ -373,7 +319,7 @@ final class OpenIdConnectTest extends TestCase
     {
         $client = $this->createClient(['claims_supported' => []]);
 
-        $authUrl = @$client->buildAuthUrl($this->createStub(\Psr\Http\Message\ServerRequestInterface::class));
+        $authUrl = @$client->buildAuthUrl($this->createStub(ServerRequestInterface::class));
 
         // With no configured authorization_endpoint, authUrl falls back to '', so the
         // composed URL is just the query string.
@@ -388,7 +334,7 @@ final class OpenIdConnectTest extends TestCase
             ->method('sendRequest')
             ->willReturnCallback(function () use (&$callCount): ResponseInterface {
                 $callCount++;
-                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['authorization_endpoint' => 'https://issuer.example.com/authorize']));
+                return new Response(200, [], (string) json_encode(['authorization_endpoint' => 'https://issuer.example.com/authorize']));
             });
         $client = $this->createClient([], $httpClient);
 
@@ -406,7 +352,7 @@ final class OpenIdConnectTest extends TestCase
             ->method('sendRequest')
             ->willReturnCallback(function (RequestInterface $request) use (&$requestedUrl): ResponseInterface {
                 $requestedUrl = (string) $request->getUri();
-                return new \Nyholm\Psr7\Response(200, [], '{}');
+                return new Response(200, [], '{}');
             });
         $client = $this->createClient([], $httpClient);
         $client->setIssuerUrl(self::ISSUER_URL . '/');
@@ -531,7 +477,7 @@ final class OpenIdConnectTest extends TestCase
      */
     public function testGetConfigParamsCastsCachedValueToArray(): void
     {
-        $cache = new \Yiisoft\Cache\ArrayCache();
+        $cache = new ArrayCache();
         $cache->set('config-params-oidc', 'not-an-array');
         $client = new OpenIdConnect(
             $this->createStub(ClientInterface::class),
@@ -551,14 +497,14 @@ final class OpenIdConnectTest extends TestCase
 
     public function testGetConfigParamsPersistsDiscoveredConfigToCacheForOtherInstances(): void
     {
-        $cache = new \Yiisoft\Cache\ArrayCache();
+        $cache = new ArrayCache();
         $httpClient = $this->createStub(ClientInterface::class);
         $callCount = 0;
         $httpClient
             ->method('sendRequest')
             ->willReturnCallback(function () use (&$callCount): ResponseInterface {
                 $callCount++;
-                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['authorization_endpoint' => 'https://issuer.example.com/authorize']));
+                return new Response(200, [], (string) json_encode(['authorization_endpoint' => 'https://issuer.example.com/authorize']));
             });
         $firstClient = new OpenIdConnect(
             $httpClient,
@@ -685,7 +631,7 @@ final class OpenIdConnectTest extends TestCase
         ]);
         $client = $this->createClient(['claims_supported' => []]);
         $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-        (new \ReflectionProperty($client, 'issuerUrl'))->setValue($client, self::ISSUER_URL . '/');
+        (new ReflectionProperty($client, 'issuerUrl'))->setValue($client, self::ISSUER_URL . '/');
 
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
@@ -711,7 +657,7 @@ final class OpenIdConnectTest extends TestCase
     public function testFetchAccessTokenCastsDiscoveredTokenEndpointToString(): void
     {
         $httpClient = $this->createStub(ClientInterface::class);
-        $httpClient->method('sendRequest')->willReturn(new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600'));
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], 'access_token=abc123&expires_in=3600'));
         $client = $this->createClient([
             'token_endpoint' => 12345,
             'token_endpoint_auth_methods_supported' => ['client_secret_post'],
@@ -740,15 +686,13 @@ final class OpenIdConnectTest extends TestCase
         // createToken()'s own downstream JWS validation (irrelevant to this test) triggers a *second*
         // HTTP call (JWKS discovery); only the first call, the actual token request, is captured.
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest ??= $request;
-                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+                return new Response(200, [], 'access_token=abc123&expires_in=3600');
             }
         };
         $client = $this->createClient(
@@ -758,14 +702,14 @@ final class OpenIdConnectTest extends TestCase
                 'claims_supported' => ['nonce'],
             ],
             $httpClient,
-            new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            new SessionStateStorage(new Session()),
         )->withoutValidateAuthState();
         $client->setClientSecret('secret');
         $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
 
         try {
             $client->fetchAccessToken($incomingRequest, 'auth-code');
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         $this->assertNotNull($capturedRequest);
@@ -773,7 +717,7 @@ final class OpenIdConnectTest extends TestCase
         $sentNonce = $bodyParams['nonce'] ?? null;
         $this->assertIsString($sentNonce);
         $this->assertNotSame('', $sentNonce);
-        $storedNonce = (new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
+        $storedNonce = (new ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
         $this->assertSame($sentNonce, $storedNonce);
     }
 
@@ -787,15 +731,13 @@ final class OpenIdConnectTest extends TestCase
         // createToken()'s own downstream JWS validation (irrelevant to this test) triggers a *second*
         // HTTP call (JWKS discovery); only the first call, the actual token request, is captured.
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest ??= $request;
-                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+                return new Response(200, [], 'access_token=abc123&expires_in=3600');
             }
         };
         $client = $this->createClient(
@@ -805,20 +747,20 @@ final class OpenIdConnectTest extends TestCase
                 'claims_supported' => ['nonce'],
             ],
             $httpClient,
-            new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            new SessionStateStorage(new Session()),
         )->withoutValidateAuthState();
         $client->setClientSecret('secret');
         $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
 
         try {
             $client->fetchAccessToken($incomingRequest, 'auth-code', ['nonce' => 'caller-supplied-nonce']);
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         $this->assertNotNull($capturedRequest);
         parse_str((string) $capturedRequest->getBody(), $bodyParams);
         $this->assertSame('caller-supplied-nonce', $bodyParams['nonce']);
-        $storedNonce = (new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
+        $storedNonce = (new ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
         $this->assertNull($storedNonce);
     }
 
@@ -829,15 +771,13 @@ final class OpenIdConnectTest extends TestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
-                return new \Nyholm\Psr7\Response(200, [], 'access_token=abc123&expires_in=3600');
+                return new Response(200, [], 'access_token=abc123&expires_in=3600');
             }
         };
         $client = $this->createClient([
@@ -864,7 +804,7 @@ final class OpenIdConnectTest extends TestCase
     public function testRefreshAccessTokenCastsDiscoveredTokenEndpointToString(): void
     {
         $httpClient = $this->createStub(ClientInterface::class);
-        $httpClient->method('sendRequest')->willReturn(new \Nyholm\Psr7\Response(200, [], 'access_token=refreshed&expires_in=3600'));
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], 'access_token=refreshed&expires_in=3600'));
         $client = $this->createClient([
             'token_endpoint' => 12345,
             'token_endpoint_auth_methods_supported' => ['client_secret_post'],
@@ -885,21 +825,19 @@ final class OpenIdConnectTest extends TestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
-                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['sub' => 'user-1']));
+                return new Response(200, [], (string) json_encode(['sub' => 'user-1']));
             }
         };
         $client = $this->createClient(['userinfo_endpoint' => 'https://issuer.example.com/userinfo'], $httpClient);
         $this->disableJwsValidation($client);
         $client->setAccessToken(['params' => ['access_token' => 'abc123', 'expires_in' => 3600]]);
-        $method = new \ReflectionMethod($client, 'initUserAttributes');
+        $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertTrue($method->isProtected());
         $result = $method->invoke($client);
@@ -915,7 +853,7 @@ final class OpenIdConnectTest extends TestCase
         $client->setClientId('cid');
         $client->setClientSecret('csecret');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
-        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
 
         $this->assertTrue($method->isProtected());
         $newRequest = $method->invoke($client, $request);
@@ -929,7 +867,7 @@ final class OpenIdConnectTest extends TestCase
         $client->setClientId('cid');
         $client->setClientSecret('csecret');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
-        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
 
         $newRequest = $method->invoke($client, $request);
 
@@ -949,7 +887,7 @@ final class OpenIdConnectTest extends TestCase
         $client->setClientId('cid');
         $client->setClientSecret('csecret');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
-        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
 
         $newRequest = $method->invoke($client, $request);
 
@@ -970,7 +908,7 @@ final class OpenIdConnectTest extends TestCase
         $client->setTokenUrl('https://issuer.example.com/token');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
         $request->getBody()->write('code=auth-code');
-        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
         $before = time();
 
         $newRequest = $method->invoke($client, $request);
@@ -997,7 +935,7 @@ final class OpenIdConnectTest extends TestCase
     {
         $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['unsupported_method']]);
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
-        $method = new \ReflectionMethod($client, 'applyClientCredentialsToRequest');
+        $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
 
         $this->expectException(InvalidConfigException::class);
         $this->expectExceptionMessage('Unable to authenticate request: No auth method supported');
@@ -1008,7 +946,7 @@ final class OpenIdConnectTest extends TestCase
     public function testDefaultReturnUrlIsProtectedAndStripsOidcSpecificQueryParams(): void
     {
         $client = $this->createClient();
-        $method = new \ReflectionMethod($client, 'defaultReturnUrl');
+        $method = new ReflectionMethod($client, 'defaultReturnUrl');
         $request = (new Psr17Factory())
             ->createServerRequest('GET', 'http://example.com/callback')
             ->withQueryParams([
@@ -1038,15 +976,15 @@ final class OpenIdConnectTest extends TestCase
         ]);
         $client = $this->createClient(
             ['claims_supported' => ['nonce']],
-            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            stateStorage: new SessionStateStorage(new Session()),
         );
         $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'known-nonce');
+        (new ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'known-nonce');
 
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
         $this->assertSame('user-1', $token->getParam('sub'));
-        $this->assertNull((new \ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce'));
+        $this->assertNull((new ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce'));
     }
 
     public function testCreateTokenThrowsOnNonceMismatch(): void
@@ -1060,10 +998,10 @@ final class OpenIdConnectTest extends TestCase
         ]);
         $client = $this->createClient(
             ['claims_supported' => ['nonce']],
-            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            stateStorage: new SessionStateStorage(new Session()),
         );
         $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'expected-nonce');
+        (new ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 'expected-nonce');
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid auth nonce');
@@ -1088,10 +1026,10 @@ final class OpenIdConnectTest extends TestCase
         ]);
         $client = $this->createClient(
             ['claims_supported' => ['nonce']],
-            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            stateStorage: new SessionStateStorage(new Session()),
         );
         $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', '12345');
+        (new ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', '12345');
 
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
@@ -1114,10 +1052,10 @@ final class OpenIdConnectTest extends TestCase
         ]);
         $client = $this->createClient(
             ['claims_supported' => ['nonce']],
-            stateStorage: new \Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage(new Session()),
+            stateStorage: new SessionStateStorage(new Session()),
         );
         $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-        (new \ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 67890);
+        (new ReflectionMethod($client, 'setState'))->invoke($client, 'authNonce', 67890);
 
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
@@ -1156,15 +1094,13 @@ final class OpenIdConnectTest extends TestCase
         // so getJwkSet() legitimately resolves to null instead of a usable set.
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
-                return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['kty' => 'oct', 'k' => 'c2VjcmV0']));
+                return new Response(200, [], (string) json_encode(['kty' => 'oct', 'k' => 'c2VjcmV0']));
             }
         };
         $client = $this->createClient([
@@ -1194,20 +1130,18 @@ final class OpenIdConnectTest extends TestCase
     {
         $calledHttp = false;
         $httpClient = new class ($calledHttp) implements ClientInterface {
-            public function __construct(private bool &$calledHttp)
-            {
-            }
+            public function __construct(private bool &$calledHttp) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->calledHttp = true;
-                return new \Nyholm\Psr7\Response(200, [], '{}');
+                return new Response(200, [], '{}');
             }
         };
         $jwk = $this->createHmacJwk();
         $client = $this->createClient(['claims_supported' => []], $httpClient);
-        $cache = (new \ReflectionProperty($client, 'cache'))->getValue($client);
+        $cache = (new ReflectionProperty($client, 'cache'))->getValue($client);
         $cache->set('config-params-jwkSet', new JWKSet([$jwk]));
         $idToken = $this->signJws($jwk, [
             'iss' => self::ISSUER_URL,
@@ -1232,7 +1166,7 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = $this->createStub(ClientInterface::class);
         $httpClient->method('sendRequest')->willReturnCallback(function () use (&$callCount, $jwk): ResponseInterface {
             $callCount++;
-            return new \Nyholm\Psr7\Response(200, [], (string) json_encode(['keys' => [$jwk->jsonSerialize()]]));
+            return new Response(200, [], (string) json_encode(['keys' => [$jwk->jsonSerialize()]]));
         });
         $client = $this->createClient([
             'claims_supported' => [],
@@ -1253,12 +1187,75 @@ final class OpenIdConnectTest extends TestCase
     public function testGetJwsLoaderThrowsForUnknownAlgorithmClass(): void
     {
         $client = $this->createClient();
-        (new \ReflectionProperty($client, 'allowedJwsAlgorithms'))->setValue($client, ['NOT_A_REAL_ALG']);
-        $method = new \ReflectionMethod($client, 'getJwsLoader');
+        (new ReflectionProperty($client, 'allowedJwsAlgorithms'))->setValue($client, ['NOT_A_REAL_ALG']);
+        $method = new ReflectionMethod($client, 'getJwsLoader');
 
         $this->expectException(InvalidConfigException::class);
         $this->expectExceptionMessage("Algorithm class \\Jose\\Component\\Signature\\Algorithm\\NOT_A_REAL_ALG doesn't exist");
 
         $method->invoke($client);
+    }
+
+    private function createHmacJwk(): JWK
+    {
+        return JWKFactory::createFromSecret(self::SECRET, ['alg' => 'HS256', 'use' => 'sig']);
+    }
+
+    private function signJws(JWK $jwk, array $claims): string
+    {
+        $algorithmManager = new AlgorithmManager([new HS256()]);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload((string) json_encode($claims))
+            ->addSignature($jwk, ['alg' => 'HS256'])
+            ->build();
+
+        return (new CompactSerializer())->serialize($jws, 0);
+    }
+
+    /**
+     * @param array<string, mixed> $configParams
+     */
+    private function createClient(
+        array $configParams = [],
+        ?ClientInterface $httpClient = null,
+        ?StateStorageInterface $stateStorage = null,
+    ): OpenIdConnect {
+        $cache = new ArrayCache();
+        if ($configParams !== []) {
+            $cache->set('config-params-oidc', $configParams);
+        }
+
+        $client = new OpenIdConnect(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            $stateStorage ?? new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+            'oidc',
+            'OIDC',
+        );
+        $client->setIssuerUrl(self::ISSUER_URL);
+        $client->setClientId(self::CLIENT_ID);
+
+        return $client;
+    }
+
+    private function primeJwkSetCache(OpenIdConnect $client, JWKSet $jwkSet): void
+    {
+        (new ReflectionProperty($client, 'jwkSet'))->setValue($client, $jwkSet);
+    }
+
+    private function invokeCreateToken(OpenIdConnect $client, array $tokenConfig): OAuthToken
+    {
+        /** @var OAuthToken */
+        return (new ReflectionMethod($client, 'createToken'))->invoke($client, $tokenConfig);
+    }
+
+    private function disableJwsValidation(OpenIdConnect $client): void
+    {
+        (new ReflectionProperty($client, 'validateJws'))->setValue($client, false);
     }
 }

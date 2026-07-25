@@ -15,6 +15,13 @@ use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Override;
 use Throwable;
 
+use function count;
+use function is_array;
+use function is_string;
+use function strlen;
+
+use const PHP_QUERY_RFC3986;
+
 /**
  * OAuth2 serves as a client for the OAuth 2 flow.
  *
@@ -77,7 +84,7 @@ abstract class OAuth2 extends OAuth
     #[Override]
     public function buildAuthUrl(
         ServerRequestInterface $incomingRequest,
-        array $params = []
+        array $params = [],
     ): string {
         $defaultParams = [
             'client_id' => $this->clientId,
@@ -114,35 +121,6 @@ abstract class OAuth2 extends OAuth
     }
 
     /**
-     * Builds the seed string used by {@see generateAuthState()}. Extracted into its own method so the
-     * seed's composition can be tested directly, since the final hashed/uniqid()-mixed auth state value
-     * is opaque and can't reveal how its input was assembled.
-     *
-     * @return string auth state seed.
-     */
-    protected function generateAuthStateBaseString(): string
-    {
-        $baseString = static::class . '-' . time();
-        $sessionId = $this->session->getId();
-        if (null !== $sessionId) {
-            if ($this->session->isActive()) {
-                $baseString .= '-' . $sessionId;
-            }
-        }
-        return $baseString;
-    }
-
-    /**
-     * Generates the auth state value.
-     *
-     * @return string auth state value.
-     */
-    protected function generateAuthState(): string
-    {
-        return hash('sha256', uniqid($this->generateAuthStateBaseString(), true));
-    }
-
-    /**
      * Fetches access token from authorization code.
      *
      * @param ServerRequestInterface $incomingRequest
@@ -154,7 +132,7 @@ abstract class OAuth2 extends OAuth
     public function fetchAccessToken(
         ServerRequestInterface $incomingRequest,
         string $authCode,
-        array $params = []
+        array $params = [],
     ): OAuthToken {
         if ($this->validateAuthState) {
             /**
@@ -169,7 +147,7 @@ abstract class OAuth2 extends OAuth
              */
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
             if (is_string($incomingState)) {
-                if (strcmp($incomingState, (string)$authState) !== 0) {
+                if (strcmp($incomingState, (string) $authState) !== 0) {
                     throw new InvalidArgumentException('Invalid auth state parameter.');
                 }
             }
@@ -233,7 +211,7 @@ abstract class OAuth2 extends OAuth
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
 
             if (is_string($incomingState)) {
-                if (strcmp($incomingState, (string)$authState) !== 0) {
+                if (strcmp($incomingState, (string) $authState) !== 0) {
                     throw new InvalidArgumentException('Invalid auth state parameter.');
                 }
             }
@@ -279,84 +257,6 @@ abstract class OAuth2 extends OAuth
         return $token;
     }
 
-    /**
-     * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
-     * This method should be invoked before sending any HTTP request, which requires client credentials.
-     *
-     * Assumes `$request` already carries a `createTokenRequest()`-built `application/x-www-form-urlencoded`
-     * body - the credentials are appended to that body, not the URI query string, matching how every
-     * caller of this method builds its request. Overrides (e.g. `OpenIdConnect`, which may instead add
-     * an `Authorization` header for `client_secret_basic`) aren't bound by that assumption.
-     *
-     * @param RequestInterface $request HTTP request instance.
-     *
-     * @return RequestInterface
-     */
-    protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
-    {
-        $request->getBody()->write('&' . http_build_query(
-            [
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-            ],
-            '',
-            '&',
-            PHP_QUERY_RFC3986,
-        ));
-
-        return $request;
-    }
-
-    /**
-     * Fetches current user data as JSON array from the given endpoint, authenticating the request with
-     * the access token as an `Authorization` header.
-     *
-     * @param OAuthToken $token access token, whose `access_token` param is used for authentication.
-     * @param string $url endpoint URL to fetch user data from.
-     * @param array $headers additional request headers, merged over the default `Authorization` header.
-     * @param string $authScheme `Authorization` header scheme, e.g. `Bearer` or `OAuth`.
-     *
-     * @return array decoded user data, or an empty array if there is no access token or the request fails.
-     */
-    protected function fetchCurrentUserJsonArray(
-        OAuthToken $token,
-        string $url,
-        array $headers = [],
-        string $authScheme = 'Bearer',
-    ): array {
-        $tokenString = (string)$token->getParam('access_token');
-        if ($tokenString === '') {
-            return [];
-        }
-
-        $request = RequestUtil::addHeaders(
-            $this->createRequest('GET', $url),
-            array_merge(['Authorization' => $authScheme . ' ' . $tokenString], $headers)
-        );
-
-        try {
-            $body = $this->sendRequest($request)->getBody()->getContents();
-        } catch (Throwable) {
-            return [];
-        }
-
-        return $body === '' ? [] : (array)json_decode($body, true);
-    }
-
-    /**
-     * Creates token from its configuration.
-     *
-     * @param array $tokenConfig token configuration.
-     * @return OAuthToken token instance.
-     */
-    #[Override]
-    protected function createToken(array $tokenConfig = []): OAuthToken
-    {
-        $tokenConfig['tokenParamKey'] = 'access_token';
-
-        return parent::createToken($tokenConfig);
-    }
-
     public function setClientId(string $clientId): void
     {
         $this->clientId = $clientId;
@@ -395,7 +295,7 @@ abstract class OAuth2 extends OAuth
             $request,
             [
                 'access_token' => $accessToken->getToken(),
-            ]
+            ],
         );
     }
 
@@ -454,6 +354,113 @@ abstract class OAuth2 extends OAuth
     }
 
     /**
+     * Builds the seed string used by {@see generateAuthState()}. Extracted into its own method so the
+     * seed's composition can be tested directly, since the final hashed/uniqid()-mixed auth state value
+     * is opaque and can't reveal how its input was assembled.
+     *
+     * @return string auth state seed.
+     */
+    protected function generateAuthStateBaseString(): string
+    {
+        $baseString = static::class . '-' . time();
+        $sessionId = $this->session->getId();
+        if (null !== $sessionId) {
+            if ($this->session->isActive()) {
+                $baseString .= '-' . $sessionId;
+            }
+        }
+        return $baseString;
+    }
+
+    /**
+     * Generates the auth state value.
+     *
+     * @return string auth state value.
+     */
+    protected function generateAuthState(): string
+    {
+        return hash('sha256', uniqid($this->generateAuthStateBaseString(), true));
+    }
+
+    /**
+     * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
+     * This method should be invoked before sending any HTTP request, which requires client credentials.
+     *
+     * Assumes `$request` already carries a `createTokenRequest()`-built `application/x-www-form-urlencoded`
+     * body - the credentials are appended to that body, not the URI query string, matching how every
+     * caller of this method builds its request. Overrides (e.g. `OpenIdConnect`, which may instead add
+     * an `Authorization` header for `client_secret_basic`) aren't bound by that assumption.
+     *
+     * @param RequestInterface $request HTTP request instance.
+     *
+     * @return RequestInterface
+     */
+    protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
+    {
+        $request->getBody()->write('&' . http_build_query(
+            [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ],
+            '',
+            '&',
+            PHP_QUERY_RFC3986,
+        ));
+
+        return $request;
+    }
+
+    /**
+     * Fetches current user data as JSON array from the given endpoint, authenticating the request with
+     * the access token as an `Authorization` header.
+     *
+     * @param OAuthToken $token access token, whose `access_token` param is used for authentication.
+     * @param string $url endpoint URL to fetch user data from.
+     * @param array $headers additional request headers, merged over the default `Authorization` header.
+     * @param string $authScheme `Authorization` header scheme, e.g. `Bearer` or `OAuth`.
+     *
+     * @return array decoded user data, or an empty array if there is no access token or the request fails.
+     */
+    protected function fetchCurrentUserJsonArray(
+        OAuthToken $token,
+        string $url,
+        array $headers = [],
+        string $authScheme = 'Bearer',
+    ): array {
+        $tokenString = (string) $token->getParam('access_token');
+        if ($tokenString === '') {
+            return [];
+        }
+
+        $request = RequestUtil::addHeaders(
+            $this->createRequest('GET', $url),
+            array_merge(['Authorization' => $authScheme . ' ' . $tokenString], $headers),
+        );
+
+        try {
+            $body = $this->sendRequest($request)->getBody()->getContents();
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $body === '' ? [] : (array) json_decode($body, true);
+    }
+
+    /**
+     * Creates token from its configuration.
+     *
+     * @param array $tokenConfig token configuration.
+     * @return OAuthToken token instance.
+     */
+    #[Override]
+    protected function createToken(array $tokenConfig = []): OAuthToken
+    {
+        $tokenConfig['tokenParamKey'] = 'access_token';
+
+        return parent::createToken($tokenConfig);
+    }
+
+    /**
      * Composes default {@see returnUrl} value.
      *
      * @param ServerRequestInterface $request
@@ -466,7 +473,7 @@ abstract class OAuth2 extends OAuth
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
 
-        return (string)$request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 
     /**
@@ -529,7 +536,7 @@ abstract class OAuth2 extends OAuth
                 $newval = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ['.',' '], $val);
             }
 
-            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ['.',' '], (string)$key);
+            $newkey = str_replace(['QQleQPunT', 'QQleQSpaTIE'], ['.',' '], (string) $key);
 
             if (str_contains($newkey, '_')) {
                 // periode of space or [ or ] converted to _. Restore with querystring

@@ -13,6 +13,8 @@ use Override;
 
 use function sprintf;
 
+use const PHP_QUERY_RFC3986;
+
 /**
  * Facebook allows authentication via Facebook OAuth.
  *

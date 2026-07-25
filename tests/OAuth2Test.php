@@ -116,7 +116,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenPersistsTokenAsAccessToken(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], 'access_token=abc123&expires_in=3600')
+            new Response(200, [], 'access_token=abc123&expires_in=3600'),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
@@ -312,7 +312,7 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierPersistsTokenAsAccessToken(): void
     {
         $httpClient = $this->httpClientReturning(
-            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token', 'expires_in' => 3600]))
+            new Response(200, [], (string) json_encode(['access_token' => 'pkce-token', 'expires_in' => 3600])),
         );
         $client = $this->createTestClient($httpClient)->withoutValidateAuthState();
         $client->setTokenUrl('http://token.local');
