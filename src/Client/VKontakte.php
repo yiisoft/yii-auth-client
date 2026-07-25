@@ -9,7 +9,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
-use Override;
 use Throwable;
 
 use function strlen;
@@ -196,25 +195,21 @@ final class VKontakte extends OAuth2
         return [];
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'vkontakte';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'VKontakte';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -237,7 +232,6 @@ final class VKontakte extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -251,7 +245,6 @@ final class VKontakte extends OAuth2
      *
      * @psalm-return 'email phone'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'email phone';

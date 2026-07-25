@@ -16,7 +16,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 use ReflectionMethod;
 use RuntimeException;
 
@@ -267,7 +266,6 @@ final class VKontakteTest extends ProviderClientTestCase
     {
         $client = $this->createVKontakteClient();
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 throw new RuntimeException('network failure');
@@ -293,7 +291,6 @@ final class VKontakteTest extends ProviderClientTestCase
         $token = new OAuthToken();
         $token->setParam('access_token', 'the-token');
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 throw new RuntimeException('network failure');
@@ -310,7 +307,6 @@ final class VKontakteTest extends ProviderClientTestCase
     {
         $client = $this->createVKontakteClient();
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 throw new RuntimeException('network failure');
@@ -455,7 +451,6 @@ final class VKontakteTest extends ProviderClientTestCase
         $this->assertSame('the-user-id', RequestUtil::getParams($capturedRequest)['user_id']);
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(VKontakte::class);
@@ -481,7 +476,6 @@ final class VKontakteTest extends ProviderClientTestCase
         return new class ($response, $capturedRequest) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -495,7 +489,6 @@ final class VKontakteTest extends ProviderClientTestCase
         return new class ($response, $callCount) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response, private int &$callCount) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->callCount++;

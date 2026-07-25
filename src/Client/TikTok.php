@@ -10,7 +10,6 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Override;
 
 final class TikTok extends OAuth2
 {
@@ -30,25 +29,21 @@ final class TikTok extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return '';
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'tiktok';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'TikTok';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -63,7 +58,6 @@ final class TikTok extends OAuth2
      *
      * @psalm-return 'user.info.profile'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'user.info.profile';

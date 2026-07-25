@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Override;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -76,7 +75,6 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
-    #[Override]
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
@@ -103,7 +101,6 @@ final class RsaSha extends Signature
         return 'RSA-' . $algorithmName;
     }
 
-    #[Override]
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
@@ -126,7 +123,6 @@ final class RsaSha extends Signature
         return $this->privateCertificate;
     }
 
-    #[Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);

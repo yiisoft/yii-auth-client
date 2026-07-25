@@ -17,7 +17,6 @@ use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-use Override;
 use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 
@@ -195,7 +194,6 @@ final class AuthAction implements MiddlewareInterface
         return $new;
     }
 
-    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $clientId = (string) $request->getAttribute($this->clientIdGetParamName);

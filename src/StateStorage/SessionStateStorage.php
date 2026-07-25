@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\StateStorage;
 
-use Override;
 use Yiisoft\Session\SessionInterface;
 
 /**
@@ -28,19 +27,16 @@ final readonly class SessionStateStorage implements StateStorageInterface
         private SessionInterface $session,
     ) {}
 
-    #[Override]
     public function set(string $key, $value): void
     {
         $this->session->set($key, $value);
     }
 
-    #[Override]
     public function get(string $key): mixed
     {
         return $this->session->get($key);
     }
 
-    #[Override]
     public function remove(string $key): void
     {
         $this->session->remove($key);

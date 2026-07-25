@@ -10,7 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
 
 use function array_key_exists;
 use function is_array;
@@ -98,7 +97,6 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @return array view options in format: optionName => optionValue
      */
-    #[Override]
     public function getViewOptions(): array
     {
         if (empty($this->viewOptions)) {
@@ -108,7 +106,6 @@ abstract class AuthClient implements AuthClientInterface
         return $this->viewOptions;
     }
 
-    #[Override]
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface
