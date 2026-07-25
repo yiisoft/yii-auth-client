@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
+use function strlen;
+
 /**
  * Token represents OAuth token.
  */
@@ -102,28 +104,6 @@ final class OAuthToken
     }
 
     /**
-     * Fetches default expire duration param key.
-     *
-     * @return string expire duration param key.
-     */
-    protected function defaultExpireDurationParamKey(): string
-    {
-        $expireDurationParamKey = 'expires_in';
-        /**
-         * @var mixed $value
-         */
-        foreach ($this->getParams() as $name => $value) {
-            if (!str_contains((string)$name, 'expir')) {
-            } else {
-                /** @var string $name */
-                $expireDurationParamKey = $name;
-                break;
-            }
-        }
-        return $expireDurationParamKey;
-    }
-
-    /**
      * @return array
      */
     public function getParams(): array
@@ -188,7 +168,7 @@ final class OAuthToken
      */
     public function getIsExpired(): bool
     {
-        $expirationDuration = (int)$this->getExpireDuration();
+        $expirationDuration = (int) $this->getExpireDuration();
 
         return time() >= ($this->createTimestamp + $expirationDuration);
     }
@@ -201,5 +181,27 @@ final class OAuthToken
     public function getExpireDuration(): mixed
     {
         return $this->getParam($this->getExpireDurationParamKey());
+    }
+
+    /**
+     * Fetches default expire duration param key.
+     *
+     * @return string expire duration param key.
+     */
+    protected function defaultExpireDurationParamKey(): string
+    {
+        $expireDurationParamKey = 'expires_in';
+        /**
+         * @var mixed $value
+         */
+        foreach ($this->getParams() as $name => $value) {
+            if (!str_contains((string) $name, 'expir')) {
+            } else {
+                /** @var string $name */
+                $expireDurationParamKey = $name;
+                break;
+            }
+        }
+        return $expireDurationParamKey;
     }
 }

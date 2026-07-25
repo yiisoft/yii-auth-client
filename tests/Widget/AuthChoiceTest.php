@@ -25,125 +25,15 @@ use Yiisoft\Yii\AuthClient\Tests\Data\TestAuthChoiceItem;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
+use Psr\Http\Message\RequestFactoryInterface;
+use Yiisoft\Yii\AuthClient\OAuth2;
+use Override;
+use stdClass;
+
+use function dirname;
 
 final class AuthChoiceTest extends TestCase
 {
-    private function createUrlGeneratorStub(): UrlGeneratorInterface
-    {
-        return $this->createStub(UrlGeneratorInterface::class);
-    }
-
-    private function createTestClient(): TestClient
-    {
-        return new TestClient(
-            $this->createStub(ClientInterface::class),
-            $this->createStub(\Psr\Http\Message\RequestFactoryInterface::class),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
-    private function createTestClientWithoutClientId(): \Yiisoft\Yii\AuthClient\OAuth2
-    {
-        return new class (
-            $this->createStub(ClientInterface::class),
-            $this->createStub(\Psr\Http\Message\RequestFactoryInterface::class),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        ) extends \Yiisoft\Yii\AuthClient\OAuth2 {
-            #[\Override]
-            public function getName(): string
-            {
-                return 'test';
-            }
-
-            #[\Override]
-            public function getTitle(): string
-            {
-                return 'Test';
-            }
-
-            #[\Override]
-            public function getButtonClass(): string
-            {
-                return 'btn btn-primary bi';
-            }
-
-            #[\Override]
-            public function getClientId(): string
-            {
-                return '';
-            }
-
-            #[\Override]
-            public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
-            {
-                return 'http://test.local';
-            }
-        };
-    }
-
-    /**
-     * @param array<string, \Yiisoft\Yii\AuthClient\OAuth2> $clients
-     */
-    private function createWidget(array $clients = [], ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
-    {
-        $aliases = new Aliases([
-            '@vendor' => dirname(__DIR__, 2) . '/vendor',
-            '@assets' => dirname(__DIR__, 2) . '/resources/assets',
-            '@assetsUrl' => '/assets',
-        ]);
-        ob_start();
-        try {
-            return new AuthChoice(
-                new Collection($clients),
-                $urlGenerator ?? $this->createUrlGeneratorStub(),
-                new WebView(),
-                new AssetManager($aliases, new AssetLoader($aliases)),
-            );
-        } finally {
-            ob_end_clean();
-        }
-    }
-
-    private function createAssetManager(): AssetManager
-    {
-        $aliases = new Aliases([
-            '@vendor' => dirname(__DIR__, 2) . '/vendor',
-            '@assets' => dirname(__DIR__, 2) . '/resources/assets',
-            '@assetsUrl' => '/assets',
-        ]);
-        return new AssetManager($aliases, new AssetLoader($aliases));
-    }
-
-    /**
-     * @param array<string, \Yiisoft\Yii\AuthClient\OAuth2> $clients
-     */
-    private function createWidgetWithDeps(array $clients, WebView $webView, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
-    {
-        ob_start();
-        try {
-            return new AuthChoice(
-                new Collection($clients),
-                $urlGenerator ?? $this->createUrlGeneratorStub(),
-                $webView,
-                $assetManager,
-            );
-        } finally {
-            ob_end_clean();
-        }
-    }
-
-    private function getRegisteredJsScript(WebView $webView): ?string
-    {
-        $state = (new ReflectionProperty($webView, 'state'))->getValue($webView);
-        $entries = $state->getJs()[WebView::POSITION_END] ?? [];
-
-        return $entries === [] ? null : array_values($entries)[0];
-    }
-
     public function testGetIdIsFixed(): void
     {
         $widget = $this->createWidget();
@@ -194,7 +84,7 @@ final class AuthChoiceTest extends TestCase
         $client = $this->createTestClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturnCallback(
-            fn (string $name, array $arguments = []) => 'http://auth.local/' . $name . '?' . http_build_query($arguments)
+            fn(string $name, array $arguments = []) => 'http://auth.local/' . $name . '?' . http_build_query($arguments),
         );
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
 
@@ -267,7 +157,7 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->absoluteButtons(
             $this->createStub(ServerRequestInterface::class),
             ['params' => [], 'buttonName' => 'test'],
-            'test'
+            'test',
         );
 
         $this->assertStringContainsString('href="http://test.local"', $html);
@@ -279,36 +169,36 @@ final class AuthChoiceTest extends TestCase
         $wanted = $this->createTestClient();
         $other = new class (
             $this->createStub(ClientInterface::class),
-            $this->createStub(\Psr\Http\Message\RequestFactoryInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
             new DummyStateStorage(),
             new YiisoftFactory(),
             new Session(),
-        ) extends \Yiisoft\Yii\AuthClient\OAuth2 {
-            #[\Override]
+        ) extends OAuth2 {
+            #[Override]
             public function getName(): string
             {
                 return 'other';
             }
 
-            #[\Override]
+            #[Override]
             public function getTitle(): string
             {
                 return 'Other';
             }
 
-            #[\Override]
+            #[Override]
             public function getButtonClass(): string
             {
                 return 'btn';
             }
 
-            #[\Override]
+            #[Override]
             public function getClientId(): string
             {
                 return 'other-id';
             }
 
-            #[\Override]
+            #[Override]
             public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
             {
                 return 'http://other.local';
@@ -420,7 +310,7 @@ final class AuthChoiceTest extends TestCase
             function (string $name) use (&$usedRouteName): string {
                 $usedRouteName = $name;
                 return 'http://auth.local/callback';
-            }
+            },
         );
         $widget = $this->createWidget(['test' => $client], $urlGenerator);
 
@@ -452,7 +342,7 @@ final class AuthChoiceTest extends TestCase
 
         $this->assertStringContainsString(
             "window.open(this.href, 'authPopup', 'width=860,height=480'); return false;",
-            str_replace('&apos;', "'", $html)
+            str_replace('&apos;', "'", $html),
         );
     }
 
@@ -464,7 +354,7 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->absoluteButtons(
             $this->createStub(ServerRequestInterface::class),
             ['params' => [], 'buttonName' => 'test'],
-            'test'
+            'test',
         );
 
         $this->assertSame('', $html);
@@ -478,7 +368,7 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->absoluteButtons(
             $this->createStub(ServerRequestInterface::class),
             ['params' => [], 'buttonName' => 'login'],
-            'test'
+            'test',
         );
 
         $this->assertStringContainsString('> Login<', $html);
@@ -640,7 +530,7 @@ final class AuthChoiceTest extends TestCase
     public function testClientLinkThrowsWhenWidgetClassIsNotAuthChoiceItemSubclass(): void
     {
         $client = $this->createTestClient();
-        (new ReflectionProperty($client, 'viewOptions'))->setValue($client, ['widget' => ['class' => \stdClass::class]]);
+        (new ReflectionProperty($client, 'viewOptions'))->setValue($client, ['widget' => ['class' => stdClass::class]]);
         $widget = $this->createWidget(['test' => $client]);
 
         $this->expectException(InvalidConfigException::class);
@@ -661,5 +551,121 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->clientLink($client);
 
         $this->assertSame('auth-choice-item:test', $html);
+    }
+
+    private function createUrlGeneratorStub(): UrlGeneratorInterface
+    {
+        return $this->createStub(UrlGeneratorInterface::class);
+    }
+
+    private function createTestClient(): TestClient
+    {
+        return new TestClient(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function createTestClientWithoutClientId(): OAuth2
+    {
+        return new class (
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        ) extends OAuth2 {
+            #[Override]
+            public function getName(): string
+            {
+                return 'test';
+            }
+
+            #[Override]
+            public function getTitle(): string
+            {
+                return 'Test';
+            }
+
+            #[Override]
+            public function getButtonClass(): string
+            {
+                return 'btn btn-primary bi';
+            }
+
+            #[Override]
+            public function getClientId(): string
+            {
+                return '';
+            }
+
+            #[Override]
+            public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
+            {
+                return 'http://test.local';
+            }
+        };
+    }
+
+    /**
+     * @param array<string, OAuth2> $clients
+     */
+    private function createWidget(array $clients = [], ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
+    {
+        $aliases = new Aliases([
+            '@vendor' => dirname(__DIR__, 2) . '/vendor',
+            '@assets' => dirname(__DIR__, 2) . '/resources/assets',
+            '@assetsUrl' => '/assets',
+        ]);
+        ob_start();
+        try {
+            return new AuthChoice(
+                new Collection($clients),
+                $urlGenerator ?? $this->createUrlGeneratorStub(),
+                new WebView(),
+                new AssetManager($aliases, new AssetLoader($aliases)),
+            );
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    private function createAssetManager(): AssetManager
+    {
+        $aliases = new Aliases([
+            '@vendor' => dirname(__DIR__, 2) . '/vendor',
+            '@assets' => dirname(__DIR__, 2) . '/resources/assets',
+            '@assetsUrl' => '/assets',
+        ]);
+        return new AssetManager($aliases, new AssetLoader($aliases));
+    }
+
+    /**
+     * @param array<string, OAuth2> $clients
+     */
+    private function createWidgetWithDeps(array $clients, WebView $webView, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
+    {
+        ob_start();
+        try {
+            return new AuthChoice(
+                new Collection($clients),
+                $urlGenerator ?? $this->createUrlGeneratorStub(),
+                $webView,
+                $assetManager,
+            );
+        } finally {
+            ob_end_clean();
+        }
+    }
+
+    private function getRegisteredJsScript(WebView $webView): ?string
+    {
+        $state = (new ReflectionProperty($webView, 'state'))->getValue($webView);
+        $entries = $state->getJs()[WebView::POSITION_END] ?? [];
+
+        return $entries === [] ? null : array_values($entries)[0];
     }
 }

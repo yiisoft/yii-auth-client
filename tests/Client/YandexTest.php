@@ -16,26 +16,11 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
+use Yiisoft\Yii\AuthClient\RequestUtil;
+use Override;
 
 final class YandexTest extends ProviderClientTestCase
 {
-    #[\Override]
-    protected function createClient(): OAuth2
-    {
-        return $this->instantiate(Yandex::class);
-    }
-
-    private function createYandexClient(?ClientInterface $httpClient = null): Yandex
-    {
-        return new Yandex(
-            $httpClient ?? $this->createStub(ClientInterface::class),
-            new Psr17Factory(),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testGetName(): void
     {
         $client = $this->createClient();
@@ -95,13 +80,13 @@ final class YandexTest extends ProviderClientTestCase
         $client = $this->createClient();
         $token = new OAuthToken();
         $token->setToken('the-token');
-        $request = (new \Nyholm\Psr7\Factory\Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
 
         $newRequest = $client->applyAccessTokenToRequest($request, $token);
 
         $this->assertSame(
             ['format' => 'json', 'oauth_token' => 'the-token'],
-            \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest)
+            RequestUtil::getParams($newRequest),
         );
     }
 
@@ -110,13 +95,13 @@ final class YandexTest extends ProviderClientTestCase
         $client = $this->createClient();
         $token = new OAuthToken();
         $token->setToken('the-token');
-        $request = (new \Nyholm\Psr7\Factory\Psr17Factory())->createRequest('GET', 'http://example.com/?format=xml');
+        $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/?format=xml');
 
         $newRequest = $client->applyAccessTokenToRequest($request, $token);
 
         $this->assertSame(
             ['format' => 'xml', 'oauth_token' => 'the-token'],
-            \Yiisoft\Yii\AuthClient\RequestUtil::getParams($newRequest)
+            RequestUtil::getParams($newRequest),
         );
     }
 
@@ -124,11 +109,9 @@ final class YandexTest extends ProviderClientTestCase
     {
         $capturedRequest = null;
         $httpClient = new class ($capturedRequest) implements ClientInterface {
-            public function __construct(private ?RequestInterface &$capturedRequest)
-            {
-            }
+            public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[\Override]
+            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -164,5 +147,22 @@ final class YandexTest extends ProviderClientTestCase
         $method = new ReflectionMethod($client, 'initUserAttributes');
 
         $this->assertSame(['login' => 'yandex-user'], $method->invoke($client));
+    }
+
+    #[Override]
+    protected function createClient(): OAuth2
+    {
+        return $this->instantiate(Yandex::class);
+    }
+
+    private function createYandexClient(?ClientInterface $httpClient = null): Yandex
+    {
+        return new Yandex(
+            $httpClient ?? $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 }

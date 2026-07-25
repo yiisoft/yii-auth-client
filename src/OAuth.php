@@ -13,9 +13,12 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Yiisoft\Definitions\Exception\InvalidConfigException;
 
 use function is_array;
 use function is_object;
+use function array_key_exists;
+use function is_string;
 
 /**
  * BaseOAuth is a base class for the OAuth clients.
@@ -66,7 +69,7 @@ abstract class OAuth extends AuthClient
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
         StateStorageInterface $stateStorage,
-        protected YiisoftFactory $factory
+        protected YiisoftFactory $factory,
     ) {
         parent::__construct($httpClient, $requestFactory, $stateStorage);
     }
@@ -116,18 +119,6 @@ abstract class OAuth extends AuthClient
     }
 
     /**
-     * Composes default {@see returnUrl} value.
-     *
-     * @param ServerRequestInterface $request
-     *
-     * @return string return URL.
-     */
-    protected function defaultReturnUrl(ServerRequestInterface $request): string
-    {
-        return (string)$request->getUri();
-    }
-
-    /**
      * Performs request to the OAuth API returning response data.
      * You may use {@see createApiRequest()} method instead, gaining more control over request execution.
      *
@@ -161,11 +152,11 @@ abstract class OAuth extends AuthClient
         if ($response->getStatusCode() !== 200) {
             throw new InvalidResponseException(
                 $response,
-                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody()
+                'Request failed with code: ' . $response->getStatusCode() . ', message: ' . $response->getBody(),
             );
         }
 
-        return (array)Json::decode($response->getBody()->getContents());
+        return (array) Json::decode($response->getBody()->getContents());
     }
 
     /**
@@ -226,22 +217,6 @@ abstract class OAuth extends AuthClient
     }
 
     /**
-     * Restores access token.
-     *
-     * @return OAuthToken|null
-     */
-    protected function restoreAccessToken(): ?OAuthToken
-    {
-        if (($token = $this->getState('token')) instanceof OAuthToken) {
-            if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
-                return $this->refreshAccessToken($token);
-            }
-            return $token;
-        }
-        return null;
-    }
-
-    /**
      * Gets new auth token to replace expired one.
      *
      * @param OAuthToken $token expired auth token.
@@ -258,15 +233,55 @@ abstract class OAuth extends AuthClient
      */
     abstract public function applyAccessTokenToRequest(
         RequestInterface $request,
-        OAuthToken $accessToken
+        OAuthToken $accessToken,
     ): RequestInterface;
+
+    /**
+     * @return string
+     */
+    public function getScope(): string
+    {
+        if ($this->scope === null) {
+            return $this->getDefaultScope();
+        }
+
+        return $this->scope;
+    }
+
+    /**
+     * Composes default {@see returnUrl} value.
+     *
+     * @param ServerRequestInterface $request
+     *
+     * @return string return URL.
+     */
+    protected function defaultReturnUrl(ServerRequestInterface $request): string
+    {
+        return (string) $request->getUri();
+    }
+
+    /**
+     * Restores access token.
+     *
+     * @return OAuthToken|null
+     */
+    protected function restoreAccessToken(): ?OAuthToken
+    {
+        if (($token = $this->getState('token')) instanceof OAuthToken) {
+            if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
+                return $this->refreshAccessToken($token);
+            }
+            return $token;
+        }
+        return null;
+    }
 
     /**
      * Creates token from its configuration.
      *
      * @param array $tokenConfig token configuration.
      *
-     * @throws \Yiisoft\Definitions\Exception\InvalidConfigException
+     * @throws InvalidConfigException
      * @see Yiisoft\Factory\Factory
      */
     protected function createToken(array $tokenConfig): OAuthToken
@@ -298,18 +313,6 @@ abstract class OAuth extends AuthClient
     protected function saveAccessToken(?OAuthToken $token = null): self
     {
         return $this->setState('token', $token);
-    }
-
-    /**
-     * @return string
-     */
-    public function getScope(): string
-    {
-        if ($this->scope === null) {
-            return $this->getDefaultScope();
-        }
-
-        return $this->scope;
     }
 
     /**

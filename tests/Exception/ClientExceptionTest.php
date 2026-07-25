@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientExceptionInterface;
 use Yiisoft\Yii\AuthClient\Exception\ClientException;
+use RuntimeException;
 
 final class ClientExceptionTest extends TestCase
 {
@@ -26,7 +27,7 @@ final class ClientExceptionTest extends TestCase
 
     public function testCarriesMessageAndPrevious(): void
     {
-        $previous = new \RuntimeException('cause');
+        $previous = new RuntimeException('cause');
 
         $exception = new ClientException('message', 500, $previous);
 

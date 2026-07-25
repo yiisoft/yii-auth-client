@@ -31,30 +31,9 @@ final class TikTok extends OAuth2
     }
 
     #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
-    }
-
-    #[Override]
     public function getButtonClass(): string
     {
         return '';
-    }
-
-    /**
-     * @return string
-     *
-     * @psalm-return 'user.info.profile'
-     */
-    #[Override]
-    protected function getDefaultScope(): string
-    {
-        return 'user.info.profile';
     }
 
     #[Override]
@@ -67,5 +46,26 @@ final class TikTok extends OAuth2
     public function getTitle(): string
     {
         return 'TikTok';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
+    }
+
+    /**
+     * @return string
+     *
+     * @psalm-return 'user.info.profile'
+     */
+    #[Override]
+    protected function getDefaultScope(): string
+    {
+        return 'user.info.profile';
     }
 }

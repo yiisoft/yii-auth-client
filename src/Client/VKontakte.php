@@ -12,6 +12,8 @@ use Psr\Http\Message\ResponseInterface;
 use Override;
 use Throwable;
 
+use function strlen;
+
 /**
  * VKontakte allows authentication via VKontakte OAuth 2.0
  *
@@ -60,7 +62,7 @@ final class VKontakte extends OAuth2
         string $deviceId,
         string $state,
         ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
+        RequestFactoryInterface $requestFactory,
     ): mixed {
         $url = $this->tokenUrl;
         $data = [
@@ -109,7 +111,7 @@ final class VKontakte extends OAuth2
         OAuthToken $token,
         string $clientId,
         ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
+        RequestFactoryInterface $requestFactory,
     ): array {
         return $this->requestWithClientIdAndAccessToken(
             'https://id.vk.ru/oauth2/logout',
@@ -143,71 +145,9 @@ final class VKontakte extends OAuth2
         OAuthToken $token,
         string $clientId,
         ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
+        RequestFactoryInterface $requestFactory,
     ): array {
         return $this->getUserInfoByClientId($token, $clientId, $httpClient, $requestFactory);
-    }
-
-    /**
-     * Fetches user data from the `user_info` endpoint, used by {@see step8ObtainingUserDataArrayWithClientId()}.
-     */
-    private function getUserInfoByClientId(
-        OAuthToken $token,
-        string $clientId,
-        ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
-    ): array {
-        return $this->requestWithClientIdAndAccessToken(
-            'https://id.vk.ru/oauth2/user_info',
-            $token,
-            $clientId,
-            $httpClient,
-            $requestFactory,
-        );
-    }
-
-    /**
-     * Shared GET request builder for VK ID endpoints authenticated by `client_id` and `access_token`
-     * query parameters, used by {@see step7TokenInvalidationWithClientId()} and {@see getUserInfoByClientId()}.
-     */
-    private function requestWithClientIdAndAccessToken(
-        string $url,
-        OAuthToken $token,
-        string $clientId,
-        ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
-    ): array {
-        $tokenString = (string)$token->getParam('access_token');
-
-        if (strlen($tokenString) === 0) {
-            return [];
-        }
-
-        $fullUrl = $url
-            . '?client_id=' . urlencode($clientId)
-            . '&access_token=' . urlencode($tokenString);
-
-        $request = $requestFactory->createRequest('GET', $fullUrl);
-
-        try {
-            /** @var ResponseInterface $response */
-            $response = $httpClient->sendRequest($request);
-            $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                return (array)json_decode($body, true);
-            }
-        } catch (Throwable) {
-            /**
-             * @infection-ignore-all
-             * This return is redundant with (and unobservably identical to) the unconditional
-             * `return [];` immediately following the try/catch, which control flow falls through to
-             * either way once the catch block finishes.
-             */
-            // Optionally log error: $e->getMessage()
-            return [];
-        }
-
-        return [];
     }
 
     /**
@@ -229,7 +169,7 @@ final class VKontakte extends OAuth2
         string $clientId,
         string $userId,
         ClientInterface $httpClient,
-        RequestFactoryInterface $requestFactory
+        RequestFactoryInterface $requestFactory,
     ): array {
         $fullUrl = $this->endpoint . '?client_id=' . urlencode($clientId) . '&user_id=' . urlencode($userId);
 
@@ -257,24 +197,6 @@ final class VKontakte extends OAuth2
     }
 
     #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if (!$token instanceof OAuthToken) {
-            return [];
-        }
-
-        $data = $this->step8ObtainingUserDataArrayWithClientId(
-            $token,
-            $this->getClientId(),
-            $this->httpClient,
-            $this->requestFactory,
-        );
-
-        return (array) ($data['user'] ?? []);
-    }
-
-    #[Override]
     public function getName(): string
     {
         return 'vkontakte';
@@ -290,6 +212,24 @@ final class VKontakte extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-dark';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if (!$token instanceof OAuthToken) {
+            return [];
+        }
+
+        $data = $this->step8ObtainingUserDataArrayWithClientId(
+            $token,
+            $this->getClientId(),
+            $this->httpClient,
+            $this->requestFactory,
+        );
+
+        return (array) ($data['user'] ?? []);
     }
 
     /**
@@ -315,5 +255,67 @@ final class VKontakte extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'email phone';
+    }
+
+    /**
+     * Fetches user data from the `user_info` endpoint, used by {@see step8ObtainingUserDataArrayWithClientId()}.
+     */
+    private function getUserInfoByClientId(
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+    ): array {
+        return $this->requestWithClientIdAndAccessToken(
+            'https://id.vk.ru/oauth2/user_info',
+            $token,
+            $clientId,
+            $httpClient,
+            $requestFactory,
+        );
+    }
+
+    /**
+     * Shared GET request builder for VK ID endpoints authenticated by `client_id` and `access_token`
+     * query parameters, used by {@see step7TokenInvalidationWithClientId()} and {@see getUserInfoByClientId()}.
+     */
+    private function requestWithClientIdAndAccessToken(
+        string $url,
+        OAuthToken $token,
+        string $clientId,
+        ClientInterface $httpClient,
+        RequestFactoryInterface $requestFactory,
+    ): array {
+        $tokenString = (string) $token->getParam('access_token');
+
+        if (strlen($tokenString) === 0) {
+            return [];
+        }
+
+        $fullUrl = $url
+            . '?client_id=' . urlencode($clientId)
+            . '&access_token=' . urlencode($tokenString);
+
+        $request = $requestFactory->createRequest('GET', $fullUrl);
+
+        try {
+            /** @var ResponseInterface $response */
+            $response = $httpClient->sendRequest($request);
+            $body = $response->getBody()->getContents();
+            if (strlen($body) > 0) {
+                return (array) json_decode($body, true);
+            }
+        } catch (Throwable) {
+            /**
+             * @infection-ignore-all
+             * This return is redundant with (and unobservably identical to) the unconditional
+             * `return [];` immediately following the try/catch, which control flow falls through to
+             * either way once the catch block finishes.
+             */
+            // Optionally log error: $e->getMessage()
+            return [];
+        }
+
+        return [];
     }
 }

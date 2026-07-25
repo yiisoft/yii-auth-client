@@ -8,6 +8,8 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Override;
 
+use function sprintf;
+
 /**
  * Google allows authentication via Google OAuth2 using HTTP client. Here we are NOT using the alternative Client Libraries
  * namely @see https://developers.google.com/people/v1/libraries#php
@@ -44,16 +46,6 @@ final class Google extends OAuth2
     }
 
     #[Override]
-    protected function initUserAttributes(): array
-    {
-        $token = $this->getAccessToken();
-        if ($token instanceof OAuthToken) {
-            return $this->getCurrentUserJsonArray($token);
-        }
-        return [];
-    }
-
-    #[Override]
     public function getName(): string
     {
         return 'google';
@@ -69,6 +61,16 @@ final class Google extends OAuth2
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-google';
+    }
+
+    #[Override]
+    protected function initUserAttributes(): array
+    {
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     /**

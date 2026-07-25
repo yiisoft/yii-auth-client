@@ -20,32 +20,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
 final class CollectionTest extends TestCase
 {
-    private function getRequestFactory(): RequestFactoryInterface
-    {
-        return new Psr17Factory();
-    }
-
-    private function getYiisoftFactory(): YiisoftFactory
-    {
-        return new YiisoftFactory();
-    }
-
-    private function getStateStorage(): StateStorageInterface
-    {
-        return new SessionStateStorage(new Session());
-    }
-
-    private function getTestClient(): TestClient
-    {
-        return new TestClient(
-            $this->createStub(ClientInterface::class),
-            $this->getRequestFactory(),
-            $this->getStateStorage(),
-            $this->getYiisoftFactory(),
-            new Session(),
-        );
-    }
-
     public function testSetGet(): void
     {
         $collection = new Collection([]);
@@ -76,7 +50,7 @@ final class CollectionTest extends TestCase
         $collection = new Collection(
             [
                 $clientName => $this->getTestClient(),
-            ]
+            ],
         );
 
         $this->assertTrue($collection->hasClient($clientName), 'Existing client check fails!');
@@ -102,5 +76,31 @@ final class CollectionTest extends TestCase
         $this->expectExceptionMessage('The Client should be an OAuth2 Interface.');
 
         $collection->getClient('nonOAuth2');
+    }
+
+    private function getRequestFactory(): RequestFactoryInterface
+    {
+        return new Psr17Factory();
+    }
+
+    private function getYiisoftFactory(): YiisoftFactory
+    {
+        return new YiisoftFactory();
+    }
+
+    private function getStateStorage(): StateStorageInterface
+    {
+        return new SessionStateStorage(new Session());
+    }
+
+    private function getTestClient(): TestClient
+    {
+        return new TestClient(
+            $this->createStub(ClientInterface::class),
+            $this->getRequestFactory(),
+            $this->getStateStorage(),
+            $this->getYiisoftFactory(),
+            new Session(),
+        );
     }
 }
