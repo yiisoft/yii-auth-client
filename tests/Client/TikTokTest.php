@@ -14,7 +14,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 
 final class TikTokTest extends ProviderClientTestCase
 {
@@ -79,7 +78,6 @@ final class TikTokTest extends ProviderClientTestCase
         $this->assertSame(['open_id' => 'abc'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(TikTok::class);

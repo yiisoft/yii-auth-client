@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Override;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
 use function function_exists;
@@ -36,13 +35,11 @@ final class HmacSha extends Signature
         // @codeCoverageIgnoreEnd
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'HMAC-' . strtoupper($this->algorithm);
     }
 
-    #[Override]
     public function generateSignature(string $baseString, string $key): string
     {
         return base64_encode(hash_hmac($this->algorithm, $baseString, $key, true));

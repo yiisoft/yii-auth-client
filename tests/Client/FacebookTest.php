@@ -18,7 +18,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use Override;
 
 use function count;
 
@@ -188,7 +187,6 @@ final class FacebookTest extends ProviderClientTestCase
         $httpClient = new class ($capturedRequests) implements ClientInterface {
             public function __construct(private array &$capturedRequests) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequests[] = $request;
@@ -376,7 +374,6 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('auth-code', $params['code']);
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(Facebook::class);
@@ -398,7 +395,6 @@ final class FacebookTest extends ProviderClientTestCase
         return new class ($response, $capturedRequest) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;

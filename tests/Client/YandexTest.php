@@ -17,7 +17,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\RequestUtil;
-use Override;
 
 final class YandexTest extends ProviderClientTestCase
 {
@@ -111,7 +110,6 @@ final class YandexTest extends ProviderClientTestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -149,7 +147,6 @@ final class YandexTest extends ProviderClientTestCase
         $this->assertSame(['login' => 'yandex-user'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(Yandex::class);

@@ -26,7 +26,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Psr\Http\Message\ServerRequestInterface;
 use Exception;
-use Override;
 use ReflectionMethod;
 
 use function dirname;
@@ -141,7 +140,6 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesSuccessCallbackOnValidCode(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -170,7 +168,6 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesCallbackConfiguredViaWithSuccessCallback(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -200,7 +197,6 @@ final class AuthActionTest extends TestCase
     public function testProcessInvokesCallbackConfiguredViaWithCancelCallback(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'token_type=bearer');
@@ -229,7 +225,6 @@ final class AuthActionTest extends TestCase
     public function testProcessCancelsWhenTokenExchangeYieldsNoToken(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'token_type=bearer');
@@ -323,7 +318,6 @@ final class AuthActionTest extends TestCase
     public function testProcessHandlesNonStringCodeQueryParam(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&expires_in=3600');
@@ -416,43 +410,36 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsNotSupportedExceptionForNonOAuth2Client(): void
     {
         $client = new class implements AuthClientInterface {
-            #[Override]
             public function getName(): string
             {
                 return 'not-oauth2';
             }
 
-            #[Override]
             public function getTitle(): string
             {
                 return 'Not OAuth2';
             }
 
-            #[Override]
             public function getViewOptions(): array
             {
                 return [];
             }
 
-            #[Override]
             public function getUserAttributes(): array
             {
                 return [];
             }
 
-            #[Override]
             public function getButtonClass(): string
             {
                 return '';
             }
 
-            #[Override]
             public function getClientId(): string
             {
                 return '';
             }
 
-            #[Override]
             public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string
             {
                 return '';
@@ -492,7 +479,6 @@ final class AuthActionTest extends TestCase
     public function testProcessThrowsWhenSuccessCallbackNotConfigured(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -516,7 +502,6 @@ final class AuthActionTest extends TestCase
     public function testProcessReturnsSuccessCallbackResponseDirectly(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
