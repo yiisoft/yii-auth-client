@@ -10,7 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
 
 use function array_key_exists;
 use function is_array;

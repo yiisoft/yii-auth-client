@@ -16,7 +16,6 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 use ReflectionMethod;
 use RuntimeException;
 

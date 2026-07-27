@@ -21,7 +21,6 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Exception;
-use Override;
 
 #[AllowMockObjectsWithoutExpectations]
 final class OAuthTest extends TestCase
