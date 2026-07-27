@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Override;
 
 use function sprintf;
 
@@ -33,25 +32,21 @@ final class LinkedIn extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'linkedin';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'LinkedIn';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-info bi bi-linkedin';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -66,7 +61,6 @@ final class LinkedIn extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -85,7 +79,6 @@ final class LinkedIn extends OAuth2
      *
      * @psalm-return 'openid profile email w_member_social'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'openid profile email w_member_social';

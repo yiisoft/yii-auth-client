@@ -30,7 +30,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\AuthClient;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
 use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
@@ -689,7 +688,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest ??= $request;
@@ -733,7 +731,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest ??= $request;
@@ -772,7 +769,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -825,7 +821,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -1086,7 +1081,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -1122,7 +1116,6 @@ final class OpenIdConnectTest extends TestCase
         $httpClient = new class ($calledHttp) implements ClientInterface {
             public function __construct(private bool &$calledHttp) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->calledHttp = true;

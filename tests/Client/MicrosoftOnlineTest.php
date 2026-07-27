@@ -16,7 +16,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 
 final class MicrosoftOnlineTest extends ProviderClientTestCase
 {
@@ -116,7 +115,6 @@ final class MicrosoftOnlineTest extends ProviderClientTestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -155,7 +153,6 @@ final class MicrosoftOnlineTest extends ProviderClientTestCase
         $this->assertSame(['displayName' => 'John Doe'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(MicrosoftOnline::class);

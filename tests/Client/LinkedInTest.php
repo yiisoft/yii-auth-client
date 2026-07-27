@@ -14,7 +14,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 
 final class LinkedInTest extends ProviderClientTestCase
 {
@@ -105,7 +104,6 @@ final class LinkedInTest extends ProviderClientTestCase
         $this->assertSame(['sub' => 'abc'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(LinkedIn::class);

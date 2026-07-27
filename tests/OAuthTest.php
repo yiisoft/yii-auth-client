@@ -170,7 +170,6 @@ final class OAuthTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -206,7 +205,6 @@ final class OAuthTest extends TestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -389,7 +387,6 @@ final class OAuthTest extends TestCase
         return new class ($response) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return $this->response;
