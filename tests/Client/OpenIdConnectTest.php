@@ -12,28 +12,27 @@ use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Yiisoft\Cache\ArrayCache;
-use Yiisoft\Factory\Factory as YiisoftFactory;
-use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
-use Yiisoft\Yii\AuthClient\Exception\ClientException;
-use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
-use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
-use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Nyholm\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Yii\AuthClient\AuthClient;
-use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
-use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 use Throwable;
+use Yiisoft\Cache\ArrayCache;
+use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Yii\AuthClient\AuthClient;
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
+use Yiisoft\Yii\AuthClient\Exception\ClientException;
+use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
+use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
 final class OpenIdConnectTest extends TestCase
 {
@@ -712,7 +711,8 @@ final class OpenIdConnectTest extends TestCase
         }
 
         $this->assertNotNull($capturedRequest);
-        $sentNonce = RequestUtil::getParams($capturedRequest)['nonce'] ?? null;
+        parse_str((string) $capturedRequest->getBody(), $bodyParams);
+        $sentNonce = $bodyParams['nonce'] ?? null;
         $this->assertIsString($sentNonce);
         $this->assertNotSame('', $sentNonce);
         $storedNonce = (new ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
@@ -755,7 +755,8 @@ final class OpenIdConnectTest extends TestCase
         }
 
         $this->assertNotNull($capturedRequest);
-        $this->assertSame('caller-supplied-nonce', RequestUtil::getParams($capturedRequest)['nonce']);
+        parse_str((string) $capturedRequest->getBody(), $bodyParams);
+        $this->assertSame('caller-supplied-nonce', $bodyParams['nonce']);
         $storedNonce = (new ReflectionMethod($client, 'getState'))->invoke($client, 'authNonce');
         $this->assertNull($storedNonce);
     }
@@ -787,7 +788,8 @@ final class OpenIdConnectTest extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
 
         $this->assertNotNull($capturedRequest);
-        $this->assertArrayNotHasKey('nonce', RequestUtil::getParams($capturedRequest));
+        parse_str((string) $capturedRequest->getBody(), $bodyParams);
+        $this->assertArrayNotHasKey('nonce', $bodyParams);
     }
 
     /**
@@ -864,7 +866,7 @@ final class OpenIdConnectTest extends TestCase
 
         $newRequest = $method->invoke($client, $request);
 
-        $params = RequestUtil::getParams($newRequest);
+        parse_str((string) $newRequest->getBody(), $params);
         $this->assertSame('cid', $params['client_id']);
         $this->assertSame('csecret', $params['client_secret']);
     }
@@ -887,6 +889,12 @@ final class OpenIdConnectTest extends TestCase
         $this->assertSame('Basic ' . base64_encode('cid:csecret'), $newRequest->getHeaderLine('Authorization'));
     }
 
+    /**
+     * The request passed in already carries a form-urlencoded body (as it would when called from
+     * fetchAccessToken()/refreshAccessToken()), so the '&' separator prefixed onto the assertion
+     * param matters - without it, the two writes would merge into one malformed, unparseable key
+     * instead of two independent params.
+     */
     public function testApplyClientCredentialsToRequestUsesJwtAssertionWhenSupported(): void
     {
         $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_jwt']]);
@@ -894,13 +902,15 @@ final class OpenIdConnectTest extends TestCase
         $client->setClientSecret('csecret');
         $client->setTokenUrl('https://issuer.example.com/token');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
+        $request->getBody()->write('code=auth-code');
         $method = new ReflectionMethod($client, 'applyClientCredentialsToRequest');
         $before = time();
 
         $newRequest = $method->invoke($client, $request);
 
         $after = time();
-        $params = RequestUtil::getParams($newRequest);
+        parse_str((string) $newRequest->getBody(), $params);
+        $this->assertSame('auth-code', $params['code']);
         $this->assertArrayHasKey('assertion', $params);
         [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['assertion']);
         $header = (array) json_decode((string) base64_decode($headerSegment), true);

@@ -9,10 +9,10 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Throwable;
 
 use function count;
 use function is_array;
@@ -156,18 +156,21 @@ abstract class OAuth2 extends OAuth
         }
 
         $defaultParams = [
+            'grant_type' => 'authorization_code',
             'code' => $authCode,
             'redirect_uri' => $this->getOauth2ReturnUrl(),
         ];
 
-        $request = $this->createRequest('POST', $this->tokenUrl);
-        $request = RequestUtil::addParams($request, array_merge($defaultParams, $params));
+        $request = $this->createTokenRequest(array_merge($defaultParams, $params));
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
-        $output = $this->parse_str_clean($contents);
+        $output = $this->parseTokenResponse($contents);
 
-        return $this->createToken(['params' => $output]);
+        $token = $this->createToken(['params' => $output]);
+        $this->setAccessToken($token);
+
+        return $token;
     }
 
     /**
@@ -243,7 +246,10 @@ abstract class OAuth2 extends OAuth
             $output = [];
         }
 
-        return $this->createToken(['params' => $output]);
+        $token = $this->createToken(['params' => $output]);
+        $this->setAccessToken($token);
+
+        return $token;
     }
 
     public function setClientId(string $clientId): void
@@ -301,12 +307,15 @@ abstract class OAuth2 extends OAuth
             'grant_type' => 'refresh_token',
         ];
         $params = array_merge($token->getParams(), $params);
-        $request = $this->createRequest('POST', $this->tokenUrl);
-        $request = RequestUtil::addParams($request, $params);
+
+        $request = $this->createTokenRequest($params);
+
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
         $contents = $response->getBody()->getContents();
-        $output = $this->parse_str_clean($contents);
+
+        $output = $this->parseTokenResponse($contents);
+
         return $this->createToken(['params' => $output]);
     }
 
@@ -367,19 +376,28 @@ abstract class OAuth2 extends OAuth
      * Applies client credentials (e.g. {@see clientId} and {@see clientSecret}) to the HTTP request instance.
      * This method should be invoked before sending any HTTP request, which requires client credentials.
      *
+     * Assumes `$request` already carries a `createTokenRequest()`-built `application/x-www-form-urlencoded`
+     * body - the credentials are appended to that body, not the URI query string, matching how every
+     * caller of this method builds its request. Overrides (e.g. `OpenIdConnect`, which may instead add
+     * an `Authorization` header for `client_secret_basic`) aren't bound by that assumption.
+     *
      * @param RequestInterface $request HTTP request instance.
      *
      * @return RequestInterface
      */
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
-        return RequestUtil::addParams(
-            $request,
+        $request->getBody()->write('&' . http_build_query(
             [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ],
-        );
+            '',
+            '&',
+            PHP_QUERY_RFC3986,
+        ));
+
+        return $request;
     }
 
     /**
@@ -442,6 +460,40 @@ abstract class OAuth2 extends OAuth
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
         return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * Builds a `POST` request to {@see tokenUrl} with `$params` as an `application/x-www-form-urlencoded`
+     * body. RFC 6749 §4.1.3 requires token-endpoint parameters in the request body, not the URI query
+     * string - a strict provider like Google rejects a query-string-only request outright (with no
+     * usable `access_token` in its error response), while a lenient one like GitHub's legacy endpoint
+     * happens to tolerate it. {@see applyClientCredentialsToRequest()} is expected to append further
+     * params to this same body afterward, not build a request of its own.
+     */
+    protected function createTokenRequest(array $params): RequestInterface
+    {
+        $request = $this->createRequest('POST', $this->tokenUrl)
+            ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+
+        return $request;
+    }
+
+    /**
+     * Parses a token endpoint response body. RFC 6749 §5.1 mandates a JSON object, which every
+     * modern provider (Google, Microsoft, LinkedIn, etc.) sends - {@see parse_str_clean()} can't
+     * parse that (it expects `key=value&key=value` query-string form) and silently returns
+     * unusable, mangled keys instead of throwing, so a naive `parse_str()`-only implementation
+     * here would leave every token empty without ever surfacing an error. GitHub's legacy
+     * `/login/oauth/access_token` endpoint still defaults to the query-string form, so that path
+     * is kept as a fallback for providers not sending valid JSON.
+     */
+    private function parseTokenResponse(string $contents): array
+    {
+        /** @var mixed $decoded */
+        $decoded = json_decode($contents, true);
+
+        return is_array($decoded) ? $decoded : $this->parse_str_clean($contents);
     }
 
     /**

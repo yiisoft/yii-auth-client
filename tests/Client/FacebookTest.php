@@ -15,9 +15,9 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\Facebook;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 
 use function count;
 
@@ -181,6 +181,23 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('abc123', $token->getToken());
     }
 
+    public function testFetchAccessTokenPersistsAccessTokenWhenAutoExchangeDisabled(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], 'access_token=abc123&expires_in=3600'),
+            $capturedRequest,
+        );
+        $client = $this->createFacebookClient($httpClient)->withoutValidateAuthState();
+        $client->setTokenUrl('https://graph.facebook.com/oauth/access_token');
+        $client->setClientSecret('secret');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame($token, $client->getAccessToken());
+    }
+
     public function testFetchAccessTokenExchangesTokenWhenAutoExchangeEnabled(): void
     {
         $capturedRequests = [];
@@ -228,7 +245,7 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertNotNull($capturedRequest);
         $this->assertSame('POST', $capturedRequest->getMethod());
         $this->assertStringStartsWith('https://graph.facebook.com/oauth/access_token', (string) $capturedRequest->getUri());
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('fb_exchange_token', $params['grant_type']);
         $this->assertSame('old-token', $params['fb_exchange_token']);
         $this->assertSame('cid', $params['client_id']);
@@ -250,7 +267,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $this->assertSame('201', $result);
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('the-access-token', $params['access_token']);
         $this->assertSame('http://example.com/callback', $params['redirect_uri']);
     }
@@ -268,7 +285,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest);
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('stored-token', $params['access_token']);
     }
 
@@ -284,7 +301,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest);
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertArrayNotHasKey('access_token', $params);
     }
 
@@ -304,7 +321,7 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('client-access-token', $token->getToken());
         $this->assertSame($token, $client->getAccessToken());
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('auth-code', $params['code']);
         $this->assertSame('cid', $params['client_id']);
         $this->assertSame('http://example.com/callback', $params['redirect_uri']);
@@ -353,7 +370,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAuthCode($incomingRequest, $token, ['extra' => 'custom-value']);
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('custom-value', $params['extra']);
         $this->assertSame('the-access-token', $params['access_token']);
     }
@@ -369,7 +386,7 @@ final class FacebookTest extends ProviderClientTestCase
         $client->fetchClientAccessToken($incomingRequest, 'auth-code', ['extra' => 'custom-value']);
 
         $this->assertNotNull($capturedRequest);
-        $params = RequestUtil::getParams($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('custom-value', $params['extra']);
         $this->assertSame('auth-code', $params['code']);
     }

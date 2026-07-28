@@ -13,11 +13,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
 use Yiisoft\View\Exception\ViewNotFoundException;
 use Yiisoft\View\WebView;
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 
 use function dirname;
@@ -39,7 +40,8 @@ use const DIRECTORY_SEPARATOR;
  *     Aliases $aliases,
  *     WebView $view,
  *     ResponseFactoryInterface $responseFactory,
- * ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory))
+ *     CurrentRoute $currentRoute,
+ * ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory, $currentRoute))
  *     ->withSuccessUrl('/site/index')
  *     ->withCancelUrl('/site/login')
  *     ->withSuccessCallback(function (AuthClientInterface $client) {
@@ -57,6 +59,10 @@ use const DIRECTORY_SEPARATOR;
  * Usually authentication via external services is performed inside the popup window.
  * This action handles the redirection and closing of popup window correctly.
  *
+ * The matched `{authclient}` route placeholder is read from {@see CurrentRoute}, not from a PSR-7
+ * request attribute: yiisoft/router (a hard dependency of this package) never populates request
+ * attributes for matched route arguments, it exposes them exclusively through `CurrentRoute`.
+ *
  * @see Collection
  * @see AuthChoice
  */
@@ -64,7 +70,7 @@ final class AuthAction implements MiddlewareInterface
 {
     public const AUTH_NAME = 'auth_displayname';
     /**
-     * @var string name of the GET param, which is used to passed auth client id to this action.
+     * @var string name of the matched route argument which passes the auth client id to this action.
      * Note: watch for the naming, make sure you do not choose name used in some auth protocol.
      */
     private string $clientIdGetParamName = 'authclient';
@@ -138,6 +144,7 @@ final class AuthAction implements MiddlewareInterface
         private readonly Aliases $aliases,
         private readonly WebView $view,
         private readonly ResponseFactoryInterface $responseFactory,
+        private readonly CurrentRoute $currentRoute,
     ) {}
 
     /**
@@ -196,7 +203,7 @@ final class AuthAction implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $clientId = (string) $request->getAttribute($this->clientIdGetParamName);
+        $clientId = (string) $this->currentRoute->getArgument($this->clientIdGetParamName);
         if (strlen($clientId) > 0) {
             if (!$this->clientCollection->hasClient($clientId)) {
                 return $this->responseFactory->createResponse(Status::NOT_FOUND, "Unknown auth client '{$clientId}'");

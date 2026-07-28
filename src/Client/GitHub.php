@@ -44,9 +44,20 @@ final class GitHub extends OAuth2
 
     protected string $endpoint = 'https://api.github.com';
 
+    /**
+     * GitHub's API rejects any request without a `User-Agent` header (with a 403 whose JSON body
+     * carries no `id` field), so one is always sent here regardless of what the HTTP client itself
+     * might set by default.
+     *
+     * @see https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api#user-agent
+     */
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        return $this->fetchCurrentUserJsonArray($token, 'https://api.github.com/user');
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            'https://api.github.com/user',
+            ['User-Agent' => 'yiisoft/yii-auth-client'],
+        );
     }
 
     public function getName(): string

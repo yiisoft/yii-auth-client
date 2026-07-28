@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\GitHub;
@@ -83,6 +84,20 @@ final class GitHubTest extends ProviderClientTestCase
         $result = $client->getCurrentUserJsonArray($token);
 
         $this->assertSame(['login' => 'octocat'], $result);
+    }
+
+    public function testGetCurrentUserJsonArraySendsUserAgentHeader(): void
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient->expects(self::once())
+            ->method('sendRequest')
+            ->with(self::callback(fn(RequestInterface $request): bool => $request->getHeaderLine('User-Agent') !== ''))
+            ->willReturn(new Response(200, [], (string) json_encode(['login' => 'octocat'])));
+        $client = $this->createGitHubClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+
+        $client->getCurrentUserJsonArray($token);
     }
 
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void

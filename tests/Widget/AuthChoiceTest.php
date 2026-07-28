@@ -6,8 +6,10 @@ namespace Yiisoft\Yii\AuthClient\Tests\Widget;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionProperty;
+use stdClass;
 use Yiisoft\Aliases\Aliases;
 use Yiisoft\Assets\AssetLoader;
 use Yiisoft\Assets\AssetManager;
@@ -19,15 +21,13 @@ use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
+use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestAuthChoiceItem;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
-use Psr\Http\Message\RequestFactoryInterface;
-use Yiisoft\Yii\AuthClient\OAuth2;
-use stdClass;
 
 use function dirname;
 

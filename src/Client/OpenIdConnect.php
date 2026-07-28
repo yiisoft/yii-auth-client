@@ -30,7 +30,6 @@ use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
@@ -329,13 +328,17 @@ final class OpenIdConnect extends OAuth2
                 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
             );
         } elseif (in_array('client_secret_post', $supportedAuthMethods, true)) {
-            $request = RequestUtil::addParams(
-                $request,
+            // Appended to the body, not the query string: fetchAccessToken()/refreshAccessToken() already
+            // wrote their own params into an application/x-www-form-urlencoded body per RFC 6749 §4.1.3.
+            $request->getBody()->write('&' . http_build_query(
                 [
                     'client_id' => $this->clientId,
                     'client_secret' => $this->clientSecret,
                 ],
-            );
+                '',
+                '&',
+                PHP_QUERY_RFC3986,
+            ));
         } elseif (in_array('client_secret_jwt', $supportedAuthMethods, true)) {
             $header = [
                 'typ' => 'JWT',
@@ -356,12 +359,7 @@ final class OpenIdConnect extends OAuth2
 
             $assertion = $signatureBaseString . '.' . $signature;
 
-            $request = RequestUtil::addParams(
-                $request,
-                [
-                    'assertion' => $assertion,
-                ],
-            );
+            $request->getBody()->write('&' . http_build_query(['assertion' => $assertion], '', '&', PHP_QUERY_RFC3986));
         } else {
             throw new InvalidConfigException(
                 'Unable to authenticate request: No auth method supported',
