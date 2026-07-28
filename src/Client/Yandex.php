@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Psr\Http\Message\RequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
@@ -27,19 +26,14 @@ final class Yandex extends OAuth2
 
     protected string $endpoint = 'https://login.yandex.ru';
 
-    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $params = RequestUtil::getParams($request);
-
         $paramsToAdd = [];
-
         if (!isset($params['format'])) {
             $paramsToAdd['format'] = 'json';
         }
-
         $paramsToAdd['oauth_token'] = $accessToken->getToken();
-
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
@@ -48,25 +42,21 @@ final class Yandex extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $this->endpoint, authScheme: 'OAuth');
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi';
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'yandex';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'Yandex';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -81,7 +71,6 @@ final class Yandex extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -97,7 +86,6 @@ final class Yandex extends OAuth2
      *
      * @psalm-return 'login:info'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'login:info';

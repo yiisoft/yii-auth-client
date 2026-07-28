@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -61,25 +60,21 @@ final class GitHub extends OAuth2
         );
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'github';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'GitHub';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-github';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -94,7 +89,6 @@ final class GitHub extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -108,7 +102,6 @@ final class GitHub extends OAuth2
      *
      * @psalm-return 'user'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'user';

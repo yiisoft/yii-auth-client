@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -45,25 +44,21 @@ final class Google extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url, $headers);
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'google';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'Google';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-google';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -78,7 +73,6 @@ final class Google extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -92,7 +86,6 @@ final class Google extends OAuth2
      * @see https://www.googleapis.com/auth/userinfo.email will output userinfo.email
      * @psalm-return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';

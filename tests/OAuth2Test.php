@@ -7,7 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use Override;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
@@ -59,7 +58,6 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenPopulatesUsableToken(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'access_token=abc123&token_type=bearer&expires_in=3600');
@@ -439,7 +437,6 @@ final class OAuth2Test extends TestCase
     public function testFetchAccessTokenWithCodeVerifierReturnsEmptyTokenWhenHttpClientThrows(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 throw new RuntimeException('network failure');
@@ -500,7 +497,6 @@ final class OAuth2Test extends TestCase
         $httpClient = new class ($callCount) implements ClientInterface {
             public function __construct(private int &$callCount) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
@@ -582,7 +578,6 @@ final class OAuth2Test extends TestCase
     public function testFetchCurrentUserJsonArrayReturnsEmptyArrayWhenHttpClientThrows(): void
     {
         $httpClient = new class implements ClientInterface {
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 throw new RuntimeException('network failure');
@@ -1011,79 +1006,62 @@ final class OAuth2Test extends TestCase
     public function testGenerateAuthStateBaseStringAppendsActiveSessionId(): void
     {
         $session = new class implements SessionInterface {
-            #[Override]
             public function open(): void {}
 
-            #[Override]
             public function get(string $key, $default = null)
             {
                 return $default;
             }
 
-            #[Override]
             public function set(string $key, $value): void {}
 
-            #[Override]
             public function close(): void {}
 
-            #[Override]
             public function isActive(): bool
             {
                 return true;
             }
 
-            #[Override]
             public function getId(): ?string
             {
                 return 'the-session-id';
             }
 
-            #[Override]
             public function regenerateId(): void {}
 
-            #[Override]
             public function discard(): void {}
 
-            #[Override]
             public function getName(): string
             {
                 return 'sess';
             }
 
-            #[Override]
             public function all(): array
             {
                 return [];
             }
 
-            #[Override]
             public function remove(string $key): void {}
 
-            #[Override]
             public function has(string $key): bool
             {
                 return false;
             }
 
-            #[Override]
             public function pull(string $key, $default = '')
             {
                 return $default;
             }
 
-            #[Override]
             public function clear(): void {}
 
-            #[Override]
             public function destroy(): void {}
 
-            #[Override]
             public function getCookieParameters(): array
             {
                 return [];
             }
 
-            #[Override]
             public function setId(string $sessionId): void {}
         };
         $client = new TestClient(
@@ -1286,7 +1264,6 @@ final class OAuth2Test extends TestCase
         return new class ($response) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 return $this->response;
@@ -1299,7 +1276,6 @@ final class OAuth2Test extends TestCase
         return new class ($response, $capturedRequest) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;

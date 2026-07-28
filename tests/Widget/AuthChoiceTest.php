@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Widget;
 
-use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -174,31 +173,26 @@ final class AuthChoiceTest extends TestCase
             new YiisoftFactory(),
             new Session(),
         ) extends OAuth2 {
-            #[Override]
             public function getName(): string
             {
                 return 'other';
             }
 
-            #[Override]
             public function getTitle(): string
             {
                 return 'Other';
             }
 
-            #[Override]
             public function getButtonClass(): string
             {
                 return 'btn';
             }
 
-            #[Override]
             public function getClientId(): string
             {
                 return 'other-id';
             }
 
-            #[Override]
             public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
             {
                 return 'http://other.local';
@@ -578,31 +572,26 @@ final class AuthChoiceTest extends TestCase
             new YiisoftFactory(),
             new Session(),
         ) extends OAuth2 {
-            #[Override]
             public function getName(): string
             {
                 return 'test';
             }
 
-            #[Override]
             public function getTitle(): string
             {
                 return 'Test';
             }
 
-            #[Override]
             public function getButtonClass(): string
             {
                 return 'btn btn-primary bi';
             }
 
-            #[Override]
             public function getClientId(): string
             {
                 return '';
             }
 
-            #[Override]
             public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
             {
                 return 'http://test.local';

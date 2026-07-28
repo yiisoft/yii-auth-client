@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -80,7 +79,6 @@ final class XTest extends ProviderClientTestCase
         $httpClient = new class ($capturedRequest) implements ClientInterface {
             public function __construct(private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;
@@ -118,7 +116,6 @@ final class XTest extends ProviderClientTestCase
         $this->assertSame(['data' => ['id' => '123']], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(X::class);

@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use ReflectionMethod;
@@ -121,7 +120,6 @@ final class GitHubTest extends ProviderClientTestCase
         $this->assertSame(['login' => 'octocat'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(GitHub::class);

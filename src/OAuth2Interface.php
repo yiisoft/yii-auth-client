@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use Override;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -14,7 +13,6 @@ interface OAuth2Interface extends OAuthInterface
 {
     public function setClientId(string $clientId): void;
 
-    #[Override]
     public function getClientId(): string;
 
     public function setClientSecret(string $clientSecret): void;
@@ -31,11 +29,7 @@ interface OAuth2Interface extends OAuthInterface
 
     public function getTokenUrl(): string;
 
-    #[Override]
-    public function buildAuthUrl(
-        ServerRequestInterface $incomingRequest,
-        array $params = [],
-    ): string;
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string;
 
     public function getSessionAuthState(): mixed;
 

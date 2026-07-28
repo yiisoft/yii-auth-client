@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -78,7 +77,6 @@ final class Facebook extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
-    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         $request = parent::applyAccessTokenToRequest($request, $accessToken);
@@ -93,7 +91,6 @@ final class Facebook extends OAuth2
         return RequestUtil::addParams($request, $params);
     }
 
-    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         $token = parent::fetchAccessToken($incomingRequest, $authCode, $params);
@@ -214,25 +211,21 @@ final class Facebook extends OAuth2
         return $token;
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'facebook';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'Facebook';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi bi-facebook';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -247,7 +240,6 @@ final class Facebook extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -261,7 +253,6 @@ final class Facebook extends OAuth2
      *
      * @psalm-return 'public_profile'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'public_profile';

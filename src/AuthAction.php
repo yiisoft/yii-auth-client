@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use Exception;
-use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -202,7 +201,6 @@ final class AuthAction implements MiddlewareInterface
         return $new;
     }
 
-    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $clientId = (string) $this->currentRoute->getArgument($this->clientIdGetParamName);
@@ -214,7 +212,6 @@ final class AuthAction implements MiddlewareInterface
 
             return $this->auth($client, $request);
         }
-
         return $this->responseFactory->createResponse(Status::NOT_FOUND);
     }
 

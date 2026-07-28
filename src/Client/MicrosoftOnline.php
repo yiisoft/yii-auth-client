@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -50,7 +49,6 @@ final class MicrosoftOnline extends OAuth2
         return $this->tenant;
     }
 
-    #[Override]
     public function setAuthUrl(string $authUrl): void
     {
         $this->authUrl = $authUrl;
@@ -61,7 +59,6 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/authorize';
     }
 
-    #[Override]
     public function setTokenUrl(string $tokenUrl): void
     {
         $this->tokenUrl = $tokenUrl;
@@ -81,25 +78,21 @@ final class MicrosoftOnline extends OAuth2
         );
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'microsoftonline';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'MicrosoftOnline';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-warning bi bi-microsoft';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -114,7 +107,6 @@ final class MicrosoftOnline extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -129,7 +121,6 @@ final class MicrosoftOnline extends OAuth2
      *
      * @psalm-return 'offline_access User.Read'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'offline_access User.Read';

@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use Override;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -205,7 +204,6 @@ final class FacebookTest extends ProviderClientTestCase
         $httpClient = new class ($capturedRequests) implements ClientInterface {
             public function __construct(private array &$capturedRequests) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequests[] = $request;
@@ -393,7 +391,6 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('auth-code', $params['code']);
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(Facebook::class);
@@ -415,7 +412,6 @@ final class FacebookTest extends ProviderClientTestCase
         return new class ($response, $capturedRequest) implements ClientInterface {
             public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
 
-            #[Override]
             public function sendRequest(RequestInterface $request): ResponseInterface
             {
                 $this->capturedRequest = $request;

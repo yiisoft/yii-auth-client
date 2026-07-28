@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Widget;
 
-use Override;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
@@ -121,7 +120,6 @@ final class AuthChoice extends Widget
      * Opens the widget: registers assets and echoes the opening `<div>` tag, so that content written directly
      * to output between {@see begin()} and {@see end()} appears nested inside it.
      */
-    #[Override]
     public function begin(): ?string
     {
         parent::begin();
@@ -141,7 +139,6 @@ final class AuthChoice extends Widget
      *
      * @return string rendered HTML.
      */
-    #[Override]
     public function render(): string
     {
         $content = $this->renderOpenTag();

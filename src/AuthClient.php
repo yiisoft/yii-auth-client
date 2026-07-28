@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient;
 
-use Override;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -98,17 +97,14 @@ abstract class AuthClient implements AuthClientInterface
     /**
      * @return array view options in format: optionName => optionValue
      */
-    #[Override]
     public function getViewOptions(): array
     {
         if (empty($this->viewOptions)) {
             $this->viewOptions = $this->defaultViewOptions();
         }
-
         return $this->viewOptions;
     }
 
-    #[Override]
     abstract public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params): string;
 
     public function createRequest(string $method, string $uri): RequestInterface

@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use Override;
 use Psr\Http\Client\ClientInterface;
 use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
@@ -105,7 +104,6 @@ final class LinkedInTest extends ProviderClientTestCase
         $this->assertSame(['sub' => 'abc'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(LinkedIn::class);

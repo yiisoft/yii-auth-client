@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
-use Override;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -57,25 +56,21 @@ final class X extends OAuth2
         );
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'x';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'X';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-dark bi bi-twitter';
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -90,7 +85,6 @@ final class X extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -104,7 +98,6 @@ final class X extends OAuth2
      *
      * @psalm-return 'users.read tweet.read offline.access'
      */
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'users.read tweet.read offline.access';

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Override;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
 
@@ -76,7 +75,6 @@ final class RsaSha extends Signature
         $this->privateCertificateFile = $privateCertificateFile;
     }
 
-    #[Override]
     public function getName(): string
     {
         if (is_int($this->algorithm)) {
@@ -103,14 +101,11 @@ final class RsaSha extends Signature
         return 'RSA-' . $algorithmName;
     }
 
-    #[Override]
     public function generateSignature(string $baseString, string $key): string
     {
         $privateCertificateContent = $this->getPrivateCertificate();
-
         // For PHP 8+, you can pass the PEM string directly to openssl_sign()
         openssl_sign($baseString, $signature, $privateCertificateContent, $this->algorithm);
-
         return base64_encode($signature);
     }
 
@@ -126,7 +121,6 @@ final class RsaSha extends Signature
         return $this->privateCertificate;
     }
 
-    #[Override]
     public function verify(string $signature, string $baseString, string $key): bool
     {
         $decodedSignature = base64_decode($signature);
@@ -139,7 +133,6 @@ final class RsaSha extends Signature
         }
         // Check the computed signature against the one passed in the query
         $verificationResult = openssl_verify($baseString, $decodedSignature, $publicKeyId, $this->algorithm);
-
         return $verificationResult === 1;
     }
 
