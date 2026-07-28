@@ -123,7 +123,7 @@ final class AuthHandler
 выданного scope.
 
 Дополнительные параметры auth URL, специфичные для провайдера, можно настроить точно так же через
-`setAuthParams()` (например, `'setAuthParams()' => ['prompt' => 'select_account']` в DI-определении клиента
+`setAuthParams()` (например, `'setAuthParams()' => [['prompt' => 'select_account']]` в DI-определении клиента
 Google, чтобы принудительно показать выбор аккаунта). Они добавляются в каждый вызов `buildAuthUrl()`, поэтому
 их не нужно передавать при каждом вызове.
 
