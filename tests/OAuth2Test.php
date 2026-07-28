@@ -706,6 +706,42 @@ final class OAuth2Test extends TestCase
         $this->assertStringContainsString('extra=custom-value', $authUrl);
     }
 
+    public function testBuildAuthUrlMergesConfiguredAuthParams(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->setAuthParams(['prompt' => 'select_account', 'access_type' => 'offline']);
+
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+
+        $this->assertStringContainsString('prompt=select_account', $authUrl);
+        $this->assertStringContainsString('access_type=offline', $authUrl);
+    }
+
+    public function testBuildAuthUrlCallTimeParamsOverrideConfiguredAuthParams(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->setAuthParams(['prompt' => 'select_account']);
+
+        $authUrl = $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), ['prompt' => 'consent']);
+
+        $this->assertStringContainsString('prompt=consent', $authUrl);
+        $this->assertStringNotContainsString('prompt=select_account', $authUrl);
+    }
+
+    public function testGetAuthParamsReturnsConfiguredValue(): void
+    {
+        $client = $this->createClient();
+        $authParams = ['prompt' => 'select_account'];
+
+        $client->setAuthParams($authParams);
+
+        $this->assertSame($authParams, $client->getAuthParams());
+    }
+
     public function testFetchAccessTokenQueryStateTakesPriorityOverBodyState(): void
     {
         $httpClient = $this->httpClientReturning(new Response(200, [], 'access_token=abc123&expires_in=3600'));

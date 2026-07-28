@@ -55,6 +55,13 @@ abstract class OAuth2 extends OAuth
     protected bool $validateAuthState = true;
 
     /**
+     * @var array additional auth GET params, merged into every {@see buildAuthUrl()} call.
+     * Useful for provider-specific options (e.g. Google's `prompt` or `access_type`) that should
+     * always be applied without having to pass them at every call site.
+     */
+    protected array $authParams = [];
+
+    /**
      * BaseOAuth constructor.
      *
      * @param ClientInterface $httpClient
@@ -96,7 +103,7 @@ abstract class OAuth2 extends OAuth
             $this->setState('authState', $authState);
             $defaultParams['state'] = $authState;
         }
-        return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $params));
+        return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $this->authParams, $params));
     }
 
     /**
@@ -270,6 +277,16 @@ abstract class OAuth2 extends OAuth
     public function getClientSecret(): string
     {
         return $this->clientSecret;
+    }
+
+    public function setAuthParams(array $authParams): void
+    {
+        $this->authParams = $authParams;
+    }
+
+    public function getAuthParams(): array
+    {
+        return $this->authParams;
     }
 
     public function getOauth2ReturnUrl(): string

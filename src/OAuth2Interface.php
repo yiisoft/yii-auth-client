@@ -19,6 +19,10 @@ interface OAuth2Interface extends OAuthInterface
 
     public function getClientSecret(): string;
 
+    public function setAuthParams(array $authParams): void;
+
+    public function getAuthParams(): array;
+
     public function getCurrentUserJsonArray(OAuthToken $oauthToken): array;
 
     public function getOauth2ReturnUrl(): string;
