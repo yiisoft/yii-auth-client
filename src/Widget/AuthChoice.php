@@ -18,7 +18,6 @@ use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
-use Override;
 use Yiisoft\Yii\AuthClient\AuthAction;
 
 use function strlen;
@@ -121,7 +120,6 @@ final class AuthChoice extends Widget
      * Opens the widget: registers assets and echoes the opening `<div>` tag, so that content written directly
      * to output between {@see begin()} and {@see end()} appears nested inside it.
      */
-    #[Override]
     public function begin(): ?string
     {
         parent::begin();
@@ -141,7 +139,6 @@ final class AuthChoice extends Widget
      *
      * @return string rendered HTML.
      */
-    #[Override]
     public function render(): string
     {
         $content = $this->renderOpenTag();

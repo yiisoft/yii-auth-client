@@ -12,7 +12,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
-use Override;
 use Throwable;
 
 use function count;
@@ -88,11 +87,8 @@ abstract class OAuth2 extends OAuth
      *
      * @return string authorization URL.
      */
-    #[Override]
-    public function buildAuthUrl(
-        ServerRequestInterface $incomingRequest,
-        array $params = [],
-    ): string {
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
+    {
         $defaultParams = [
             'client_id' => $this->clientId,
             'response_type' => 'code',
@@ -107,7 +103,6 @@ abstract class OAuth2 extends OAuth
             $this->setState('authState', $authState);
             $defaultParams['state'] = $authState;
         }
-
         return RequestUtil::composeUrl($this->authUrl, array_merge($defaultParams, $this->authParams, $params));
     }
 
@@ -263,7 +258,6 @@ abstract class OAuth2 extends OAuth
         $this->clientId = $clientId;
     }
 
-    #[Override]
     public function getClientId(): string
     {
         return $this->clientId;
@@ -299,7 +293,6 @@ abstract class OAuth2 extends OAuth
         $this->returnUrl = $returnUrl;
     }
 
-    #[Override]
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
         return RequestUtil::addParams(
@@ -319,26 +312,18 @@ abstract class OAuth2 extends OAuth
      *
      * @return OAuthToken new auth token.
      */
-    #[Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         $params = [
             'grant_type' => 'refresh_token',
         ];
         $params = array_merge($token->getParams(), $params);
-
         $request = $this->createRequest('POST', $this->tokenUrl);
-
         $request = RequestUtil::addParams($request, $params);
-
         $request = $this->applyClientCredentialsToRequest($request);
-
         $response = $this->sendRequest($request);
-
         $contents = $response->getBody()->getContents();
-
         $output = $this->parse_str_clean($contents);
-
         return $this->createToken(['params' => $output]);
     }
 
@@ -456,11 +441,9 @@ abstract class OAuth2 extends OAuth
      * @param array $tokenConfig token configuration.
      * @return OAuthToken token instance.
      */
-    #[Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $tokenConfig['tokenParamKey'] = 'access_token';
-
         return parent::createToken($tokenConfig);
     }
 
@@ -471,12 +454,10 @@ abstract class OAuth2 extends OAuth
      *
      * @return string return URL.
      */
-    #[Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
-
         return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 

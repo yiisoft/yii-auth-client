@@ -14,7 +14,6 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
-use Override;
 
 final class GitHubTest extends ProviderClientTestCase
 {
@@ -106,7 +105,6 @@ final class GitHubTest extends ProviderClientTestCase
         $this->assertSame(['login' => 'octocat'], $method->invoke($client));
     }
 
-    #[Override]
     protected function createClient(): OAuth2
     {
         return $this->instantiate(GitHub::class);

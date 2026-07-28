@@ -34,8 +34,6 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\Signature\HmacSha;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
-use Override;
-
 use function in_array;
 use function is_array;
 use function is_string;
@@ -150,11 +148,8 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return string
      */
-    #[Override]
-    public function buildAuthUrl(
-        ServerRequestInterface $incomingRequest,
-        array $params = [],
-    ): string {
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
+    {
         if (strlen($this->authUrl) == 0) {
             $this->authUrl = (string) $this->getConfigParam('authorization_endpoint');
         }
@@ -203,19 +198,16 @@ final class OpenIdConnect extends OAuth2
      * @param array $params
      * @return OAuthToken
      */
-    #[Override]
     public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
     {
         if (empty($this->tokenUrl)) {
             $this->tokenUrl = (string) $this->getConfigParam('token_endpoint');
         }
-
         if (!isset($params['nonce']) && $this->getValidateAuthNonce()) {
             $nonce = $this->generateAuthNonce();
             $this->setState('authNonce', $nonce);
             $params['nonce'] = $nonce;
         }
-
         return parent::fetchAccessToken($incomingRequest, $authCode, $params);
     }
 
@@ -249,7 +241,6 @@ final class OpenIdConnect extends OAuth2
      * @param OAuthToken $token
      * @return OAuthToken
      */
-    #[Override]
     public function refreshAccessToken(OAuthToken $token): OAuthToken
     {
         if (strlen($this->tokenUrl) == 0) {
@@ -258,19 +249,16 @@ final class OpenIdConnect extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    #[Override]
     public function getName(): string
     {
         return $this->name;
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return $this->title;
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return '';
@@ -319,7 +307,6 @@ final class OpenIdConnect extends OAuth2
      *
      * @psalm-return array{popupWidth: 860, popupHeight: 480}
      */
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -328,17 +315,14 @@ final class OpenIdConnect extends OAuth2
         ];
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');
     }
 
-    #[Override]
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface
     {
         $supportedAuthMethods = (array) $this->getConfigParam('token_endpoint_auth_methods_supported');
-
         if (in_array('client_secret_basic', $supportedAuthMethods, true)) {
             $request = $request->withHeader(
                 'Authorization',
@@ -386,18 +370,15 @@ final class OpenIdConnect extends OAuth2
         return $request;
     }
 
-    #[Override]
     protected function defaultReturnUrl(ServerRequestInterface $request): string
     {
         $params = $request->getQueryParams();
         // OAuth2 specifics :
         unset($params['code'], $params['state'], $params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
         // OpenIdConnect specifics :
-
         return $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986))->__toString();
     }
 
-    #[Override]
     protected function createToken(array $tokenConfig = []): OAuthToken
     {
         $params = (array) $tokenConfig['params'];
@@ -417,7 +398,6 @@ final class OpenIdConnect extends OAuth2
                 $this->removeState('authNonce');
             }
         }
-
         return parent::createToken($tokenConfig);
     }
 
