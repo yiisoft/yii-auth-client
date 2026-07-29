@@ -35,10 +35,10 @@ return [
                 'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
                 'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
                 'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
-                // Обязательно: у OAuth2::getOauth2ReturnUrl() нет запасного варианта, определяемого
-                // из запроса, поэтому не заданный redirect_uri отправляется пустым. Google отклоняет
-                // такой запрос ("Missing required parameter: redirect_uri"); значение должно точно
-                // совпадать с callback-адресом, зарегистрированным в Google Cloud Console.
+                // Обязательно: у oauth2ReturnUrl нет запасного варианта, определяемого из запроса,
+                // поэтому не заданный redirect_uri отправляется пустым. Google отклоняет такой запрос
+                // ("Missing required parameter: redirect_uri"); значение должно точно совпадать с
+                // callback-адресом, зарегистрированным в Google Cloud Console.
                 'oauth2ReturnUrl' => 'https://example.com/auth/google',
             ],
             'facebook' => [
