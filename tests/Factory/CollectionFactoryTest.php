@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Factory;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -16,8 +17,11 @@ use Yiisoft\Yii\AuthClient\Factory\CollectionFactory;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Yiisoft\Yii\AuthClient\Tests\Data\Container;
+use Yiisoft\Yii\AuthClient\Tests\Data\ExtraDependencyInterface;
+use Yiisoft\Yii\AuthClient\Tests\Data\NullExtraDependency;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
+use Yiisoft\Yii\AuthClient\Tests\Data\TestClientWithExtraDependency;
 
 final class CollectionFactoryTest extends TestCase
 {
@@ -195,6 +199,27 @@ final class CollectionFactoryTest extends TestCase
         $this->assertSame('my-client-id', $client->getClientId());
     }
 
+    /**
+     * A third-party OAuth2 subclass may declare constructor dependencies beyond the fixed set every
+     * built-in client happens to share. Client creation must autowire those via the container instead
+     * of assuming a fixed positional constructor signature.
+     */
+    public function testInvokeSupportsThirdPartyClientWithExtraConstructorDependency(): void
+    {
+        $extraDependency = new NullExtraDependency();
+        $container = $this->createContainer([ExtraDependencyInterface::class => $extraDependency]);
+
+        $factory = new CollectionFactory([
+            'custom' => ['class' => TestClientWithExtraDependency::class],
+        ]);
+
+        $collection = $factory($container);
+
+        $client = $collection->getClient('custom');
+        $this->assertInstanceOf(TestClientWithExtraDependency::class, $client);
+        $this->assertSame($extraDependency, $client->extraDependency);
+    }
+
     public function testInvokeThrowsExceptionForNonOAuth2Class(): void
     {
         $factory = new CollectionFactory([
@@ -252,14 +277,7 @@ final class CollectionFactoryTest extends TestCase
             }
         };
 
-        $container = new Container([
-            ClientInterface::class => $this->createStub(ClientInterface::class),
-            RequestFactoryInterface::class => $this->createStub(RequestFactoryInterface::class),
-            StateStorageInterface::class => new DummyStateStorage(),
-            YiisoftFactory::class => new YiisoftFactory(),
-            SessionInterface::class => new Session(),
-            CacheInterface::class => $cache,
-        ]);
+        $container = $this->createContainer([CacheInterface::class => $cache]);
 
         $factory = new CollectionFactory([
             'my-oidc' => [
@@ -277,14 +295,41 @@ final class CollectionFactoryTest extends TestCase
         $this->assertSame('oidc-client', $client->getClientId());
     }
 
-    private function createContainer(): Container
+    /**
+     * Builds a container whose YiisoftFactory::class entry can resolve its own container's other
+     * entries (including itself), mirroring how a real DI-registered Factory is wired - needed since
+     * CollectionFactory now creates clients via $yiisoftFactory->create($class) instead of `new`, and
+     * OAuth2's constructor itself requires a YiisoftFactory dependency.
+     */
+    private function createContainer(array $extraEntries = []): Container
     {
-        return new Container([
+        $containerProxy = new class implements ContainerInterface {
+            public ?ContainerInterface $delegate = null;
+
+            public function get(string $id): mixed
+            {
+                return $this->delegate->get($id);
+            }
+
+            public function has(string $id): bool
+            {
+                return $this->delegate->has($id);
+            }
+        };
+
+        $yiisoftFactory = new YiisoftFactory($containerProxy);
+
+        $container = new Container([
             ClientInterface::class => $this->createStub(ClientInterface::class),
             RequestFactoryInterface::class => $this->createStub(RequestFactoryInterface::class),
             StateStorageInterface::class => new DummyStateStorage(),
-            YiisoftFactory::class => new YiisoftFactory(),
+            YiisoftFactory::class => $yiisoftFactory,
             SessionInterface::class => new Session(),
+            ...$extraEntries,
         ]);
+
+        $containerProxy->delegate = $container;
+
+        return $container;
     }
 }

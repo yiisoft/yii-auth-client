@@ -6,15 +6,9 @@ namespace Yiisoft\Yii\AuthClient\Factory;
 
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
-use Yiisoft\Session\SessionInterface;
-use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\OAuth2;
-use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function array_key_exists;
 use function is_array;
@@ -30,11 +24,8 @@ final readonly class CollectionFactory
             return new Collection([]);
         }
 
-        $httpClient = $container->get(ClientInterface::class);
-        $requestFactory = $container->get(RequestFactoryInterface::class);
-        $stateStorage = $container->get(StateStorageInterface::class);
+        /** @var YiisoftFactory $yiisoftFactory */
         $yiisoftFactory = $container->get(YiisoftFactory::class);
-        $session = $container->get(SessionInterface::class);
 
         $clients = [];
         foreach ($this->clients as $name => $config) {
@@ -63,16 +54,13 @@ final readonly class CollectionFactory
                 );
             }
 
-            if (is_subclass_of($class, OpenIdConnect::class) || $class === OpenIdConnect::class) {
-                $cache = $container->get(CacheInterface::class);
-                /** @psalm-suppress UnsafeInstantiation All OAuth2 subtypes use the same 6-param signature */
-                $client = new $class($httpClient, $requestFactory, $stateStorage, $yiisoftFactory, $session, $cache);
-            } else {
-                /** @psalm-suppress UnsafeInstantiation All OAuth2 subtypes use the same 5-param signature */
-                $client = new $class($httpClient, $requestFactory, $stateStorage, $yiisoftFactory, $session);
-            }
-
-            /** @var OAuth2 $client */
+            /**
+             * @var OAuth2 $client Built via the DI-aware factory (not $container->get()) so every
+             * configured entry gets its own instance, even several entries sharing a class - and so
+             * a third-party OAuth2 subclass with extra constructor dependencies is still autowired
+             * correctly instead of requiring a fixed positional argument list here.
+             */
+            $client = $yiisoftFactory->create($class);
             $client->setName($name);
 
             foreach ($config as $key => $value) {
