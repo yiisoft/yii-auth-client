@@ -11,26 +11,26 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
-use Yiisoft\Yii\AuthClient\Client\MicrosoftOnline;
+use Yiisoft\Yii\AuthClient\Client\Microsoft;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
-final class MicrosoftOnlineTest extends ProviderClientTestCase
+final class MicrosoftTest extends ProviderClientTestCase
 {
     public function testGetName(): void
     {
         $client = $this->createClient();
 
-        $this->assertSame('microsoftonline', $client->getName());
+        $this->assertSame('microsoft', $client->getName());
     }
 
     public function testGetTitle(): void
     {
         $client = $this->createClient();
 
-        $this->assertSame('MicrosoftOnline', $client->getTitle());
+        $this->assertSame('Microsoft', $client->getTitle());
     }
 
     public function testGetButtonClass(): void
@@ -155,16 +155,16 @@ final class MicrosoftOnlineTest extends ProviderClientTestCase
 
     protected function createClient(): OAuth2
     {
-        return $this->instantiate(MicrosoftOnline::class);
+        return $this->instantiate(Microsoft::class);
     }
 
-    private function createMicrosoftClient(?ClientInterface $httpClient = null): MicrosoftOnline
+    private function createMicrosoftClient(?ClientInterface $httpClient = null): Microsoft
     {
         if ($httpClient === null) {
-            return $this->instantiate(MicrosoftOnline::class);
+            return $this->instantiate(Microsoft::class);
         }
 
-        return new MicrosoftOnline(
+        return new Microsoft(
             $httpClient,
             new Psr17Factory(),
             new DummyStateStorage(),

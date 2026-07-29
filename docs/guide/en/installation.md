@@ -82,7 +82,7 @@ setter methods on the client class — see the class API for available setters:
 | `returnUrl` | `setReturnUrl()` | All OAuth clients |
 | `issuerUrl` | `setIssuerUrl()` | OpenIdConnect |
 | `validateAuthNonce` | `setValidateAuthNonce()` | OpenIdConnect |
-| `tenant` | `setTenant()` | MicrosoftOnline |
+| `tenant` | `setTenant()` | Microsoft |
 
 Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthClient\Client`):
 
@@ -90,7 +90,7 @@ Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthCl
 - [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
 - [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].
 - [[\Yiisoft\Yii\AuthClient\Client\LinkedIn|LinkedIn]].
-- [[\Yiisoft\Yii\AuthClient\Client\MicrosoftOnline|Microsoft Online]].
+- [[\Yiisoft\Yii\AuthClient\Client\Microsoft|Microsoft]].
 - [[\Yiisoft\Yii\AuthClient\Client\TikTok|TikTok]].
 - [[\Yiisoft\Yii\AuthClient\Client\VKontakte|VKontakte]].
 - [[\Yiisoft\Yii\AuthClient\Client\X|X (Twitter)]].

@@ -13,7 +13,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * Note if you are to use this client, you will have to migrate to the converged Authentication methods policy.
  * Please migrate your authentication methods off the legacy MFA and SSPR policies by September 2025 to avoid any service impact.
  *
- * MicrosoftOnline allows authentication via the Microsoft Identity Platform.
+ * Microsoft allows authentication via the Microsoft Identity Platform.
  *
  * In order to use the Microsoft Identity Platform, you must register your application at
  * <https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize>
@@ -22,7 +22,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
  */
-final class MicrosoftOnline extends OAuth2
+final class Microsoft extends OAuth2
 {
     /**
      * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#protocol-details
@@ -80,12 +80,12 @@ final class MicrosoftOnline extends OAuth2
 
     public function getName(): string
     {
-        return $this->name ?: 'microsoftonline';
+        return $this->name ?: 'microsoft';
     }
 
     public function getTitle(): string
     {
-        return $this->title ?: 'MicrosoftOnline';
+        return $this->title ?: 'Microsoft';
     }
 
     public function getButtonClass(): string
