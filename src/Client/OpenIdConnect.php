@@ -53,6 +53,22 @@ use const PHP_QUERY_RFC3986;
  * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
  * https://oidc.account.gov.uk/.well-known/openid-configuration
  *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'my-oidc' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+ *             'clientId' => $_ENV['OIDC_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['OIDC_CLIENT_SECRET'],
+ *             'issuerUrl' => 'https://your-issuer.example.com',
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @see OAuth2
  */
 final class OpenIdConnect extends OAuth2

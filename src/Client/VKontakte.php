@@ -17,6 +17,22 @@ use function strlen;
  * VKontakte allows authentication via VKontakte OAuth 2.0
  *
  * In order to use VKontakte OAuth you must register your application at <https://dev.vk.ru>.
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'vkontakte' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\VKontakte::class,
+ *             'clientId' => $_ENV['VKONTAKTE_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['VKONTAKTE_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/auth-without-sdk/auth-without-sdk-web
  * @see https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/start-integration/how-auth-works/auth-flow-web
  * @see https://id.vk.ru/about/business/go/accounts/{USER}/apps/{APPLICATION_ID}/edit

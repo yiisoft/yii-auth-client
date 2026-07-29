@@ -18,6 +18,21 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * In order to use the Microsoft Identity Platform, you must register your application at
  * <https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize>
  *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'microsoft' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Microsoft::class,
+ *             'clientId' => $_ENV['MICROSOFT_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['MICROSOFT_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * https://learn.microsoft.com/en-us/azure/active-directory-b2c/tutorial-register-applications
  *
  * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow

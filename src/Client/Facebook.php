@@ -21,18 +21,18 @@ use const PHP_QUERY_RFC3986;
  *
  * Example application configuration:
  *
- * config/common/params.php:
+ * ```php
+ * // config/common/params.php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'facebook' => Facebook::class,
+ *         'facebook' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+ *             'clientId' => $_ENV['FACEBOOK_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['FACEBOOK_CLIENT_SECRET'],
+ *         ],
  *     ],
  * ],
- *
- * config/common/di.php:
- * Facebook::class => [
- *     'setClientId()' => [$_ENV['FACEBOOK_API_CLIENT_ID'] ?? ''],
- *     'setClientSecret()' => [$_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? ''],
- * ],
+ * ```
  *
  * @link https://developers.facebook.com/apps
  * @link https://developers.facebook.com/docs/graph-api

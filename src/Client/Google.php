@@ -15,7 +15,23 @@ use function sprintf;
  * In order to use Google OAuth2 you must create a project at <https://console.cloud.google.com/cloud-resource-manager>
  * and setup its credentials at <https://console.cloud.google.com/apis/credentials?project=[yourProjectId]>.
  * Create an Oauth2 Web Application and record the resultant Client Id and Client Secret in e.g a .env file and insert your website's returnUrl e.g. https:\\example.com\callbackGoogle
- * @see Google+ Api is being shutdown https://developers.google.com/+/api-shutdown
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'google' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
+ *             'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+ *             'oauth2ReturnUrl' => 'https://example.com/auth/google',
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @see https://developers.google.com/oauthplayground
  * @see <https://console.cloud.google.com/welcome?project=[yourProjectId]>
  */

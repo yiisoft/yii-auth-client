@@ -2,6 +2,21 @@
 
 /**
  * Note this client has not been tested yet and will fail and is just a 'shell'
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'tiktok' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\TikTok::class,
+ *             'clientId' => $_ENV['TIKTOK_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['TIKTOK_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
  */
 
 declare(strict_types=1);

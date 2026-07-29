@@ -13,6 +13,22 @@ use function sprintf;
  * LinkedIn allows authentication via LinkedIn OAuth.
  *
  * In order to use linkedIn OAuth you must register your application at <https://www.linkedin.com/secure/developer>.
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'linkedin' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\LinkedIn::class,
+ *             'clientId' => $_ENV['LINKEDIN_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['LINKEDIN_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @link https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?source=recommendations&tabs=HTTPS1
  * @link https://developer.linkedin.com/docs/oauth2
  * @link https://www.linkedin.com/secure/developer

@@ -11,6 +11,21 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * Date: 10/01/2025
  * X allows authentication via OAuth2.0 Authorization Code Flow with PKCE.
  *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'x' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\X::class,
+ *             'clientId' => $_ENV['X_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['X_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @see https://developer.twitter.com/en/portal/projects/YOURS/apps/YOURS/auth-settings
  * Developer Portal: Projects and Apps: User Authentication Settings: Edit
  * -> App Permissions: Read

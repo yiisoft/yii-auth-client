@@ -14,18 +14,18 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * Example application configuration:
  *
- * config/common/params.php:
+ * ```php
+ * // config/common/params.php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'github' => GitHub::class,
+ *         'github' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\GitHub::class,
+ *             'clientId' => $_ENV['GITHUB_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['GITHUB_CLIENT_SECRET'],
+ *         ],
  *     ],
  * ],
- *
- * config/common/di.php:
- * GitHub::class => [
- *     'setClientId()' => [$_ENV['GITHUB_API_CLIENT_ID'] ?? ''],
- *     'setClientSecret()' => [$_ENV['GITHUB_API_CLIENT_SECRET'] ?? ''],
- * ],
+ * ```
  *
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
