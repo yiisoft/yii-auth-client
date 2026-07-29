@@ -115,11 +115,12 @@ which governs the common API:
 
 Each auth client has a different auth flow. The OAuth `scope` requested from the provider defaults to each
 built-in client class's `getDefaultScope()`, and can be overridden per client via `setScope()` (e.g.
-`'setScope()' => ['profile email']` in its DI definition) without subclassing; the fields actually present in the
-user data response still depend entirely on the provider and the scope it was granted.
+`'scope' => 'profile email'` in its `clients` config entry, see [Installation](installation.md)) without
+subclassing; the fields actually present in the user data response still depend entirely on the provider and
+the scope it was granted.
 
 Additional provider-specific auth URL parameters can be configured the same way via `setAuthParams()` (e.g.
-`'setAuthParams()' => [['prompt' => 'select_account']]` in a Google client's DI definition, to force Google's account
+`'authParams' => ['prompt' => 'select_account']` in a Google client's config, to force Google's account
 chooser). These are merged into every `buildAuthUrl()` call, so they don't need to be passed at each call site.
 
 ## Adding the widget to the login view

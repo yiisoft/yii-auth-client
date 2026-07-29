@@ -10,25 +10,21 @@ Application configuration example (see [Installation](installation.md) for the g
 // config/common/params.php
 'yiisoft/yii-auth-client' => [
     'clients' => [
-        'google' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+        'google' => [
+            'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+            'title' => 'Google OpenID Connect',
+            'issuerUrl' => 'https://accounts.google.com',
+            'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+            'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+        ],
     ],
-],
-
-// config/common/di.php
-Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class => [
-    '__construct()' => [
-        'name' => 'google',
-        'title' => 'Google OpenID Connect',
-    ],
-    'setIssuerUrl()' => ['https://accounts.google.com'],
-    'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
-    'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
 ],
 ```
 
-`name` and `title` are constructor arguments (not settable afterwards) precisely so an application can register
-several differently-named `OpenIdConnect` providers (Auth0, Okta, ...) side by side without them colliding on
-session state or cached discovery data.
+The array key (`'google'`) is used as the client's `name`, so an application can register several
+differently-named `OpenIdConnect` providers (Auth0, Okta, ...) side by side without them colliding on
+session state or cached discovery data — see the [Installation](installation.md) guide's `auth0`/`okta`
+example.
 
 Authentication workflow is exactly the same as for OAuth2.
 
@@ -38,7 +34,8 @@ library for such verification; it is a regular `composer.json` dependency of thi
 step is needed.
 
 > Note: if you are using a well-trusted 'OpenID Connect' provider, you may call
-  [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withoutValidateJws()]] (e.g. `'withoutValidateJws()' => []` in
-  the client's DI definition above) to skip JWS validation, however it is not recommended as it violates the
-  protocol specification. Use [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]] to switch it
-  back on.
+  [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withoutValidateJws()]] on the resolved client instance to skip
+  JWS validation, however it is not recommended as it violates the protocol specification. This is a wither
+  (it returns a new instance rather than mutating the client), so it cannot be set via the `clients` params
+  array — that only maps config keys to `set*()` methods, see [Installation](installation.md). Use
+  [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]] to switch it back on.

@@ -91,8 +91,8 @@ final class MyAuthClient extends OAuth2
 ```
 
 `getDefaultScope()` sets the scope requested by every instance of your client. If you instead need to vary the
-scope per DI configuration without another subclass, call the inherited `setScope()` (e.g. `'setScope()' => [...]`
-in the client's DI definition) to override it at registration time.
+scope per configured instance without another subclass, use the inherited `setScope()` (e.g. `'scope' => '...'`
+in the client's `clients` config entry, see below) to override it at registration time.
 
 Then register it exactly like a built-in client (see [Installation](installation.md)):
 
@@ -100,14 +100,12 @@ Then register it exactly like a built-in client (see [Installation](installation
 // config/common/params.php
 'yiisoft/yii-auth-client' => [
     'clients' => [
-        'my_auth_client' => \App\AuthClient\MyAuthClient::class,
+        'my_auth_client' => [
+            'class' => \App\AuthClient\MyAuthClient::class,
+            'clientId' => $_ENV['MY_CLIENT_ID'],
+            'clientSecret' => $_ENV['MY_CLIENT_SECRET'],
+        ],
     ],
-],
-
-// config/common/di.php
-\App\AuthClient\MyAuthClient::class => [
-    'setClientId()' => [$_ENV['MY_CLIENT_ID']],
-    'setClientSecret()' => [$_ENV['MY_CLIENT_SECRET']],
 ],
 ```
 

@@ -95,8 +95,9 @@ final class MyAuthClient extends OAuth2
 ```
 
 `getDefaultScope()` задаёт scope, запрашиваемый каждым экземпляром вашего клиента. Если вам нужно менять scope
-в зависимости от DI-конфигурации без создания ещё одного подкласса, вызовите унаследованный метод `setScope()`
-(например, `'setScope()' => [...]` в DI-определении клиента), что бы переопределить его при регистрации.
+для конкретного настроенного экземпляра без создания ещё одного подкласса, используйте унаследованный метод
+`setScope()` (например, `'scope' => '...'` в конфигурации клиента в массиве `clients`, см. ниже), что бы
+переопределить его при регистрации.
 
 Затем зарегистрируйте его точно так же, как встроенный клиент (см. [Установка](installation.md)):
 
@@ -104,14 +105,12 @@ final class MyAuthClient extends OAuth2
 // config/common/params.php
 'yiisoft/yii-auth-client' => [
     'clients' => [
-        'my_auth_client' => \App\AuthClient\MyAuthClient::class,
+        'my_auth_client' => [
+            'class' => \App\AuthClient\MyAuthClient::class,
+            'clientId' => $_ENV['MY_CLIENT_ID'],
+            'clientSecret' => $_ENV['MY_CLIENT_SECRET'],
+        ],
     ],
-],
-
-// config/common/di.php
-\App\AuthClient\MyAuthClient::class => [
-    'setClientId()' => [$_ENV['MY_CLIENT_ID']],
-    'setClientSecret()' => [$_ENV['MY_CLIENT_SECRET']],
 ],
 ```
 

@@ -7,8 +7,9 @@ The package itself only depends on the PSR-18 interface (`psr/http-client`) - yo
 concrete implementation (e.g. [Guzzle](https://github.com/guzzle/guzzle) via `php-http/guzzle7-adapter`, or
 [Buzz](https://github.com/kriswallsmith/buzz)) and bind it in your DI container.
 
-Since all auth clients share the same `Psr\Http\Client\ClientInterface` constructor dependency, binding it once
-in `config/common/di.php` configures the HTTP client used by every auth client at once:
+All auth clients share the same `Psr\Http\Client\ClientInterface` instance, resolved from the container when
+`Collection` is built - binding it once in `config/common/di.php` configures the HTTP client used by every
+configured auth client at once:
 
 ```php
 use Psr\Http\Client\ClientInterface;
@@ -19,22 +20,10 @@ return [
 ];
 ```
 
-If a specific client needs a different HTTP client (a custom timeout, proxy, etc.), override just that
-constructor argument in its own definition:
-
-```php
-use Yiisoft\Yii\AuthClient\Client\Google;
-
-return [
-    Google::class => [
-        '__construct()' => [
-            'httpClient' => MyCustomPsr18Client::class,
-        ],
-        'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
-        'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
-    ],
-];
-```
+There is no per-client override for this - every entry in the `clients` params array (see
+[Installation](installation.md)) is built with the same system-wide `ClientInterface` binding, so a custom
+timeout or proxy needed by only one provider has to be configured on that shared client (or handled by the
+client implementation itself, e.g. a middleware-based PSR-18 client that branches on the request URI).
 
 Likewise, a PSR-17 `Psr\Http\Message\RequestFactoryInterface` is required to build outgoing requests
 (`AuthClient::createRequest()`); bind an implementation for that interface the same way.
