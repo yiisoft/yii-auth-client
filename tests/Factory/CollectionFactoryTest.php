@@ -96,6 +96,20 @@ final class CollectionFactoryTest extends TestCase
         $container = $this->createContainer();
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Client name must be a non-empty string.');
+
+        $factory($container);
+    }
+
+    public function testInvokeThrowsExceptionForEmptyStringClientName(): void
+    {
+        $factory = new CollectionFactory([
+            '' => ['class' => TestClient::class],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Client name must be a non-empty string.');
 
         $factory($container);
     }

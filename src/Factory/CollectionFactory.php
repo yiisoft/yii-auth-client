@@ -37,8 +37,8 @@ final readonly class CollectionFactory
 
         $clients = [];
         foreach ($this->clients as $name => $config) {
-            if (!is_string($name)) {
-                throw new InvalidArgumentException('Client name must be a string.');
+            if (!is_string($name) || $name === '') {
+                throw new InvalidArgumentException('Client name must be a non-empty string.');
             }
 
             if (!is_array($config) || !isset($config['class'])) {
