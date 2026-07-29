@@ -127,9 +127,10 @@ final class OpenIdConnectTest extends TestCase
     }
 
     /**
-     * getTitle() must fall back to ucfirst of the name when no explicit title is set.
+     * getTitle() must fall back to a sensible default when no explicit title is set, regardless of
+     * whether a name was configured — an empty name must not surface as an empty title.
      */
-    public function testGetTitleDefaultsToUcfirstName(): void
+    public function testGetTitleDefaultsToOpenIdConnectWhenNoTitleSet(): void
     {
         $client = new OpenIdConnect(
             $this->createStub(ClientInterface::class),
@@ -141,7 +142,24 @@ final class OpenIdConnectTest extends TestCase
         );
         $client->setName('my-oidc');
 
-        $this->assertSame('My-oidc', $client->getTitle());
+        $this->assertSame('OpenID Connect', $client->getTitle());
+    }
+
+    /**
+     * getTitle() must not return an empty string for a client that never had a name or title set.
+     */
+    public function testGetTitleDefaultsToOpenIdConnectWhenNameIsAlsoEmpty(): void
+    {
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            new ArrayCache(),
+        );
+
+        $this->assertSame('OpenID Connect', $client->getTitle());
     }
 
     public function testGetButtonClass(): void
