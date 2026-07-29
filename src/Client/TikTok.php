@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Note this client has not been tested yet and will fail and is just a 'shell'
+ * TikTok allows authentication via TikTok OAuth 2.0.
+ *
+ * @see https://developers.tiktok.com/documentation/oauth/user-access-token
  *
  * Example application configuration:
  *
@@ -28,20 +30,16 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 
 final class TikTok extends OAuth2
 {
-    protected string $authUrl = '';
-
-    protected string $tokenUrl = '';
-
-    protected string $endpoint = '';
+    protected string $authUrl = 'https://www.tiktok.com/v2/auth/authorize/';
+    protected string $tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
+    protected string $endpoint = 'https://open.tiktokapis.com/v2/user/info/';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        /**
-         * @see ... useful endpoints
-         */
-        $url = '';
-
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url',
+        );
     }
 
     public function getButtonClass(): string

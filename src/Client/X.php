@@ -57,9 +57,7 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 final class X extends OAuth2
 {
     protected string $authUrl = 'https://x.com/i/oauth2/authorize';
-
     protected string $tokenUrl = 'https://api.x.com/2/oauth2/token';
-
     protected string $endpoint = 'https://api.x.com/2/users/me';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array

@@ -36,9 +36,7 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 final class Yandex extends OAuth2
 {
     protected string $authUrl = 'https://oauth.yandex.com/authorize';
-
     protected string $tokenUrl = 'https://oauth.yandex.com/token';
-
     protected string $endpoint = 'https://login.yandex.ru';
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface

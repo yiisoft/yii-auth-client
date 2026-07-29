@@ -7,8 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
-use function sprintf;
-
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
  *
@@ -36,16 +34,16 @@ use function sprintf;
  */
 final class LinkedIn extends OAuth2
 {
-    protected string $version = 'v2';
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        $url = sprintf('https://api.linkedin.com/%s/userinfo', $this->version);
-
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            'https://api.linkedin.com/v2/userinfo',
+        );
     }
 
     public function getName(): string

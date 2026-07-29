@@ -43,9 +43,7 @@ final class Microsoft extends OAuth2
      * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#protocol-details
      */
     protected string $authUrl = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/authorize';
-
     protected string $tokenUrl = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token';
-
     protected string $endpoint = 'https://graph.microsoft.com/v1.0/me';
 
     /**

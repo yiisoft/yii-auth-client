@@ -45,9 +45,7 @@ use function strlen;
 final class VKontakte extends OAuth2
 {
     protected string $authUrl = 'https://id.vk.ru/authorize';
-
     protected string $tokenUrl = 'https://id.vk.ru/oauth2/auth';
-
     protected string $endpoint = 'https://id.vk.ru/oauth2/user_info';
 
     /**
@@ -79,7 +77,6 @@ final class VKontakte extends OAuth2
         ClientInterface $httpClient,
         RequestFactoryInterface $requestFactory,
     ): mixed {
-        $url = $this->tokenUrl;
         $data = [
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
@@ -88,7 +85,7 @@ final class VKontakte extends OAuth2
             'state' => $state,
         ];
 
-        $request = $requestFactory->createRequest('POST', $url)
+        $request = $requestFactory->createRequest('POST', $this->tokenUrl)
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
 
         // Add form body

@@ -32,16 +32,8 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  */
 final class GitHub extends OAuth2
 {
-    /**
-     * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-     */
     protected string $authUrl = 'https://github.com/login/oauth/authorize';
-
-    /**
-     * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
-     */
     protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
-
     protected string $endpoint = 'https://api.github.com';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
