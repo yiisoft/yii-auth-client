@@ -444,6 +444,10 @@ abstract class OAuth2 extends OAuth
             array_merge(['Authorization' => $authScheme . ' ' . $tokenString], $headers),
         );
 
+        if ($request->getHeaderLine('User-Agent') === '') {
+            $request = $request->withHeader('User-Agent', 'yiisoft/yii-auth-client');
+        }
+
         try {
             $body = $this->sendRequest($request)->getBody()->getContents();
         } catch (Throwable) {

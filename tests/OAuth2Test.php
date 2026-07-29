@@ -564,6 +564,42 @@ final class OAuth2Test extends TestCase
         $this->assertSame('yes', $capturedRequest->getHeaderLine('X-Extra'));
     }
 
+    public function testFetchCurrentUserJsonArrayPreservesCustomUserAgent(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['id' => 1])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $method->invoke($client, $token, 'http://api.test.local/user', ['User-Agent' => 'MyApp/1.0']);
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('MyApp/1.0', $capturedRequest->getHeaderLine('User-Agent'));
+    }
+
+    public function testFetchCurrentUserJsonArrayFallsBackToDefaultUserAgent(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['id' => 1])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $method->invoke($client, $token, 'http://api.test.local/user');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('yiisoft/yii-auth-client', $capturedRequest->getHeaderLine('User-Agent'));
+    }
+
     public function testFetchCurrentUserJsonArrayReturnsEmptyArrayOnEmptyResponseBody(): void
     {
         $httpClient = $this->httpClientReturning(new Response(200, [], ''));
