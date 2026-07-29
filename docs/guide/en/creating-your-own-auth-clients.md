@@ -91,8 +91,9 @@ final class MyAuthClient extends OAuth2
 ```
 
 `getDefaultScope()` sets the scope requested by every instance of your client. If you instead need to vary the
-scope per configured instance without another subclass, use the inherited `setScope()` (e.g. `'scope' => '...'`
-in the client's `clients` config entry, see below) to override it at registration time.
+scope per configured instance without another subclass, `OAuth2` already exposes a `scope` config key (backed
+by an inherited setter, so you don't need to add one) - set `'scope' => '...'` in the client's `clients` config
+entry (see below) to override it at registration time.
 
 Then register it exactly like a built-in client (see [Installation](installation.md)):
 
