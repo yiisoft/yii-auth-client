@@ -142,6 +142,24 @@ final class CollectionFactoryTest extends TestCase
         $factory($container);
     }
 
+    public function testInvokeThrowsExceptionForNameInConfig(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                'name' => 'other-name',
+            ],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Client 'test' cannot set 'name' via config; it is derived from the client's array key.",
+        );
+
+        $factory($container);
+    }
+
     public function testInvokeThrowsExceptionForUnknownOption(): void
     {
         $factory = new CollectionFactory([

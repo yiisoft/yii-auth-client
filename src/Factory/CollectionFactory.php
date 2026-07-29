@@ -16,6 +16,7 @@ use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function array_key_exists;
 use function is_array;
 use function is_string;
 
@@ -55,6 +56,12 @@ final readonly class CollectionFactory
                 );
             }
             unset($config['class']);
+
+            if (array_key_exists('name', $config)) {
+                throw new InvalidArgumentException(
+                    "Client '$name' cannot set 'name' via config; it is derived from the client's array key.",
+                );
+            }
 
             if (is_subclass_of($class, OpenIdConnect::class) || $class === OpenIdConnect::class) {
                 $cache = $container->get(CacheInterface::class);
