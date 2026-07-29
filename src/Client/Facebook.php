@@ -142,7 +142,7 @@ final class Facebook extends OAuth2
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
      *
-     * @return numeric-string client auth code.
+     * @return string client auth code.
      */
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
@@ -169,7 +169,16 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        return (string) $response->getStatusCode();
+        /**
+         * @infection-ignore-all
+         * The `(array)` cast only changes behavior when the body decodes to a non-array scalar (e.g. a bare
+         * number). In that case `$responseParams['code']` still safely evaluates to `??`'s fallback with or
+         * without the cast (PHP does not warn/error on `??`-guarded offset access into a scalar), so removing
+         * the cast is behaviorally unobservable through this method's return value.
+         */
+        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+
+        return (string) ($responseParams['code'] ?? '');
     }
 
     /**

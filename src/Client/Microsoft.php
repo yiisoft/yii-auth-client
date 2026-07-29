@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Client;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+
+use function str_contains;
 
 /**
  * Tested 09/01/2025
@@ -82,6 +85,24 @@ final class Microsoft extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
     }
 
+    public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
+    {
+        $this->substituteTenantPlaceholders();
+        return parent::buildAuthUrl($incomingRequest, $params);
+    }
+
+    public function fetchAccessToken(ServerRequestInterface $incomingRequest, string $authCode, array $params = []): OAuthToken
+    {
+        $this->substituteTenantPlaceholders();
+        return parent::fetchAccessToken($incomingRequest, $authCode, $params);
+    }
+
+    public function refreshAccessToken(OAuthToken $token): OAuthToken
+    {
+        $this->substituteTenantPlaceholders();
+        return parent::refreshAccessToken($token);
+    }
+
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
         return $this->fetchCurrentUserJsonArray(
@@ -137,5 +158,19 @@ final class Microsoft extends OAuth2
     protected function getDefaultScope(): string
     {
         return 'offline_access User.Read';
+    }
+
+    /**
+     * Resolves the `{$tenant}` placeholder in {@see authUrl}/{@see tokenUrl} against {@see tenant}, unless
+     * either URL was already overridden via {@see setAuthUrl()}/{@see setTokenUrl()}.
+     */
+    private function substituteTenantPlaceholders(): void
+    {
+        if (str_contains($this->authUrl, '{$tenant}')) {
+            $this->authUrl = $this->getAuthUrlWithTenantInserted($this->tenant);
+        }
+        if (str_contains($this->tokenUrl, '{$tenant}')) {
+            $this->tokenUrl = $this->getTokenUrlWithTenantInserted($this->tenant);
+        }
     }
 }

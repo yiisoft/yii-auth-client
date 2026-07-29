@@ -88,16 +88,27 @@ final class MicrosoftTest extends ProviderClientTestCase
         $this->assertSame('https://login.microsoftonline.com/contoso/oauth2/v2.0/token', $tokenUrl);
     }
 
-    public function testBuildAuthUrlRequiresExplicitTenantSubstitution(): void
+    public function testBuildAuthUrlSubstitutesDefaultTenantAutomatically(): void
     {
         $client = $this->createMicrosoftClient();
         $client->setClientId('client-id');
         $client->setOauth2ReturnUrl('http://return.local');
-        $client->setAuthUrl($client->getAuthUrlWithTenantInserted($client->getTenant()));
 
         $authUrl = $client->buildAuthUrl($this->createServerRequestStub());
 
         $this->assertStringStartsWith('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?', $authUrl);
+    }
+
+    public function testBuildAuthUrlSubstitutesConfiguredTenantAutomatically(): void
+    {
+        $client = $this->createMicrosoftClient();
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $client->setTenant('contoso');
+
+        $authUrl = $client->buildAuthUrl($this->createServerRequestStub());
+
+        $this->assertStringStartsWith('https://login.microsoftonline.com/contoso/oauth2/v2.0/authorize?', $authUrl);
     }
 
     public function testSetTokenUrlOverridesTokenUrl(): void
@@ -107,6 +118,64 @@ final class MicrosoftTest extends ProviderClientTestCase
         $client->setTokenUrl('https://login.microsoftonline.com/contoso/oauth2/v2.0/token');
 
         $this->assertSame('https://login.microsoftonline.com/contoso/oauth2/v2.0/token', $client->getTokenUrl());
+    }
+
+    public function testSetAuthUrlOverrideIsNotClobberedByTenantSubstitution(): void
+    {
+        $client = $this->createMicrosoftClient();
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $client->setAuthUrl('https://login.example.com/custom/authorize');
+
+        $authUrl = $client->buildAuthUrl($this->createServerRequestStub());
+
+        $this->assertStringStartsWith('https://login.example.com/custom/authorize?', $authUrl);
+    }
+
+    public function testFetchAccessTokenSubstitutesTenantInTokenUrl(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createMicrosoftClient($httpClient)->withoutValidateAuthState();
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $client->setTenant('contoso');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertStringStartsWith(
+            'https://login.microsoftonline.com/contoso/oauth2/v2.0/token',
+            (string) $capturedRequest->getUri(),
+        );
+    }
+
+    public function testRefreshAccessTokenSubstitutesTenantInTokenUrl(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createMicrosoftClient($httpClient);
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $client->setTenant('contoso');
+        $token = new OAuthToken();
+        $token->setToken('old-token');
+
+        $client->refreshAccessToken($token);
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertStringStartsWith(
+            'https://login.microsoftonline.com/contoso/oauth2/v2.0/token',
+            (string) $capturedRequest->getUri(),
+        );
     }
 
     public function testGetCurrentUserJsonArrayReturnsDecodedResponseBody(): void
@@ -171,5 +240,18 @@ final class MicrosoftTest extends ProviderClientTestCase
             new YiisoftFactory(),
             new Session(),
         );
+    }
+
+    private function httpClientCapturing(ResponseInterface $response, ?RequestInterface &$capturedRequest): ClientInterface
+    {
+        return new class ($response, $capturedRequest) implements ClientInterface {
+            public function __construct(private readonly ResponseInterface $response, private ?RequestInterface &$capturedRequest) {}
+
+            public function sendRequest(RequestInterface $request): ResponseInterface
+            {
+                $this->capturedRequest = $request;
+                return $this->response;
+            }
+        };
     }
 }
