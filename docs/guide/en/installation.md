@@ -73,7 +73,7 @@ setter methods on the client class — see the class API for available setters:
 |-----------|--------|-------------|
 | `title` | `setTitle()` | All clients |
 | `clientId` | `setClientId()` | All OAuth2 clients |
-| `clientSecret` | `setClientSecret()` | All OAuth2 clients |
+| `clientSecret` | `setClientSecret()` | All OAuth2 clients except VKontakte (PKCE-only, sends no secret) |
 | `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | All OAuth2 clients |
 | `scope` | `setScope()` | All OAuth clients |
 | `authUrl` | `setAuthUrl()` | All OAuth clients |
@@ -98,8 +98,8 @@ Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthCl
 - [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect|OpenIdConnect]], for any provider speaking the OpenID Connect
   protocol (Auth0, Okta, Google, Microsoft Entra ID, ...) — see the [OpenID Connect](open-id-connect.md) guide.
 
-Configuration for each client is a bit different. All of them require a client ID and secret key issued by the
-service you're going to use.
+Configuration for each client is a bit different. Most require a client ID and secret key issued by the service
+you're going to use — the exception is VKontakte, which uses PKCE and only needs a client ID.
 
 ## Storing authorization data
 

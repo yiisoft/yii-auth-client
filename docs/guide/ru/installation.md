@@ -73,7 +73,7 @@ return [
 |-----------|--------|-------------|
 | `title` | `setTitle()` | Все клиенты |
 | `clientId` | `setClientId()` | Все OAuth2-клиенты |
-| `clientSecret` | `setClientSecret()` | Все OAuth2-клиенты |
+| `clientSecret` | `setClientSecret()` | Все OAuth2-клиенты, кроме VKontakte (только PKCE, секрет не отправляется) |
 | `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | Все OAuth2-клиенты |
 | `scope` | `setScope()` | Все OAuth-клиенты |
 | `authUrl` | `setAuthUrl()` | Все OAuth-клиенты |
@@ -98,8 +98,9 @@ return [
 - [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect|OpenIdConnect]] - для любого провайдера, поддерживающего протокол
   OpenID Connect (Auth0, Okta, Google, Microsoft Entra ID и т.д.) - см. руководство [OpenID Connect](open-id-connect.md).
 
-Конфигурация для каждого клиента немного отличается. Для всех них требуется ID клиента и секретный ключ,
-выданные сервисом, который вы собираетесь использовать.
+Конфигурация для каждого клиента немного отличается. Для большинства из них требуется ID клиента и секретный
+ключ, выданные сервисом, который вы собираетесь использовать — исключение VKontakte, который использует PKCE
+и требует только ID клиента.
 
 ## Хранение данных авторизации
 
