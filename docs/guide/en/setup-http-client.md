@@ -20,10 +20,10 @@ return [
 ];
 ```
 
-There is no per-client override for this - every entry in the `clients` params array (see
-[Installation](installation.md)) is built with the same system-wide `ClientInterface` binding, so a custom
-timeout or proxy needed by only one provider has to be configured on that shared client (or handled by the
-client implementation itself, e.g. a middleware-based PSR-18 client that branches on the request URI).
+Every entry in the `clients` params array (see [Installation](installation.md)) is built with this same
+system-wide `ClientInterface` binding, so a custom timeout or proxy needed by only one provider has to be
+configured on that shared client (or handled by the client implementation itself, e.g. a middleware-based
+PSR-18 client that branches on the request URI).
 
 Likewise, a PSR-17 `Psr\Http\Message\RequestFactoryInterface` is required to build outgoing requests
 (`AuthClient::createRequest()`); bind an implementation for that interface the same way.
