@@ -21,6 +21,7 @@ use function array_key_exists;
  *             'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
  *             'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
  *             'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+ *             'oauth2ReturnUrl' => 'https://example.com/auth/google',
  *         ],
  *         'facebook' => [
  *             'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
