@@ -41,10 +41,6 @@ final readonly class CollectionFactory
                 throw new InvalidArgumentException('Client name must be a string.');
             }
 
-            if (is_string($config)) {
-                $config = ['class' => $config];
-            }
-
             if (!is_array($config) || !isset($config['class'])) {
                 throw new InvalidArgumentException(
                     "Client '$name' must be an array with a 'class' key.",

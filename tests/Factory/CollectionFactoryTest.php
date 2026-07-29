@@ -112,6 +112,22 @@ final class CollectionFactoryTest extends TestCase
         $factory($container);
     }
 
+    public function testInvokeThrowsExceptionForNonStringConfigKey(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                0 => 'value',
+            ],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Configuration key');
+
+        $factory($container);
+    }
+
     public function testInvokeThrowsExceptionForUnknownOption(): void
     {
         $factory = new CollectionFactory([
