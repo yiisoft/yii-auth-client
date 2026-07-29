@@ -111,15 +111,6 @@ final class MicrosoftTest extends ProviderClientTestCase
         $this->assertStringStartsWith('https://login.microsoftonline.com/contoso/oauth2/v2.0/authorize?', $authUrl);
     }
 
-    public function testSetTokenUrlOverridesTokenUrl(): void
-    {
-        $client = $this->createMicrosoftClient();
-
-        $client->setTokenUrl('https://login.microsoftonline.com/contoso/oauth2/v2.0/token');
-
-        $this->assertSame('https://login.microsoftonline.com/contoso/oauth2/v2.0/token', $client->getTokenUrl());
-    }
-
     public function testSetAuthUrlOverrideIsNotClobberedByTenantSubstitution(): void
     {
         $client = $this->createMicrosoftClient();
@@ -176,6 +167,26 @@ final class MicrosoftTest extends ProviderClientTestCase
             'https://login.microsoftonline.com/contoso/oauth2/v2.0/token',
             (string) $capturedRequest->getUri(),
         );
+    }
+
+    public function testSetTokenUrlOverrideIsNotClobberedByTenantSubstitution(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createMicrosoftClient($httpClient)->withoutValidateAuthState();
+        $client->setClientId('client-id');
+        $client->setClientSecret('client-secret');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $client->setTokenUrl('https://login.example.com/custom/token');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertStringStartsWith('https://login.example.com/custom/token', (string) $capturedRequest->getUri());
     }
 
     public function testGetCurrentUserJsonArrayReturnsDecodedResponseBody(): void
