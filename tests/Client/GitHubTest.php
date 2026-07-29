@@ -86,6 +86,20 @@ final class GitHubTest extends ProviderClientTestCase
         $this->assertSame(['login' => 'octocat'], $result);
     }
 
+    public function testGetCurrentUserJsonArraySendsRequestToExpectedUrl(): void
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient->expects(self::once())
+            ->method('sendRequest')
+            ->with(self::callback(fn(RequestInterface $request): bool => (string) $request->getUri() === 'https://api.github.com/user'))
+            ->willReturn(new Response(200, [], (string) json_encode(['login' => 'octocat'])));
+        $client = $this->createGitHubClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+
+        $client->getCurrentUserJsonArray($token);
+    }
+
     public function testGetCurrentUserJsonArraySendsUserAgentHeader(): void
     {
         $httpClient = $this->createMock(ClientInterface::class);

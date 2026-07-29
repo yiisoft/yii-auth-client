@@ -42,7 +42,7 @@ final class LinkedIn extends OAuth2
     {
         return $this->fetchCurrentUserJsonArray(
             $token,
-            'https://api.linkedin.com/v2/userinfo',
+            $this->endpoint . '/userinfo',
         );
     }
 

@@ -43,7 +43,7 @@ final class Google extends OAuth2
     {
         return $this->fetchCurrentUserJsonArray(
             $token,
-            'https://www.googleapis.com/oauth2/v2/userinfo',
+            $this->endpoint,
         );
     }
 

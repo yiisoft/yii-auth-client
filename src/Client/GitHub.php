@@ -40,7 +40,7 @@ final class GitHub extends OAuth2
     {
         return $this->fetchCurrentUserJsonArray(
             $token,
-            'https://api.github.com/user',
+            $this->endpoint . '/user',
         );
     }
 

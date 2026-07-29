@@ -86,7 +86,7 @@ final class Microsoft extends OAuth2
     {
         return $this->fetchCurrentUserJsonArray(
             $token,
-            'https://graph.microsoft.com/v1.0/me',
+            $this->endpoint,
             ['Content-Type' => 'application/json'],
         );
     }

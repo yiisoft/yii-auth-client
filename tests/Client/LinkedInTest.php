@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\LinkedIn;
@@ -82,6 +83,20 @@ final class LinkedInTest extends ProviderClientTestCase
         $result = $client->getCurrentUserJsonArray($token);
 
         $this->assertSame(['sub' => 'abc'], $result);
+    }
+
+    public function testGetCurrentUserJsonArraySendsRequestToExpectedUrl(): void
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient->expects(self::once())
+            ->method('sendRequest')
+            ->with(self::callback(fn(RequestInterface $request): bool => (string) $request->getUri() === 'https://api.linkedin.com/v2/userinfo'))
+            ->willReturn(new Response(200, [], (string) json_encode(['sub' => 'abc'])));
+        $client = $this->createLinkedInClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+
+        $client->getCurrentUserJsonArray($token);
     }
 
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void

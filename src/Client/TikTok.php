@@ -38,7 +38,7 @@ final class TikTok extends OAuth2
     {
         return $this->fetchCurrentUserJsonArray(
             $token,
-            'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url',
+            $this->endpoint . '?fields=open_id,display_name,avatar_url',
         );
     }
 
