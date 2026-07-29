@@ -269,7 +269,11 @@ final class OpenIdConnect extends OAuth2
 
     public function getTitle(): string
     {
-        return $this->title ?: 'OpenID Connect';
+        if ($this->title !== '') {
+            return $this->title;
+        }
+
+        return $this->name !== '' ? ucfirst($this->name) : 'OpenID Connect';
     }
 
     public function getButtonClass(): string
