@@ -58,12 +58,12 @@ final class X extends OAuth2
 
     public function getName(): string
     {
-        return 'x';
+        return $this->name ?: 'x';
     }
 
     public function getTitle(): string
     {
-        return 'X';
+        return $this->title ?: 'X';
     }
 
     public function getButtonClass(): string

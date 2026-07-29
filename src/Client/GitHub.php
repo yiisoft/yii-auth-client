@@ -62,12 +62,12 @@ final class GitHub extends OAuth2
 
     public function getName(): string
     {
-        return 'github';
+        return $this->name ?: 'github';
     }
 
     public function getTitle(): string
     {
-        return 'GitHub';
+        return $this->title ?: 'GitHub';
     }
 
     public function getButtonClass(): string

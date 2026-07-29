@@ -80,12 +80,12 @@ final class MicrosoftOnline extends OAuth2
 
     public function getName(): string
     {
-        return 'microsoftonline';
+        return $this->name ?: 'microsoftonline';
     }
 
     public function getTitle(): string
     {
-        return 'MicrosoftOnline';
+        return $this->title ?: 'MicrosoftOnline';
     }
 
     public function getButtonClass(): string

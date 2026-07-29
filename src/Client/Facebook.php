@@ -213,12 +213,12 @@ final class Facebook extends OAuth2
 
     public function getName(): string
     {
-        return 'facebook';
+        return $this->name ?: 'facebook';
     }
 
     public function getTitle(): string
     {
-        return 'Facebook';
+        return $this->title ?: 'Facebook';
     }
 
     public function getButtonClass(): string

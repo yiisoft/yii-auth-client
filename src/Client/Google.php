@@ -46,12 +46,12 @@ final class Google extends OAuth2
 
     public function getName(): string
     {
-        return 'google';
+        return $this->name ?: 'google';
     }
 
     public function getTitle(): string
     {
-        return 'Google';
+        return $this->title ?: 'Google';
     }
 
     public function getButtonClass(): string

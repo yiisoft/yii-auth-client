@@ -23,8 +23,7 @@ service built from the `yiisoft/yii-auth-client.clients` parameter.
 
 ## Configuring application
 
-After the extension is installed, list the auth clients you want to use in your application's params, and
-register each client class as a DI definition so its `clientId`/`clientSecret` can be set.
+After the extension is installed, configure the auth clients you want to use in your application's params.
 
 `config/common/params.php` (merged over the package's own `params.php`):
 
@@ -32,36 +31,58 @@ register each client class as a DI definition so its `clientId`/`clientSecret` c
 return [
     'yiisoft/yii-auth-client' => [
         'clients' => [
-            'google' => Yiisoft\Yii\AuthClient\Client\Google::class,
-            'facebook' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
-            // etc.
+            'google' => [
+                'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
+                'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+                'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+                // Required: OAuth2::getOauth2ReturnUrl() has no request-derived fallback, so an unset
+                // redirect_uri is sent as empty. Google rejects that outright ("Missing required
+                // parameter: redirect_uri"); must match the callback URL registered in the Google Cloud
+                // Console exactly.
+                'oauth2ReturnUrl' => 'https://example.com/auth/google',
+            ],
+            'facebook' => [
+                'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+                'clientId' => $_ENV['FACEBOOK_CLIENT_ID'],
+                'clientSecret' => $_ENV['FACEBOOK_CLIENT_SECRET'],
+            ],
+            // Multiple instances of the same class are supported:
+            'auth0' => [
+                'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+                'title' => 'Auth0',
+                'clientId' => $_ENV['AUTH0_CLIENT_ID'],
+                'clientSecret' => $_ENV['AUTH0_CLIENT_SECRET'],
+                'issuerUrl' => 'https://your-tenant.auth0.com/',
+            ],
+            'okta' => [
+                'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+                'title' => 'Okta',
+                'clientId' => $_ENV['OKTA_CLIENT_ID'],
+                'clientSecret' => $_ENV['OKTA_CLIENT_SECRET'],
+                'issuerUrl' => 'https://your-org.okta.com/',
+            ],
         ],
     ],
 ];
 ```
 
-`config/common/di.php`:
+The array key (`'google'`, `'facebook'`, etc.) is used as the client's `name`. Additional options map to
+setter methods on the client class — see the class API for available setters:
 
-```php
-use Yiisoft\Yii\AuthClient\Client\Facebook;
-use Yiisoft\Yii\AuthClient\Client\Google;
-
-return [
-    Google::class => [
-        'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
-        'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
-        // Required: OAuth2::getOauth2ReturnUrl() has no request-derived fallback, so an unset
-        // redirect_uri is sent as empty. Google rejects that outright ("Missing required
-        // parameter: redirect_uri"); must match the callback URL registered in the Google Cloud
-        // Console exactly.
-        'setOauth2ReturnUrl()' => ['https://example.com/auth/google'],
-    ],
-    Facebook::class => [
-        'setClientId()' => [$_ENV['FACEBOOK_CLIENT_ID']],
-        'setClientSecret()' => [$_ENV['FACEBOOK_CLIENT_SECRET']],
-    ],
-];
-```
+| Config key | Setter | Available on |
+|-----------|--------|-------------|
+| `title` | `setTitle()` | All clients |
+| `clientId` | `setClientId()` | All OAuth2 clients |
+| `clientSecret` | `setClientSecret()` | All OAuth2 clients |
+| `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | All OAuth2 clients |
+| `scope` | `setScope()` | All OAuth clients |
+| `authUrl` | `setAuthUrl()` | All OAuth clients |
+| `tokenUrl` | `setTokenUrl()` | All OAuth2 clients |
+| `authParams` | `setAuthParams()` | All OAuth2 clients |
+| `returnUrl` | `setReturnUrl()` | All OAuth clients |
+| `issuerUrl` | `setIssuerUrl()` | OpenIdConnect |
+| `validateAuthNonce` | `setValidateAuthNonce()` | OpenIdConnect |
+| `tenant` | `setTenant()` | MicrosoftOnline |
 
 Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthClient\Client`):
 

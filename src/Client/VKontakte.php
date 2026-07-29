@@ -197,12 +197,12 @@ final class VKontakte extends OAuth2
 
     public function getName(): string
     {
-        return 'vkontakte';
+        return $this->name ?: 'vkontakte';
     }
 
     public function getTitle(): string
     {
-        return 'VKontakte';
+        return $this->title ?: 'VKontakte';
     }
 
     public function getButtonClass(): string

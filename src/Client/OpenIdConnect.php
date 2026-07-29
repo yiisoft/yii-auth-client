@@ -136,8 +136,6 @@ final class OpenIdConnect extends OAuth2
         Factory $factory,
         SessionInterface $session,
         private readonly CacheInterface $cache,
-        private readonly string $name,
-        private readonly string $title,
     ) {
         parent::__construct($httpClient, $requestFactory, $stateStorage, $factory, $session);
     }
@@ -250,12 +248,12 @@ final class OpenIdConnect extends OAuth2
 
     public function getName(): string
     {
-        return $this->name;
+        return $this->name ?: 'openid-connect';
     }
 
     public function getTitle(): string
     {
-        return $this->title;
+        return $this->title ?: ucfirst($this->name);
     }
 
     public function getButtonClass(): string

@@ -34,12 +34,12 @@ final class LinkedIn extends OAuth2
 
     public function getName(): string
     {
-        return 'linkedin';
+        return $this->name ?: 'linkedin';
     }
 
     public function getTitle(): string
     {
-        return 'LinkedIn';
+        return $this->title ?: 'LinkedIn';
     }
 
     public function getButtonClass(): string

@@ -36,12 +36,12 @@ final class TikTok extends OAuth2
 
     public function getName(): string
     {
-        return 'tiktok';
+        return $this->name ?: 'tiktok';
     }
 
     public function getTitle(): string
     {
-        return 'TikTok';
+        return $this->title ?: 'TikTok';
     }
 
     protected function initUserAttributes(): array

@@ -49,12 +49,12 @@ final class Yandex extends OAuth2
 
     public function getName(): string
     {
-        return 'yandex';
+        return $this->name ?: 'yandex';
     }
 
     public function getTitle(): string
     {
-        return 'Yandex';
+        return $this->title ?: 'Yandex';
     }
 
     protected function initUserAttributes(): array
