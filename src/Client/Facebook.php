@@ -39,7 +39,7 @@ use const PHP_QUERY_RFC3986;
  */
 final class Facebook extends OAuth2
 {
-    protected string $graphApiVersion = 'v23.0';
+    protected string $graphApiVersion = 'v25.0';
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
