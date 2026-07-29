@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
+use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
@@ -111,6 +112,51 @@ final class VKontakteTest extends ProviderClientTestCase
         parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
         $this->assertSame('select_account', $query['prompt']);
         $this->assertSame('S256', $query['code_challenge_method']);
+    }
+
+    public function testFetchAccessTokenThrowsWhenIncomingStateDoesNotMatch(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $buildClient->buildAuthUrl($this->createServerRequestStub());
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => 'wrong-state']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsMissing(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $buildClient->buildAuthUrl($this->createServerRequestStub());
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenThrowsWhenAuthStateWasNeverGenerated(): void
+    {
+        $client = $this->createVKontakteClient();
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => '']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
     }
 
     public function testFetchAccessTokenSendsCodeVerifierAndDeviceIdWithoutClientSecret(): void
