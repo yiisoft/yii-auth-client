@@ -74,10 +74,6 @@ final readonly class CollectionFactory
                         "Configuration key for client '$name' must be a string.",
                     );
                 }
-                /**
-                 * @infection-ignore-all
-                 * PHP method names are case-insensitive, so ucfirst has no observable effect here.
-                 */
                 $setter = 'set' . ucfirst($key);
                 if (!method_exists($client, $setter)) {
                     throw new InvalidArgumentException(

@@ -153,6 +153,10 @@ final class CollectionFactoryTest extends TestCase
         $container = $this->createContainer();
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Unknown configuration option 'nonexistent' for client 'test'. "
+            . "No setter method 'setNonexistent()' found on " . TestClient::class . '.',
+        );
 
         $factory($container);
     }

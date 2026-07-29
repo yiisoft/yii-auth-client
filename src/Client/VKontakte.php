@@ -195,14 +195,7 @@ final class VKontakte extends OAuth2
                 return (array) json_decode($body, true);
             }
         } catch (Throwable) {
-            /**
-             * @infection-ignore-all
-             * This return is redundant with (and unobservably identical to) the unconditional
-             * `return [];` immediately following the try/catch, which control flow falls through to
-             * either way once the catch block finishes.
-             */
             // Optionally log error: $e->getMessage()
-            return [];
         }
 
         return [];
@@ -310,14 +303,7 @@ final class VKontakte extends OAuth2
                 return (array) json_decode($body, true);
             }
         } catch (Throwable) {
-            /**
-             * @infection-ignore-all
-             * This return is redundant with (and unobservably identical to) the unconditional
-             * `return [];` immediately following the try/catch, which control flow falls through to
-             * either way once the catch block finishes.
-             */
             // Optionally log error: $e->getMessage()
-            return [];
         }
 
         return [];
