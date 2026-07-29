@@ -32,14 +32,11 @@ namespace App\AuthClient;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Override;
 
 final class MyAuthClient extends OAuth2
 {
     protected string $authUrl = 'https://www.my.com/oauth2/auth';
-
     protected string $tokenUrl = 'https://www.my.com/oauth2/token';
-
     protected string $endpoint = 'https://www.my.com/apis/oauth2/v1';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
@@ -47,7 +44,6 @@ final class MyAuthClient extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $this->endpoint . '/userinfo');
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -55,25 +51,21 @@ final class MyAuthClient extends OAuth2
         return $token instanceof OAuthToken ? $this->getCurrentUserJsonArray($token) : [];
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'my_auth_client';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'My Auth Client';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary';
     }
 
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -82,7 +74,6 @@ final class MyAuthClient extends OAuth2
         ];
     }
 
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'profile email';
@@ -116,7 +107,6 @@ your application expects, or you want a consistent shape across several differen
 `defaultNormalizeUserAttributeMap()` to remap/derive attributes without changing `initUserAttributes()` itself:
 
 ```php
-#[Override]
 protected function defaultNormalizeUserAttributeMap(): array
 {
     return [
