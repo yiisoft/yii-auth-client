@@ -40,14 +40,14 @@ final class AuthChoiceAsset extends AssetBundle
 
     /** @var array */
     public array $jsStrings = [
-        'authchoice-init' => <<<'JS'
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('[data-authchoice]').forEach(container => {
-                    const options = container.dataset.authchoice ? JSON.parse(container.dataset.authchoice) : {};
-                    authchoice(container, options);
-                });
+        'authchoice-init' => <<<'JS_WRAP'
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-authchoice]').forEach(container => {
+                const options = container.dataset.authchoice ? JSON.parse(container.dataset.authchoice) : {};
+                authchoice(container, options);
             });
-            JS,
+        });
+        JS_WRAP,
     ];
 
     public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
