@@ -44,7 +44,7 @@ function authchoice(container, options = {}) {
 
         popup = window.open(
             link.href,
-            'yii_auth_choice',
+            'auth_choice',
             Object.entries({
                 ...settings.popup,
                 width,
