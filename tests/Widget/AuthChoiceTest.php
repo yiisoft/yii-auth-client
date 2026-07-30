@@ -33,13 +33,6 @@ use function dirname;
 
 final class AuthChoiceTest extends TestCase
 {
-    public function testGetIdIsFixed(): void
-    {
-        $widget = $this->createWidget();
-
-        $this->assertSame('yii-auth-client', $widget->getId());
-    }
-
     public function testGetClientsReturnsClientsFromCollection(): void
     {
         $client = $this->createTestClient();
@@ -454,7 +447,6 @@ final class AuthChoiceTest extends TestCase
         $output = ob_get_clean();
 
         $this->assertStringContainsString('<div', $output);
-        $this->assertStringContainsString('id="yii-auth-client"', $output);
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
@@ -494,7 +486,6 @@ final class AuthChoiceTest extends TestCase
 
         $rendered = $widget->render();
 
-        $this->assertStringContainsString('id="yii-auth-client"', $rendered);
         $this->assertStringContainsString('data-authchoice', $rendered);
     }
 

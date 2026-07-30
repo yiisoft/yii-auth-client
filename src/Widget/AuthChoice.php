@@ -138,11 +138,6 @@ final class AuthChoice extends Widget
         return null;
     }
 
-    public function getId(): string
-    {
-        return 'yii-auth-client';
-    }
-
     /**
      * Runs the widget.
      *
@@ -428,8 +423,6 @@ final class AuthChoice extends Widget
             return '';
         }
         $this->openTagRendered = true;
-
-        $this->options['id'] = $this->getId();
 
         if ($this->popupMode) {
             $this->assetManager->register(AuthChoiceAsset::class);
