@@ -367,6 +367,50 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
     }
 
+    public function testIconWidthReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconWidth('32'));
+    }
+
+    public function testIconWidthSetToNullOmitsWidthAttribute(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconWidth(null);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringNotContainsString('width=', html_entity_decode($html));
+        $this->assertStringContainsString('height="24"', html_entity_decode($html));
+    }
+
+    public function testIconHeightReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconHeight('32'));
+    }
+
+    public function testIconHeightSetToNullOmitsHeightAttribute(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconHeight(null);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringNotContainsString('height=', html_entity_decode($html));
+        $this->assertStringContainsString('width="24"', html_entity_decode($html));
+    }
+
     public function testRenderClientLogoIncludesViewBoxForRegistryLogo(): void
     {
         $client = new Google(

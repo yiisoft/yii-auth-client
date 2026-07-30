@@ -105,6 +105,16 @@ final class AuthChoice extends Widget
     private array $iconAttributes = [];
 
     /**
+     * @var string|null width of SVG icons. Set to null to omit the width attribute (e.g., when CSS handles sizing).
+     */
+    private string|null $iconWidth = '24';
+
+    /**
+     * @var string|null height of SVG icons. Set to null to omit the height attribute (e.g., when CSS handles sizing).
+     */
+    private string|null $iconHeight = '24';
+
+    /**
      * @var array HTML attributes for auth links, merged with the default `['class' => 'auth-link']`.
      * Default: Bootstrap button classes `['class' => 'btn btn-primary']`.
      */
@@ -302,6 +312,30 @@ final class AuthChoice extends Widget
     }
 
     /**
+     * @param string|null $iconWidth width of SVG icons (e.g., '24'). Set to null to omit the attribute.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function iconWidth(string|null $iconWidth): self
+    {
+        $this->iconWidth = $iconWidth;
+        return $this;
+    }
+
+    /**
+     * @param string|null $iconHeight height of SVG icons (e.g., '24'). Set to null to omit the attribute.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function iconHeight(string|null $iconHeight): self
+    {
+        $this->iconHeight = $iconHeight;
+        return $this;
+    }
+
+    /**
      * @param array $linkAttributes HTML attributes for auth links, merged with default `['class' => 'auth-link']`.
      * Use this to apply framework-specific classes (e.g., Bootstrap's 'btn btn-outline-secondary').
      * Must be called before {@see begin()}/{@see render()} to take effect.
@@ -370,7 +404,13 @@ final class AuthChoice extends Widget
         /** @infection-ignore-all Client-provided logo (setLogo) takes precedence over registry default */
         $svg = $client->getLogo() ?? LogoRegistry::getLogo($client->getName());
         if ($svg !== null) {
-            $attrs = ['class' => 'auth-icon', 'xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'width' => '24', 'height' => '24', 'preserveAspectRatio' => 'xMidYMid meet'];
+            $attrs = ['class' => 'auth-icon', 'xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'preserveAspectRatio' => 'xMidYMid meet'];
+            if ($this->iconWidth !== null) {
+                $attrs['width'] = $this->iconWidth;
+            }
+            if ($this->iconHeight !== null) {
+                $attrs['height'] = $this->iconHeight;
+            }
             $viewBox = LogoRegistry::getViewBox($client->getName());
             /** @infection-ignore-all Only add viewBox when available to preserve aspect ratio for different logos */
             if ($viewBox !== null) {
