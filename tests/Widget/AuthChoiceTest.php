@@ -319,6 +319,20 @@ final class AuthChoiceTest extends TestCase
         $this->assertSame($widget, $widget->clientOptions([]));
     }
 
+    public function testClientOptionsPassedToJsInvocation(): void
+    {
+        $webView = new WebView();
+        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())
+            ->popupMode(true)
+            ->clientOptions(['triggerSelector' => '.my-link']);
+
+        $widget->render();
+
+        $js = $this->getRegisteredJsScript($webView);
+        $this->assertNotNull($js);
+        $this->assertStringContainsString('triggerSelector', $js);
+    }
+
     public function testLinkAttributesReturnsSelfForChaining(): void
     {
         $widget = $this->createWidget();
