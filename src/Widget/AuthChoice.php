@@ -224,11 +224,12 @@ final class AuthChoice extends Widget
         if (!isset($htmlOptions['title'])) {
             $htmlOptions['title'] = $client->getTitle();
         }
+        $hasExplicitClass = isset($htmlOptions['class']);
         Html::addCssClass($htmlOptions, ['widget' => 'auth-link']);
         foreach ($this->linkAttributes as $key => $value) {
             if ($key !== 'class') {
                 $htmlOptions[$key] = $value;
-            } else {
+            } elseif (!$hasExplicitClass) {
                 Html::addCssClass($htmlOptions, (string) $value);
             }
         }

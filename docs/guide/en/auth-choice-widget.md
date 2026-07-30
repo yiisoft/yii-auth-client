@@ -77,9 +77,8 @@ which, per client, renders something like:
 ```
 
 `clientLink()`'s `$text` argument, when given, is HTML-encoded and replaces the default icon.
-The `$htmlOptions` argument is merged into the link's HTML attributes: the widget always appends `auth-link` 
-and the default Bootstrap classes (`btn btn-primary`), so any explicit `class` you pass will be added to these, 
-not replace them.
+The `$htmlOptions` argument is merged into the link's HTML attributes: the widget always appends `auth-link`,
+but if you provide an explicit `class`, the default Bootstrap classes (`btn btn-primary`) are not added.
 An explicit `title` replaces the default (the client's `getTitle()`). In popup mode, 
 `data-popup-width`/`data-popup-height` are always taken from the client's `getViewOptions()` and can't be 
 overridden this way.
