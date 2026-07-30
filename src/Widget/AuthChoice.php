@@ -169,14 +169,6 @@ final class AuthChoice extends Widget
         return $this->clients;
     }
 
-    /**
-     * @param array<string, OAuth2> $clients
-     */
-    public function setClients(array $clients): void
-    {
-        $this->clients = $clients;
-    }
-
     public function getClient(string $name): OAuth2
     {
         $clients = array_filter(
@@ -303,11 +295,6 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @internal Temporary debug method. Shows all display mode variants.
-     * Must be called before {@see begin()}/{@see render()} to take effect.
-     */
-
-    /**
      * @param array $iconAttributes HTML attributes for SVG icons, merged with default `['class' => 'auth-icon']`.
      * Must be called before {@see begin()}/{@see render()} to take effect.
      *
@@ -355,13 +342,6 @@ final class AuthChoice extends Widget
         $this->clientOptions = $clientOptions;
         return $this;
     }
-
-    /**
-     * Note: Popup window with {$authRoute} e.g. 'auth/authclient'
-     * @param array $provider
-     * @param string $name
-     * @return string
-     */
 
     /**
      * Renders the main content, which includes all external services links.
