@@ -231,6 +231,24 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
     }
 
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsNotAString(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        // A malformed `state[]=...` query is not a string and must be rejected outright rather than
+        // silently skipping the comparison against the stored auth state.
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => ['unexpected']]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
     public function testFetchAccessTokenHandlesArrayValuedParameterRecursively(): void
     {
         $httpClient = $this->httpClientReturning(

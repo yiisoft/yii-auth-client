@@ -8,8 +8,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
-use function str_contains;
-
 /**
  * Tested 09/01/2025
  * @see https://learn.microsoft.com/en-gb/entra/identity/authentication/how-to-authentication-methods-manage?WT.mc_id=Portal-Microsoft_AAD_IAM
@@ -55,6 +53,14 @@ final class Microsoft extends OAuth2
      */
     protected string $tenant = 'common';
 
+    /**
+     * Whether {@see setAuthUrl()}/{@see setTokenUrl()} were called with an explicit override, in which
+     * case {@see substituteTenantPlaceholders()} must leave that URL alone instead of rebuilding it from
+     * {@see tenant}.
+     */
+    private bool $authUrlOverridden = false;
+    private bool $tokenUrlOverridden = false;
+
     public function setTenant(string $tenant): void
     {
         $this->tenant = $tenant;
@@ -68,6 +74,7 @@ final class Microsoft extends OAuth2
     public function setAuthUrl(string $authUrl): void
     {
         $this->authUrl = $authUrl;
+        $this->authUrlOverridden = true;
     }
 
     public function getAuthUrlWithTenantInserted(string $tenant): string
@@ -78,6 +85,7 @@ final class Microsoft extends OAuth2
     public function setTokenUrl(string $tokenUrl): void
     {
         $this->tokenUrl = $tokenUrl;
+        $this->tokenUrlOverridden = true;
     }
 
     public function getTokenUrlWithTenantInserted(string $tenant): string
@@ -161,15 +169,17 @@ final class Microsoft extends OAuth2
     }
 
     /**
-     * Resolves the `{$tenant}` placeholder in {@see authUrl}/{@see tokenUrl} against {@see tenant}, unless
-     * either URL was already overridden via {@see setAuthUrl()}/{@see setTokenUrl()}.
+     * Rebuilds {@see authUrl}/{@see tokenUrl} from the current {@see tenant}, unless either URL was
+     * explicitly overridden via {@see setAuthUrl()}/{@see setTokenUrl()}. Runs on every call instead of
+     * only while the `{$tenant}` placeholder is still present, so a later {@see setTenant()} call keeps
+     * taking effect rather than being stuck with whichever tenant was substituted first.
      */
     private function substituteTenantPlaceholders(): void
     {
-        if (str_contains($this->authUrl, '{$tenant}')) {
+        if (!$this->authUrlOverridden) {
             $this->authUrl = $this->getAuthUrlWithTenantInserted($this->tenant);
         }
-        if (str_contains($this->tokenUrl, '{$tenant}')) {
+        if (!$this->tokenUrlOverridden) {
             $this->tokenUrl = $this->getTokenUrlWithTenantInserted($this->tenant);
         }
     }

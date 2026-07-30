@@ -111,6 +111,20 @@ final class MicrosoftTest extends ProviderClientTestCase
         $this->assertStringStartsWith('https://login.microsoftonline.com/contoso/oauth2/v2.0/authorize?', $authUrl);
     }
 
+    public function testSetTenantAfterUrlsWereAlreadySubstitutedStillTakesEffect(): void
+    {
+        $client = $this->createMicrosoftClient();
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $client->setTenant('contoso');
+        $client->buildAuthUrl($this->createServerRequestStub());
+
+        $client->setTenant('fabrikam');
+        $authUrl = $client->buildAuthUrl($this->createServerRequestStub());
+
+        $this->assertStringStartsWith('https://login.microsoftonline.com/fabrikam/oauth2/v2.0/authorize?', $authUrl);
+    }
+
     public function testSetAuthUrlOverrideIsNotClobberedByTenantSubstitution(): void
     {
         $client = $this->createMicrosoftClient();

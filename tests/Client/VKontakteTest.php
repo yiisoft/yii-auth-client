@@ -260,26 +260,25 @@ final class VKontakteTest extends ProviderClientTestCase
         $this->assertNull((new ReflectionMethod($client, 'getState'))->invoke($client, 'codeVerifier'));
     }
 
-    public function testFetchAccessTokenIgnoresNonStringIncomingStateAndSucceeds(): void
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsNotAString(): void
     {
         $stateStorage = new SessionStateStorage(new Session());
         $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
         $buildClient->setOauth2ReturnUrl('http://return.local');
         $buildClient->buildAuthUrl($this->createServerRequestStub());
 
-        $httpClient = $this->createStub(ClientInterface::class);
-        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'abc123'])));
-        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
         $client->setOauth2ReturnUrl('http://return.local');
-        // A malformed `state[]=...` query is not a string, so is_string() must skip the strcmp()
-        // comparison entirely - comparing it directly would throw a TypeError.
+        // A malformed `state[]=...` query is not a string and must be rejected outright rather than
+        // silently skipping the comparison against the stored auth state.
         $incomingRequest = (new Psr17Factory())
             ->createServerRequest('GET', 'http://return.local')
             ->withQueryParams(['code' => 'auth-code', 'state' => ['unexpected']]);
 
-        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
 
-        $this->assertSame('abc123', $token->getToken());
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
     }
 
     public function testFetchAccessTokenQueryStateTakesPriorityOverBodyState(): void

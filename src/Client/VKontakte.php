@@ -93,15 +93,11 @@ final class VKontakte extends OAuth2
              * @psalm-suppress MixedAssignment
              */
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
-            if (is_string($incomingState)) {
-                if (strcmp($incomingState, (string) $authState) !== 0) {
-                    throw new InvalidArgumentException('Invalid auth state parameter.');
-                }
-            }
-            if ($incomingState === null) {
-                throw new InvalidArgumentException('Invalid auth state parameter.');
-            }
-            if (empty($authState)) {
+            if (
+                !is_string($incomingState)
+                || empty($authState)
+                || strcmp($incomingState, $authState) !== 0
+            ) {
                 throw new InvalidArgumentException('Invalid auth state parameter.');
             }
             $this->removeState('authState');
