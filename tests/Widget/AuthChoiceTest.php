@@ -295,7 +295,21 @@ final class AuthChoiceTest extends TestCase
     {
         $widget = $this->createWidget();
 
-        $this->assertSame($widget, $widget->options([]));
+        $this->assertSame($widget, $widget->options(['class' => 'custom-class']));
+    }
+
+    public function testOptionsAppliedToContainer(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->options(['class' => 'my-container', 'data-test' => 'value']);
+
+        $html = $widget->render();
+
+        $this->assertStringContainsString('class="my-container"', $html);
+        $this->assertStringContainsString('data-test="value"', $html);
     }
 
     public function testClientOptionsReturnsSelfForChaining(): void
