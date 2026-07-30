@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Widget;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
-use Yiisoft\Html\Tag\A;
 use Yiisoft\Json\Json;
 use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\View\WebView;
@@ -368,53 +366,6 @@ final class AuthChoice extends Widget
      * @param string $name
      * @return string
      */
-    public function authRoutedButtons(string $authRoute, array $provider, string $name): string
-    {
-        foreach ($this->getClients() as $client) {
-            if ($name === $client->getName()) {
-                if (strlen($client->getClientId()) > 0) {
-                    $viewOptions = $client->getViewOptions();
-                    /**
-                     * @var int $viewOptions['popupHeight']
-                     * @var int $viewOptions['popupWidth']
-                     */
-                    $height = $viewOptions['popupHeight'];
-                    $width = $viewOptions['popupWidth'];
-                    $this->authRoute($authRoute);
-                    return $this->clientLink($client, ' ' . ucfirst((string) $provider['buttonName']), [
-                        'onclick' => "window.open(this.href, 'authPopup', 'width=" . $width . ',height=' . $height . "'); return false;",
-                        'class' => $client->getButtonClass() ,
-                    ]);
-                }
-            }
-        }
-        return '';
-    }
-
-    /**
-     * Note: No popup window and no route
-     * @param ServerRequestInterface $request
-     * @param array $provider
-     * @param string $name
-     * @return string
-     */
-    public function absoluteButtons(ServerRequestInterface $request, array $provider, string $name): string
-    {
-        foreach ($this->getClients() as $client) {
-            if ($name === $client->getName()) {
-                if (strlen($client->getClientId()) > 0) {
-                    $clientAuthUrl = $client->buildAuthUrl($request, (array) $provider['params']);
-                    return (new A())
-                        ->addClass($client->getButtonClass())
-                        ->content(' ' . ucfirst((string) $provider['buttonName']))
-                        ->href($clientAuthUrl)
-                        ->id('btn-' . $name)
-                        ->render();
-                }
-            }
-        }
-        return '';
-    }
 
     /**
      * Renders the main content, which includes all external services links.
