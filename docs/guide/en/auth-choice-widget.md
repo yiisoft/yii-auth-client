@@ -90,7 +90,7 @@ take effect.
 
 [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::options()]] sets the HTML attributes of the container `<div>`.
 It **replaces** the default attributes entirely (default: `['class' => 'btn-group']` for Bootstrap), so 
-include `class` yourself if you want styling - except `id`, which the widget always forces to `yii-auth-client` regardless of what you pass:
+include `class` yourself if you want styling:
 
 ```php
 <?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()
@@ -99,7 +99,7 @@ include `class` yourself if you want styling - except `id`, which the widget alw
 ```
 
 ```html
-<div class="btn-group my-auth-clients" data-testid="auth-buttons" id="yii-auth-client">...</div>
+<div class="btn-group my-auth-clients" data-testid="auth-buttons">...</div>
 ```
 
 [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]] passes options straight through to the
