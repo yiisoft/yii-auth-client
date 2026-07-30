@@ -14,6 +14,7 @@ Getting Started
 Additional topics
 -----------------
 
+* [AuthChoice Widget](auth-choice-widget.md)
 * [Getting additional data via extra API calls](usage-api.md)
 * [Creating your own auth clients](creating-your-own-auth-clients.md)
 * [OpenID Connect](open-id-connect.md)

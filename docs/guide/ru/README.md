@@ -14,6 +14,7 @@
 Дополнительные темы
 -------------------
 
+* [Виджет AuthChoice](auth-choice-widget.md)
 * [Получение дополнительных данных с помощью дополнительных обращений к API](usage-api.md)
 * [Создание собственных клиентов аутентификации](creating-your-own-auth-clients.md)
 * [OpenID Connect](open-id-connect.md)
