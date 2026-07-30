@@ -80,9 +80,9 @@ $authChoice->begin();
 ```
 
 Аргумент `$text` метода `clientLink()`, если он передан, экранируется и заменяет собой иконку по умолчанию. 
-Аргумент `$htmlOptions` объединяется с HTML-атрибутами ссылки: явно указанный `class` заменяет значение по 
-умолчанию, но виджет всегда дополнительно добавляет `auth-link` и стандартные классы Bootstrap
-(`btn btn-primary`). Явно указанный `title` заменяет значение по умолчанию (`getTitle()` клиента). В режиме 
+Аргумент `$htmlOptions` объединяется с HTML-атрибутами ссылки: виджет всегда добавляет `auth-link`, 
+но если вы указали явно `class`, стандартные классы Bootstrap (`btn btn-primary`) не добавляются.
+Явно указанный `title` заменяет значение по умолчанию (`getTitle()` клиента). В режиме 
 попапа атрибуты `data-popup-width`/`data-popup-height` всегда берутся из `getViewOptions()` клиента и не могут 
 быть переопределены через `$htmlOptions`.
 
@@ -93,8 +93,7 @@ $authChoice->begin();
 
 [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::options()]] задаёт HTML-атрибуты контейнера `<div>`. Он
 **полностью заменяет** атрибуты по умолчанию (по умолчанию: `['class' => 'btn-group']` для Bootstrap),
-поэтому укажите `class` самостоятельно, если нужна стилизация - кроме `id`, который виджет всегда принудительно
-устанавливает в `yii-auth-client`, независимо от переданного значения:
+поэтому укажите `class` самостоятельно, если нужна стилизация:
 
 ```php
 <?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()
@@ -103,7 +102,7 @@ $authChoice->begin();
 ```
 
 ```html
-<div class="btn-group my-auth-clients" data-testid="auth-buttons" id="yii-auth-client">...</div>
+<div class="btn-group my-auth-clients" data-testid="auth-buttons">...</div>
 ```
 
 [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]] передаёт опции напрямую в вызов JS-функции
