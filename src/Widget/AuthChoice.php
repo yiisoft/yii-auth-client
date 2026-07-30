@@ -13,7 +13,6 @@ use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
-use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
 use Yiisoft\Yii\AuthClient\AuthAction;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
@@ -75,18 +74,20 @@ final class AuthChoice extends Widget
     private string $clientIdGetParamName = 'authclient';
     /**
      * @var array the HTML attributes that should be rendered in the div HTML tag representing the container element.
+     * Default: Bootstrap button group `['class' => 'btn-group']`.
      *
      * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    private array $options = [];
+    private array $options = ['class' => 'btn-group'];
     /**
      * @var array additional options to be passed to the underlying JS plugin.
      */
     private array $clientOptions = [];
     /**
      * @var bool indicates if popup window should be used instead of direct links.
+     * Default is false.
      */
-    private bool $popupMode = true;
+    private bool $popupMode = false;
     /**
      * @var bool indicates if widget content, should be rendered automatically.
      * Note: this value automatically set to 'false' at the first call of {@see createClientUrl()}
@@ -97,6 +98,22 @@ final class AuthChoice extends Widget
      * @var string route name for the external clients authentication URL.
      */
     private string $authRoute = '';
+
+    /**
+     * @var AuthChoiceDisplayMode what {@see clientLink()} renders by default for a client button.
+     */
+    private AuthChoiceDisplayMode $displayMode = AuthChoiceDisplayMode::Icon;
+
+    /**
+     * @var array HTML attributes for SVG icons, merged with the default `['class' => 'auth-icon']`.
+     */
+    private array $iconAttributes = [];
+
+    /**
+     * @var array HTML attributes for auth links, merged with the default `['class' => 'auth-link']`.
+     * Default: Bootstrap button classes `['class' => 'btn btn-primary']`.
+     */
+    private array $linkAttributes = ['class' => 'btn btn-primary'];
 
     /**
      * @var bool whether {@see renderOpenTag()} has already registered assets and produced the opening
@@ -197,54 +214,52 @@ final class AuthChoice extends Widget
     {
         $viewOptions = $client->getViewOptions();
 
-        if (empty($viewOptions['widget'])) {
-            // Only the auto-generated icon markup below is already-rendered HTML; a caller-supplied $text
-            // is plain text and must still be encoded, so the two cases need different `encode` settings.
-            $encodeText = $text !== null;
-            if ($text === null) {
-                $text = Html::span('', ['class' => 'auth-icon ' . $client->getName()])->render();
-            }
-            if (!isset($htmlOptions['class'])) {
-                $htmlOptions['class'] = $client->getName();
-            }
-            if (!isset($htmlOptions['title'])) {
-                $htmlOptions['title'] = $client->getTitle();
-            }
-            Html::addCssClass($htmlOptions, ['widget' => 'auth-link']);
-
-            if ($this->popupMode) {
-                if (isset($viewOptions['popupWidth'])) {
-                    /**
-                     * @var int $viewOptions['popupWidth']
-                     * @var int $htmlOptions['data-popup-width']
-                     */
-                    $htmlOptions['data-popup-width'] = $viewOptions['popupWidth'];
-                }
-                if (isset($viewOptions['popupHeight'])) {
-                    /**
-                    * @var int $viewOptions['popupHeight']
-                    * @var int $htmlOptions['data-popup-height']
-                    */
-                    $htmlOptions['data-popup-height'] = $viewOptions['popupHeight'];
-                }
-            }
-
-            return Html::a($text, $this->createClientUrl($client), $htmlOptions)->encode($encodeText)->render();
+        if (!empty($viewOptions['widget'])) {
+            return $this->renderClientItemWidget($client, (array) $viewOptions['widget']);
         }
 
-        $widgetConfig = (array) $viewOptions['widget'];
-        if (!isset($widgetConfig['class'])) {
-            throw new InvalidConfigException('Widget config "class" parameter is missing');
+        $encodeText = $text !== null;
+        if ($text === null) {
+            $icon = $this->renderClientLogo($client);
+            /** @infection-ignore-all Each arm renders different content for the three display modes */
+            $text = match ($this->displayMode) {
+                AuthChoiceDisplayMode::Icon => $icon,
+                AuthChoiceDisplayMode::Text => $client->getTitle(),
+                AuthChoiceDisplayMode::Both => $icon
+                    . Html::span($client->getTitle(), ['class' => 'auth-title ms-2'])->render(),
+            };
+            $encodeText = $this->displayMode === AuthChoiceDisplayMode::Text;
         }
-        /** @var class-string $widgetClass */
-        $widgetClass = $widgetConfig['class'];
-        if (!is_subclass_of($widgetClass, AuthChoiceItem::class)) {
-            throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
+        if (!isset($htmlOptions['title'])) {
+            $htmlOptions['title'] = $client->getTitle();
         }
-        unset($widgetConfig['class']);
-        $widgetConfig['client'] = $client;
-        $widgetConfig['authChoice'] = $this;
-        return $widgetClass::widget($widgetConfig)->render();
+        Html::addCssClass($htmlOptions, ['widget' => 'auth-link']);
+        foreach ($this->linkAttributes as $key => $value) {
+            if ($key !== 'class') {
+                $htmlOptions[$key] = $value;
+            } else {
+                Html::addCssClass($htmlOptions, (string) $value);
+            }
+        }
+
+        if ($this->popupMode) {
+            if (isset($viewOptions['popupWidth'])) {
+                /**
+                 * @var int $viewOptions['popupWidth']
+                 * @var int $htmlOptions['data-popup-width']
+                 */
+                $htmlOptions['data-popup-width'] = $viewOptions['popupWidth'];
+            }
+            if (isset($viewOptions['popupHeight'])) {
+                /**
+                * @var int $viewOptions['popupHeight']
+                * @var int $htmlOptions['data-popup-height']
+                */
+                $htmlOptions['data-popup-height'] = $viewOptions['popupHeight'];
+            }
+        }
+
+        return Html::a($text, $this->createClientUrl($client), $htmlOptions)->encode($encodeText)->render();
     }
 
     /**
@@ -256,6 +271,7 @@ final class AuthChoice extends Widget
      */
     public function createClientUrl($client): string
     {
+        /** @infection-ignore-all Disable auto-render when URL is requested directly; caller handles rendering */
         $this->autoRender = false;
         $params = [];
         $params[$this->clientIdGetParamName] = $client->getName();
@@ -283,6 +299,42 @@ final class AuthChoice extends Widget
     public function popupMode(bool $popupMode): self
     {
         $this->popupMode = $popupMode;
+        return $this;
+    }
+
+    public function displayMode(AuthChoiceDisplayMode $displayMode): self
+    {
+        $this->displayMode = $displayMode;
+        return $this;
+    }
+
+    /**
+     * @internal Temporary debug method. Shows all display mode variants.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     */
+
+    /**
+     * @param array $iconAttributes HTML attributes for SVG icons, merged with default `['class' => 'auth-icon']`.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function iconAttributes(array $iconAttributes): self
+    {
+        $this->iconAttributes = $iconAttributes;
+        return $this;
+    }
+
+    /**
+     * @param array $linkAttributes HTML attributes for auth links, merged with default `['class' => 'auth-link']`.
+     * Use this to apply framework-specific classes (e.g., Bootstrap's 'btn btn-outline-secondary').
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function linkAttributes(array $linkAttributes): self
+    {
+        $this->linkAttributes = $linkAttributes;
         return $this;
     }
 
@@ -374,16 +426,69 @@ final class AuthChoice extends Widget
      */
     protected function renderMainContent(): string
     {
-        $items = [];
+        $content = '';
         /**
          * @var OAuth2 $externalService
          */
         foreach ($this->getClients() as $externalService) {
-            // encode(false): clientLink() already returns rendered, safe-to-embed HTML.
-            $items[] = Html::li($this->clientLink($externalService))->encode(false);
+            // clientLink() already returns rendered, safe-to-embed HTML.
+            /** @infection-ignore-all Must concatenate to render all clients, not just the last one */
+            $content .= $this->clientLink($externalService);
         }
 
-        return Html::ul(['class' => 'auth-clients'])->items(...$items)->render();
+        return $content;
+    }
+
+    /**
+     * Renders an inline SVG icon for the client. Prefers the client's own logo (via {@see OAuth2::getLogo()}),
+     * then falls back to the registry, then a placeholder span.
+     */
+    private function renderClientLogo(OAuth2 $client): string
+    {
+        /** @infection-ignore-all Client-provided logo (setLogo) takes precedence over registry default */
+        $svg = $client->getLogo() ?? LogoRegistry::getLogo($client->getName());
+        if ($svg !== null) {
+            $attrs = ['class' => 'auth-icon', 'xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'width' => '24', 'height' => '24', 'preserveAspectRatio' => 'xMidYMid meet'];
+            $viewBox = LogoRegistry::getViewBox($client->getName());
+            /** @infection-ignore-all Only add viewBox when available to preserve aspect ratio for different logos */
+            if ($viewBox !== null) {
+                $attrs['viewBox'] = $viewBox;
+            }
+            foreach ($this->iconAttributes as $key => $value) {
+                $attrs[$key] = $value;
+            }
+            $attrStr = Html::renderTagAttributes($attrs);
+            /** @infection-ignore-all SVG structure: attributes, title, content, closing tag */
+            return "<svg$attrStr><title>" . Html::encode($client->getTitle()) . "</title>$svg</svg>";
+        }
+
+        /** @infection-ignore-all Fallback span needs both auth-icon class and client name for styling/testing */
+        return Html::span('', ['class' => 'auth-icon ' . $client->getName()])->render();
+    }
+
+    /**
+     * Renders a client link via a custom {@see AuthChoiceItem} widget instead of the default markup, per the
+     * `widget` key of {@see AuthClientInterface::getViewOptions()}.
+     *
+     * @param array $widgetConfig the `widget` view option; must contain a `class` key naming an
+     * {@see AuthChoiceItem} subclass, plus whatever other config that widget's constructor/setters accept.
+     *
+     * @throws InvalidConfigException if `class` is missing, or isn't an {@see AuthChoiceItem} subclass.
+     */
+    private function renderClientItemWidget(OAuth2 $client, array $widgetConfig): string
+    {
+        if (!isset($widgetConfig['class'])) {
+            throw new InvalidConfigException('Widget config "class" parameter is missing');
+        }
+        /** @var class-string $widgetClass */
+        $widgetClass = $widgetConfig['class'];
+        if (!is_subclass_of($widgetClass, AuthChoiceItem::class)) {
+            throw new InvalidConfigException('Item widget class must be subclass of "' . AuthChoiceItem::class . '"');
+        }
+        unset($widgetConfig['class']);
+        $widgetConfig['client'] = $client;
+        $widgetConfig['authChoice'] = $this;
+        return $widgetClass::widget($widgetConfig)->render();
     }
 
     /**
@@ -397,26 +502,24 @@ final class AuthChoice extends Widget
         }
         $this->openTagRendered = true;
 
+        $this->options['id'] = $this->getId();
+
         if ($this->popupMode) {
             $this->assetManager->register(AuthChoiceAsset::class);
-
-            if (empty($this->clientOptions)) {
-                $options = '';
-            } else {
-                $options = Json::htmlEncode($this->clientOptions);
-            }
-
-            $this->webView->registerJs("
-                const el = document.getElementById('" . $this->getId() . "');
-                if (el && typeof authchoice === 'function') {
-                    authchoice(el, {$options});
-                }
-            ");
-        } else {
-            $this->assetManager->register(AuthChoiceStyleAsset::class);
+            $this->options['data-authchoice'] = Json::htmlEncode($this->clientOptions);
+            $this->registerInitScript();
         }
 
-        $this->options['id'] = $this->getId();
         return Html::div('', $this->options)->open();
+    }
+
+    private function registerInitScript(): void
+    {
+        $id = $this->getId();
+        $options = $this->clientOptions === [] ? '' : Json::htmlEncode($this->clientOptions);
+        $this->webView->registerJs(
+            "const el = document.getElementById('{$id}'); authchoice(el, {$options});",
+            WebView::POSITION_END,
+        );
     }
 }

@@ -8,8 +8,6 @@ use Yiisoft\Assets\AssetBundle;
 
 /**
  * AuthChoiceAsset is an asset bundle for {@see AuthChoice} widget.
- *
- * @see AuthChoiceStyleAsset
  */
 final class AuthChoiceAsset extends AssetBundle
 {
@@ -40,14 +38,22 @@ final class AuthChoiceAsset extends AssetBundle
 
     public ?string $baseUrl = '@assetsUrl';
 
+    /** @var array */
+    public array $jsStrings = [
+        'authchoice-init' => <<<'JS'
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('[data-authchoice]').forEach(container => {
+                    const options = container.dataset.authchoice ? JSON.parse(container.dataset.authchoice) : {};
+                    authchoice(container, options);
+                });
+            });
+            JS,
+    ];
+
     public ?string $sourcePath = '@vendor/yiisoft/yii-auth-client/resources/assets';
 
     /** @var array */
     public array $js = [
         'authchoice.js',
-    ];
-
-    public array $depends = [
-        AuthChoiceStyleAsset::class,
     ];
 }

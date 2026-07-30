@@ -62,6 +62,12 @@ abstract class OAuth2 extends OAuth
     protected array $authParams = [];
 
     /**
+     * @var string|null SVG markup for the client's logo icon (e.g. brand glyph).
+     * If set, {@see Widget\AuthChoice} renders this inline SVG instead of falling back to a sprite.
+     */
+    protected ?string $logo = null;
+
+    /**
      * BaseOAuth constructor.
      *
      * @param ClientInterface $httpClient
@@ -287,6 +293,16 @@ abstract class OAuth2 extends OAuth
     public function getAuthParams(): array
     {
         return $this->authParams;
+    }
+
+    public function setLogo(?string $logo): void
+    {
+        $this->logo = $logo;
+    }
+
+    public function getLogo(): ?string
+    {
+        return $this->logo;
     }
 
     public function getOauth2ReturnUrl(): string

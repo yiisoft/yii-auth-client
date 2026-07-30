@@ -66,8 +66,9 @@ final class AuthActionTest extends TestCase
 
         $response = $action->process($request, $this->createRequestHandlerStub());
 
-        $this->assertSame(301, $response->getStatusCode());
+        $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+        $this->assertSame('no-store', $response->getHeaderLine('Cache-Control'));
     }
 
     public function testProcessThrowsGenericExceptionForNonAccessDeniedError(): void
@@ -372,8 +373,9 @@ final class AuthActionTest extends TestCase
 
         $response = $action->process($request, $this->createRequestHandlerStub());
 
-        $this->assertSame(301, $response->getStatusCode());
+        $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+        $this->assertSame('no-store', $response->getHeaderLine('Cache-Control'));
     }
 
     public function testProcessRedirectsToAuthUrlWhenCodeQueryParamIsEmptyString(): void
@@ -386,8 +388,9 @@ final class AuthActionTest extends TestCase
 
         $response = $action->process($request, $this->createRequestHandlerStub());
 
-        $this->assertSame(301, $response->getStatusCode());
+        $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('http://test.local', $response->getHeaderLine('Location'));
+        $this->assertSame('no-store', $response->getHeaderLine('Cache-Control'));
     }
 
     public function testProcessThrowsNotSupportedExceptionForNonOAuth2Client(): void
