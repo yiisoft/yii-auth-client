@@ -366,7 +366,7 @@ final class OAuthTest extends TestCase
                 new SessionStateStorage(new Session()),
                 new YiisoftFactory(),
             ])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId', 'refreshAccessToken', 'applyAccessTokenToRequest'])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getClientId', 'refreshAccessToken', 'applyAccessTokenToRequest'])
             ->getMock();
     }
 

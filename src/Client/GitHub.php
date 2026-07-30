@@ -70,11 +70,6 @@ final class GitHub extends OAuth2
         return 'GitHub';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-github';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

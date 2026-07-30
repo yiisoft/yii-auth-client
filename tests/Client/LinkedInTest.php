@@ -31,12 +31,6 @@ final class LinkedInTest extends ProviderClientTestCase
         $this->assertSame('LinkedIn', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('btn btn-info bi bi-linkedin', $client->getButtonClass());
-    }
 
     public function testGetTokenUrl(): void
     {

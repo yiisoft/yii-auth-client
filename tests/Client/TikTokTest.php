@@ -38,12 +38,6 @@ final class TikTokTest extends ProviderClientTestCase
         $this->assertSame('user.info.profile', $client->getScope());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('', $client->getButtonClass());
-    }
 
     public function testGetCurrentUserJsonArrayReturnsDecodedResponseBody(): void
     {

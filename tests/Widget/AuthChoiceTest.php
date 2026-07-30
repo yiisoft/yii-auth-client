@@ -120,11 +120,6 @@ final class AuthChoiceTest extends TestCase
                 return 'Other';
             }
 
-            public function getButtonClass(): string
-            {
-                return 'btn';
-            }
-
             public function getClientId(): string
             {
                 return 'other-id';
@@ -632,11 +627,6 @@ final class AuthChoiceTest extends TestCase
             public function getTitle(): string
             {
                 return 'Test';
-            }
-
-            public function getButtonClass(): string
-            {
-                return 'btn btn-primary bi';
             }
 
             public function getClientId(): string

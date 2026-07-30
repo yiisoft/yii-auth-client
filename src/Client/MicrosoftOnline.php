@@ -88,11 +88,6 @@ final class MicrosoftOnline extends OAuth2
         return 'MicrosoftOnline';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-warning bi bi-microsoft';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

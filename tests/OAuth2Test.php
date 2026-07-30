@@ -463,7 +463,7 @@ final class OAuth2Test extends TestCase
                 new YiisoftFactory(),
                 new Session(),
             ])
-            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions'])
             ->getMock();
         $client->setClientId('client-id-value');
         $client->setClientSecret('client-secret-value');
@@ -1291,7 +1291,7 @@ final class OAuth2Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session],
             )
-            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getClientId'])
             ->getMock();
     }
 

@@ -258,11 +258,6 @@ final class OpenIdConnect extends OAuth2
         return $this->title;
     }
 
-    public function getButtonClass(): string
-    {
-        return '';
-    }
-
     public function setIssuerUrl(string $url): void
     {
         $this->issuerUrl = rtrim($url, '/');

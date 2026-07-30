@@ -42,11 +42,6 @@ final class Yandex extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $this->endpoint, authScheme: 'OAuth');
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-dark bi';
-    }
-
     public function getName(): string
     {
         return 'yandex';

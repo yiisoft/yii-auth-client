@@ -33,12 +33,6 @@ final class XTest extends ProviderClientTestCase
         $this->assertSame('X', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('btn btn-dark bi bi-twitter', $client->getButtonClass());
-    }
 
     public function testGetTokenUrl(): void
     {

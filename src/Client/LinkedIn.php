@@ -42,11 +42,6 @@ final class LinkedIn extends OAuth2
         return 'LinkedIn';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-info bi bi-linkedin';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

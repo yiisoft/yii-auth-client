@@ -205,11 +205,6 @@ final class VKontakte extends OAuth2
         return 'VKontakte';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-dark';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

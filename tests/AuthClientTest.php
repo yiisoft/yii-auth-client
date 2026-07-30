@@ -77,7 +77,7 @@ final class AuthClientTest extends TestCase
         $httpClient = $this->createStub(ClientInterface::class);
         $client = $this->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId'])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getClientId'])
             ->getMock();
         $client->method('getName')->willReturn('test');
         $method = new ReflectionMethod($client, 'getStateKeyPrefix');
@@ -104,7 +104,7 @@ final class AuthClientTest extends TestCase
         $httpClient = $this->createStub(ClientInterface::class);
         $client = $this->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId', 'initUserAttributes'])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getClientId', 'initUserAttributes'])
             ->getMock();
         $client->method('initUserAttributes')->willReturn(['id' => '42', 'email' => 'user@example.com']);
 
@@ -120,7 +120,6 @@ final class AuthClientTest extends TestCase
                 'getName',
                 'getTitle',
                 'buildAuthUrl',
-                'getButtonClass',
                 'getClientId',
                 'initUserAttributes',
                 'defaultNormalizeUserAttributeMap',
@@ -167,7 +166,7 @@ final class AuthClientTest extends TestCase
 
         return $this->getMockBuilder(AuthClient::class)
             ->setConstructorArgs([$httpClient, $this->getRequestFactory(), new SessionStateStorage(new Session())])
-            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getButtonClass', 'getClientId'])
+            ->onlyMethods(['getName', 'getTitle', 'buildAuthUrl', 'getClientId'])
             ->getMock();
     }
 }

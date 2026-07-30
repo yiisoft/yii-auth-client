@@ -221,11 +221,6 @@ final class Facebook extends OAuth2
         return 'Facebook';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-facebook';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

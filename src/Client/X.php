@@ -66,11 +66,6 @@ final class X extends OAuth2
         return 'X';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-dark bi bi-twitter';
-    }
-
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();

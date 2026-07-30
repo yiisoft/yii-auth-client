@@ -416,11 +416,6 @@ final class AuthActionTest extends TestCase
                 return [];
             }
 
-            public function getButtonClass(): string
-            {
-                return '';
-            }
-
             public function getClientId(): string
             {
                 return '';

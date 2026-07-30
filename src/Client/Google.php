@@ -28,8 +28,6 @@ final class Google extends OAuth2
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        $url = sprintf('https://www.googleapis.com/oauth2/%s/userinfo', $this->version);
-
         /**
          * @infection-ignore-all
          * $url above is always this same www.googleapis.com host, and PSR-7 implementations derive
@@ -41,7 +39,7 @@ final class Google extends OAuth2
             'Content-length' => '0',
         ];
 
-        return $this->fetchCurrentUserJsonArray($token, $url, $headers);
+        return $this->fetchCurrentUserJsonArray($token, 'https://www.googleapis.com/oauth2/v2/userinfo', $headers);
     }
 
     public function getName(): string
@@ -52,11 +50,6 @@ final class Google extends OAuth2
     public function getTitle(): string
     {
         return 'Google';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-google';
     }
 
     protected function initUserAttributes(): array

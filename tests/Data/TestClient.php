@@ -26,11 +26,6 @@ final class TestClient extends OAuth2
         return 'Test';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi';
-    }
-
     public function getClientId(): string
     {
         return 'adfadfasdfasdfasdfasdfasdfasdfa';

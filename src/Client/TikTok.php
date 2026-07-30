@@ -29,11 +29,6 @@ final class TikTok extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $url);
     }
 
-    public function getButtonClass(): string
-    {
-        return '';
-    }
-
     public function getName(): string
     {
         return 'tiktok';
