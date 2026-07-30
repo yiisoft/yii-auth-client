@@ -15,9 +15,9 @@ use Yiisoft\Assets\AssetLoader;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Router\UrlGeneratorInterface;
-use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
+use Yiisoft\Yii\AuthClient\Client\Google;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -253,7 +253,6 @@ final class AuthChoiceTest extends TestCase
         new AuthChoice(
             new Collection([]),
             $this->createUrlGeneratorStub(),
-            new WebView(),
             $assetManager,
         );
         $output = ob_get_clean();
@@ -270,9 +269,8 @@ final class AuthChoiceTest extends TestCase
      */
     public function testPopupModeOptionsAndClientOptionsTakeEffectWhenSetBeforeRender(): void
     {
-        $webView = new WebView();
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], $webView, $assetManager)
+        $widget = $this->createWidgetWithDeps([], $assetManager)
             ->popupMode(false)
             ->options(['class' => 'custom-container'])
             ->clientOptions(['foo' => 'bar']);
@@ -281,7 +279,7 @@ final class AuthChoiceTest extends TestCase
 
         $this->assertStringContainsString('class="custom-container"', $rendered);
         $this->assertFalse($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
-        $this->assertNull($this->getRegisteredJsScript($webView));
+        $this->assertStringNotContainsString('data-authchoice', $rendered);
     }
 
     public function testPopupModeReturnsSelfForChaining(): void
@@ -319,18 +317,15 @@ final class AuthChoiceTest extends TestCase
         $this->assertSame($widget, $widget->clientOptions([]));
     }
 
-    public function testClientOptionsPassedToJsInvocation(): void
+    public function testClientOptionsPassedToDataAttributeForAssetAutoInit(): void
     {
-        $webView = new WebView();
-        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())
             ->popupMode(true)
             ->clientOptions(['triggerSelector' => '.my-link']);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $js = $this->getRegisteredJsScript($webView);
-        $this->assertNotNull($js);
-        $this->assertStringContainsString('triggerSelector', $js);
+        $this->assertStringContainsString('triggerSelector', $rendered);
     }
 
     public function testLinkAttributesReturnsSelfForChaining(): void
@@ -351,6 +346,19 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->clientLink($client);
 
         $this->assertStringContainsString('class="auth-link btn btn-outline-secondary"', $html);
+    }
+
+    public function testLinkAttributesWithNonClassKeyAppliedAsIs(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->linkAttributes(['data-test' => 'value']);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('data-test="value"', $html);
     }
 
     public function testIconAttributesReturnsSelfForChaining(): void
@@ -374,6 +382,24 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('auth-icon', html_entity_decode($html));
         $this->assertStringContainsString('style="width:24px;height:24px;"', html_entity_decode($html));
         $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
+    }
+
+    public function testRenderClientLogoIncludesViewBoxForRegistryLogo(): void
+    {
+        $client = new Google(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth');
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('viewBox="0 0 268.152 273.883"', html_entity_decode($html));
     }
 
     public function testDisplayModeReturnsSelfForChaining(): void
@@ -431,7 +457,7 @@ final class AuthChoiceTest extends TestCase
     public function testBeginEchoesOpeningDivTagAndRegistersAssets(): void
     {
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager)->popupMode(true);
+        $widget = $this->createWidgetWithDeps([], $assetManager)->popupMode(true);
 
         ob_start();
         $widget->begin();
@@ -450,7 +476,7 @@ final class AuthChoiceTest extends TestCase
      */
     public function testBeginThenEndOpensDivOnceAndClosesItOnce(): void
     {
-        $widget = $this->createWidgetWithDeps([], new WebView(), $this->createAssetManager());
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager());
 
         ob_start();
         $widget->begin();
@@ -465,38 +491,34 @@ final class AuthChoiceTest extends TestCase
     public function testRenderRegistersAuthChoiceAssetInPopupMode(): void
     {
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager)->popupMode(true);
+        $widget = $this->createWidgetWithDeps([], $assetManager)->popupMode(true);
 
         $widget->render();
 
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
-    public function testRenderRegistersJsWithClientIdAndAuthchoiceInvocation(): void
+    public function testRenderSetsDataAuthchoiceAttributeInPopupMode(): void
     {
-        $webView = new WebView();
-        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())->popupMode(true);
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())->popupMode(true);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $js = $this->getRegisteredJsScript($webView);
-        $this->assertNotNull($js);
-        $this->assertStringContainsString("document.getElementById('yii-auth-client')", $js);
-        $this->assertStringContainsString('authchoice(el, )', $js);
+        $this->assertStringContainsString('id="yii-auth-client"', $rendered);
+        $this->assertStringContainsString('data-authchoice', $rendered);
     }
 
-    public function testRenderEncodesNonEmptyClientOptionsAsJsonForJsInvocation(): void
+    public function testRenderEncodesNonEmptyClientOptionsInDataAttribute(): void
     {
-        $webView = new WebView();
-        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())
             ->popupMode(true)
             ->clientOptions(['foo' => 'bar']);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $js = $this->getRegisteredJsScript($webView);
-        $this->assertNotNull($js);
-        $this->assertStringContainsString('authchoice(el, {"foo":"bar"})', $js);
+        $this->assertStringContainsString('data-authchoice', $rendered);
+        $this->assertStringContainsString('foo', html_entity_decode($rendered));
+        $this->assertStringContainsString('bar', html_entity_decode($rendered));
     }
 
     public function testRenderRegistersStyleAssetWhenPopupModeDisabled(): void
@@ -619,7 +641,6 @@ final class AuthChoiceTest extends TestCase
             return new AuthChoice(
                 new Collection($clients),
                 $urlGenerator ?? $this->createUrlGeneratorStub(),
-                new WebView(),
                 new AssetManager($aliases, new AssetLoader($aliases)),
             );
         } finally {
@@ -640,26 +661,17 @@ final class AuthChoiceTest extends TestCase
     /**
      * @param array<string, OAuth2> $clients
      */
-    private function createWidgetWithDeps(array $clients, WebView $webView, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
+    private function createWidgetWithDeps(array $clients, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
     {
         ob_start();
         try {
             return new AuthChoice(
                 new Collection($clients),
                 $urlGenerator ?? $this->createUrlGeneratorStub(),
-                $webView,
                 $assetManager,
             );
         } finally {
             ob_end_clean();
         }
-    }
-
-    private function getRegisteredJsScript(WebView $webView): ?string
-    {
-        $state = (new ReflectionProperty($webView, 'state'))->getValue($webView);
-        $entries = $state->getJs()[WebView::POSITION_END] ?? [];
-
-        return $entries === [] ? null : array_values($entries)[0];
     }
 }

@@ -8,7 +8,6 @@ use Yiisoft\Assets\AssetManager;
 use Yiisoft\Html\Html;
 use Yiisoft\Json\Json;
 use Yiisoft\Router\UrlGeneratorInterface;
-use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
 use Yiisoft\Yii\AuthClient\AuthAction;
@@ -16,8 +15,6 @@ use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
-
-use function strlen;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -125,7 +122,6 @@ final class AuthChoice extends Widget
     public function __construct(
         Collection $clientCollection,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly WebView $webView,
         private readonly AssetManager $assetManager,
     ) {
         $this->clients = $clientCollection->getClients();
@@ -458,19 +454,8 @@ final class AuthChoice extends Widget
         if ($this->popupMode) {
             $this->assetManager->register(AuthChoiceAsset::class);
             $this->options['data-authchoice'] = Json::htmlEncode($this->clientOptions);
-            $this->registerInitScript();
         }
 
         return Html::div('', $this->options)->open();
-    }
-
-    private function registerInitScript(): void
-    {
-        $id = $this->getId();
-        $options = $this->clientOptions === [] ? '' : Json::htmlEncode($this->clientOptions);
-        $this->webView->registerJs(
-            "const el = document.getElementById('{$id}'); authchoice(el, {$options});",
-            WebView::POSITION_END,
-        );
     }
 }
