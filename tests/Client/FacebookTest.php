@@ -37,7 +37,6 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('Facebook', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

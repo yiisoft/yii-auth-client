@@ -7,8 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
-use function sprintf;
-
 /**
  * Google allows authentication via Google OAuth2 using HTTP client. Here we are NOT using the alternative Client Libraries
  * namely @see https://developers.google.com/people/v1/libraries#php

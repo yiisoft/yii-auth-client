@@ -34,7 +34,6 @@ final class YandexTest extends ProviderClientTestCase
         $this->assertSame('Yandex', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

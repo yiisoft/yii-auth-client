@@ -37,7 +37,6 @@ final class VKontakteTest extends ProviderClientTestCase
         $this->assertSame('VKontakte', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

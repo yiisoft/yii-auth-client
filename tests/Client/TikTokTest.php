@@ -38,7 +38,6 @@ final class TikTokTest extends ProviderClientTestCase
         $this->assertSame('user.info.profile', $client->getScope());
     }
 
-
     public function testGetCurrentUserJsonArrayReturnsDecodedResponseBody(): void
     {
         $httpClient = $this->createStub(ClientInterface::class);

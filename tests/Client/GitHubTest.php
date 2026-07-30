@@ -32,7 +32,6 @@ final class GitHubTest extends ProviderClientTestCase
         $this->assertSame('GitHub', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

@@ -33,7 +33,6 @@ final class GoogleTest extends ProviderClientTestCase
         $this->assertSame('Google', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

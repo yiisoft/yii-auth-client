@@ -33,7 +33,6 @@ final class XTest extends ProviderClientTestCase
         $this->assertSame('X', $client->getTitle());
     }
 
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

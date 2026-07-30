@@ -129,7 +129,6 @@ final class OpenIdConnectTest extends TestCase
         $this->assertSame('Auth0', $client->getTitle());
     }
 
-
     public function testGetViewOptions(): void
     {
         $client = $this->createClient();

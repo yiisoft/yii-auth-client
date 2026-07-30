@@ -33,7 +33,6 @@ final class MicrosoftOnlineTest extends ProviderClientTestCase
         $this->assertSame('MicrosoftOnline', $client->getTitle());
     }
 
-
     public function testGetDefaultScope(): void
     {
         $client = $this->createClient();
