@@ -107,12 +107,12 @@ final class AuthChoice extends Widget
     /**
      * @var string|null width of SVG icons. Set to null to omit the width attribute (e.g., when CSS handles sizing).
      */
-    private string|null $iconWidth = '24';
+    private ?string $iconWidth = '24';
 
     /**
      * @var string|null height of SVG icons. Set to null to omit the height attribute (e.g., when CSS handles sizing).
      */
-    private string|null $iconHeight = '24';
+    private ?string $iconHeight = '24';
 
     /**
      * @var array HTML attributes for auth links, merged with the default `['class' => 'auth-link']`.
@@ -317,7 +317,7 @@ final class AuthChoice extends Widget
      *
      * @return self
      */
-    public function iconWidth(string|null $iconWidth): self
+    public function iconWidth(?string $iconWidth): self
     {
         $this->iconWidth = $iconWidth;
         return $this;
@@ -329,7 +329,7 @@ final class AuthChoice extends Widget
      *
      * @return self
      */
-    public function iconHeight(string|null $iconHeight): self
+    public function iconHeight(?string $iconHeight): self
     {
         $this->iconHeight = $iconHeight;
         return $this;
