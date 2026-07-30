@@ -40,11 +40,14 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  */
 final class Microsoft extends OAuth2
 {
+    private const AUTH_URL_TEMPLATE = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/authorize';
+    private const TOKEN_URL_TEMPLATE = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token';
+
     /**
      * @see https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#protocol-details
      */
-    protected string $authUrl = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/authorize';
-    protected string $tokenUrl = 'https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token';
+    protected string $authUrl = self::AUTH_URL_TEMPLATE;
+    protected string $tokenUrl = self::TOKEN_URL_TEMPLATE;
     protected string $endpoint = 'https://graph.microsoft.com/v1.0/me';
 
     /**
@@ -79,7 +82,7 @@ final class Microsoft extends OAuth2
 
     public function getAuthUrlWithTenantInserted(string $tenant): string
     {
-        return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/authorize';
+        return str_replace('{$tenant}', $tenant, self::AUTH_URL_TEMPLATE);
     }
 
     public function setTokenUrl(string $tokenUrl): void
@@ -90,7 +93,7 @@ final class Microsoft extends OAuth2
 
     public function getTokenUrlWithTenantInserted(string $tenant): string
     {
-        return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
+        return str_replace('{$tenant}', $tenant, self::TOKEN_URL_TEMPLATE);
     }
 
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
