@@ -26,6 +26,7 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestAuthChoiceItem;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+use Yiisoft\Yii\AuthClient\Widget\AuthChoiceDisplayMode;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
 
 use function dirname;
@@ -345,6 +346,58 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('auth-icon', html_entity_decode($html));
         $this->assertStringContainsString('style="width:24px;height:24px;"', html_entity_decode($html));
         $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
+    }
+
+    public function testDisplayModeReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->displayMode(AuthChoiceDisplayMode::Both));
+    }
+
+    public function testDisplayModeIconOnly(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Icon);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('<svg', html_entity_decode($html));
+        $this->assertStringContainsString('</svg></a>', html_entity_decode($html));
+    }
+
+    public function testDisplayModeTextOnly(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Text);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('>Test<', $html);
+        $this->assertStringNotContainsString('<svg', html_entity_decode($html));
+    }
+
+    public function testDisplayModeBoth(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Both);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('<svg', html_entity_decode($html));
+        $this->assertStringContainsString('>Test<', $html);
+        $this->assertStringContainsString('auth-title', $html);
     }
 
     public function testBeginEchoesOpeningDivTagAndRegistersAssets(): void
