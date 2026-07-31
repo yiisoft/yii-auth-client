@@ -41,12 +41,10 @@ final class AuthChoiceAsset extends AssetBundle
     /** @var array */
     public array $jsStrings = [
         'authchoice-init' => <<<'JS_WRAP'
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('[data-authchoice]').forEach(container => {
-                const options = container.dataset.authchoice ? JSON.parse(container.dataset.authchoice) : {};
-                authchoice(container, options);
-            });
-        });
+        for (const container of document.querySelectorAll('[data-authchoice]')) {
+            const json = container.dataset.authchoice;
+            authchoice(container, json ? JSON.parse(json) : {});
+        }
         JS_WRAP,
     ];
 
