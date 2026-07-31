@@ -80,9 +80,9 @@ final class AuthChoice extends Widget
     private array $clientOptions = [];
     /**
      * @var bool indicates if popup window should be used instead of direct links.
-     * Default is false.
+     * Default is true.
      */
-    private bool $popupMode = false;
+    private bool $popupMode = true;
     /**
      * @var bool indicates if widget content, should be rendered automatically.
      * Note: this value automatically set to 'false' at the first call of {@see createClientUrl()}

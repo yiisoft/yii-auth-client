@@ -15,14 +15,15 @@
 ```
 
 По умолчанию он выводит кнопки Bootstrap для каждого настроенного клиента внутри группы кнопок,
-со встроенными SVG иконками. Ссылки перенаправляют на маршрут аутентификации:
+со встроенными SVG иконками. Ссылки открывают процесс аутентификации во всплывающем окне (см. раздел
+[Режим всплывающего окна](#режим-всплывающего-окна) ниже):
 
 ```html
-<div class="btn-group" id="yii-auth-client">
-    <a class="auth-link btn btn-primary" title="Google" href="/auth/google">
+<div class="btn-group" id="yii-auth-client" data-authchoice="{...}">
+    <a class="auth-link btn btn-primary" title="Google" href="/auth/google" data-popup-width="860" data-popup-height="480">
         <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg>
     </a>
-    <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github">
+    <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github" data-popup-width="860" data-popup-height="480">
         <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg>
     </a>
 </div>
@@ -42,17 +43,16 @@
 
 ### Режим всплывающего окна
 
-По умолчанию `popupMode` отключён (`false`). Чтобы включить всплывающие окна, установите `popupMode(true)`:
+По умолчанию `popupMode` включён (`true`). Всплывающие окна управляются через JavaScript (подключается через
+[[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]]) и могут быть настроены с помощью
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]]. Чтобы вместо этого выводить обычные ссылки,
+установите `popupMode(false)`:
 
 ```php
 <?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()
     ->authRoute('site/auth')
-    ->popupMode(true) ?>
+    ->popupMode(false) ?>
 ```
-
-При включении всплывающие окна управляются через JavaScript (подключается через
-[[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]]) и могут быть настроены с помощью
-[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]].
 
 ### Настройка кнопок
 

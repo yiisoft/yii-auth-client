@@ -376,6 +376,7 @@ final class AuthChoiceTest extends TestCase
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->popupMode(false)
             ->iconWidth(null);
 
         $html = $widget->clientLink($client);
@@ -398,6 +399,7 @@ final class AuthChoiceTest extends TestCase
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->popupMode(false)
             ->iconHeight(null);
 
         $html = $widget->clientLink($client);

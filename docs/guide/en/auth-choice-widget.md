@@ -14,14 +14,14 @@ the auth route name:
 ```
 
 By default, it renders one link per configured client as Bootstrap buttons inside a button group,
-with inline SVG icons. Links redirect to the auth route directly:
+with inline SVG icons. Links open the auth flow in a popup window (see [Popup mode](#popup-mode) below):
 
 ```html
-<div class="btn-group" id="yii-auth-client">
-    <a class="auth-link btn btn-primary" title="Google" href="/auth/google">
+<div class="btn-group" id="yii-auth-client" data-authchoice="{...}">
+    <a class="auth-link btn btn-primary" title="Google" href="/auth/google" data-popup-width="860" data-popup-height="480">
         <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg>
     </a>
-    <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github">
+    <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github" data-popup-width="860" data-popup-height="480">
         <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg>
     </a>
 </div>
@@ -40,16 +40,16 @@ To use a different CSS framework or customize styling, use the `options()`, `lin
 
 ### Popup mode
 
-By default, `popupMode` is disabled (`false`). To enable popups, set `popupMode(true)`:
+By default, `popupMode` is enabled (`true`). Popups are controlled via JavaScript (registered via
+[[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]]) and can be customized using
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]]. To render direct links instead, set
+`popupMode(false)`:
 
 ```php
 <?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()
     ->authRoute('site/auth')
-    ->popupMode(true) ?>
+    ->popupMode(false) ?>
 ```
-
-When enabled, popups are controlled via JavaScript (registered via [[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]])
-and can be customized using [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::clientOptions()]].
 
 ### Customizing the buttons
 
