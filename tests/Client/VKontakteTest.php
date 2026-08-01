@@ -591,10 +591,9 @@ final class VKontakteTest extends ProviderClientTestCase
     }
 
     /**
-     * An empty response body must return [] without ever calling json_decode(): decoding an empty
-     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
-     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
-     * (both branches ultimately return []).
+     * An empty response body must return [] without a decoding error: {@see Json::decode()} special-cases
+     * the empty string and returns null without ever calling the underlying json_decode(), so
+     * json_last_error() stays untouched.
      */
     public function testStep8ObtainingUserDataDoesNotDecodeEmptyResponseBody(): void
     {

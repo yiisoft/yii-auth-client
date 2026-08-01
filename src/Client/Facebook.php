@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -122,7 +123,7 @@ final class Facebook extends OAuth2
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
 
-        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
         $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 
@@ -176,7 +177,7 @@ final class Facebook extends OAuth2
          * without the cast (PHP does not warn/error on `??`-guarded offset access into a scalar), so removing
          * the cast is behaviorally unobservable through this method's return value.
          */
-        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
 
         return (string) ($responseParams['code'] ?? '');
     }
@@ -213,7 +214,7 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
         $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 

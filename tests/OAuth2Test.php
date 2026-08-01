@@ -942,10 +942,9 @@ final class OAuth2Test extends TestCase
     }
 
     /**
-     * An empty response body must return [] without ever calling json_decode(): decoding an empty
-     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
-     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
-     * (both branches ultimately produce []).
+     * An empty response body must produce an empty token without a decoding error: {@see Json::decode()}
+     * special-cases the empty string and returns null without ever calling the underlying json_decode(),
+     * so json_last_error() stays untouched.
      */
     public function testFetchAccessTokenWithCodeVerifierDoesNotDecodeEmptyResponseBody(): void
     {
@@ -957,8 +956,9 @@ final class OAuth2Test extends TestCase
         $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
         json_decode('null'); // reset json_last_error() to JSON_ERROR_NONE
 
-        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
 
+        $this->assertSame([], $token->getParams());
         $this->assertSame(JSON_ERROR_NONE, json_last_error());
     }
 

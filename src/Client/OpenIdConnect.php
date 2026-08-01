@@ -436,7 +436,7 @@ final class OpenIdConnect extends OAuth2
                 throw new ClientException('JWK Set is not available.', 400);
             }
             $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $jwkSet, $signature);
-            return (array) Json::decode((string) $jwsVerified->getPayload(), true);
+            return (array) Json::decode((string) $jwsVerified->getPayload());
         } catch (Exception $e) {
             throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), (int) $e->getCode());
         }
@@ -547,6 +547,6 @@ final class OpenIdConnect extends OAuth2
         $request = $this->createRequest('GET', $configUrl);
         $response = $this->sendRequest($request);
 
-        return (array) json_decode($response->getBody()->getContents(), true);
+        return (array) Json::decode($response->getBody()->getContents());
     }
 }

@@ -11,6 +11,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -127,7 +128,7 @@ final class VKontakte extends OAuth2
 
         $request = $this->createTokenRequest(array_merge($defaultParams, $params));
         $response = $this->sendRequest($request);
-        $output = (array) json_decode($response->getBody()->getContents(), true);
+        $output = (array) Json::decode($response->getBody()->getContents());
         $output['device_id'] ??= $deviceId;
 
         $token = $this->createToken(['params' => $output]);
@@ -154,7 +155,7 @@ final class VKontakte extends OAuth2
 
         $request = $this->createTokenRequest($params);
         $response = $this->sendRequest($request);
-        $output = (array) json_decode($response->getBody()->getContents(), true);
+        $output = (array) Json::decode($response->getBody()->getContents());
         $output['device_id'] ??= $deviceId;
 
         return $this->createToken(['params' => $output]);
@@ -217,7 +218,7 @@ final class VKontakte extends OAuth2
                 ];
             }
             if (strlen($body) > 0) {
-                return json_decode($body, true);
+                return Json::decode($body);
             }
         } catch (Throwable $e) {
             return [
@@ -308,9 +309,7 @@ final class VKontakte extends OAuth2
             /** @var ResponseInterface $response */
             $response = $httpClient->sendRequest($request);
             $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                return (array) json_decode($body, true);
-            }
+            return (array) Json::decode($body);
         } catch (Throwable) {
             // Optionally log error: $e->getMessage()
         }
@@ -406,9 +405,10 @@ final class VKontakte extends OAuth2
             return [];
         }
 
-        $fullUrl = $url
-            . '?client_id=' . urlencode($clientId)
-            . '&access_token=' . urlencode($tokenString);
+        $fullUrl = $url . '?' . http_build_query([
+            'client_id'    => $clientId,
+            'access_token' => $tokenString,
+        ]);
 
         $request = $requestFactory->createRequest('GET', $fullUrl);
 
@@ -416,9 +416,7 @@ final class VKontakte extends OAuth2
             /** @var ResponseInterface $response */
             $response = $httpClient->sendRequest($request);
             $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                return (array) json_decode($body, true);
-            }
+            return (array) Json::decode($body);
         } catch (Throwable) {
             // Optionally log error: $e->getMessage()
         }
