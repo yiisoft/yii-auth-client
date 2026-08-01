@@ -51,10 +51,10 @@ final class GitHub extends OAuth2
      *
      * @see https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api#user-agent
      */
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             'https://api.github.com/user',
             ['User-Agent' => 'yiisoft/yii-auth-client'],
         );

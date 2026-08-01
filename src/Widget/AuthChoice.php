@@ -14,7 +14,7 @@ use Yiisoft\Yii\AuthClient\AuthAction;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
-use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
 /**
  * AuthChoice prints buttons for authentication via various auth clients.
@@ -126,7 +126,7 @@ final class AuthChoice extends Widget
      */
     private bool $openTagRendered = false;
 
-    /** @var array<string, OAuth2> */
+    /** @var array<string, OAuth2Interface> */
     private array $clients;
 
     public function __construct(
@@ -167,7 +167,7 @@ final class AuthChoice extends Widget
 
     /**
      * @return array
-     * @psalm-return array<string, OAuth2>
+     * @psalm-return array<string, OAuth2Interface>
      */
     public function getClients(): array
     {
@@ -175,14 +175,14 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param array<string, OAuth2> $clients
+     * @param array<string, OAuth2Interface> $clients
      */
     public function setClients(array $clients): void
     {
         $this->clients = $clients;
     }
 
-    public function getClient(string $name): OAuth2
+    public function getClient(string $name): OAuth2Interface
     {
         $clients = array_filter(
             $this->getClients(),
@@ -200,7 +200,7 @@ final class AuthChoice extends Widget
     /**
      * Outputs client auth link.
      *
-     * @param OAuth2 $client extending from an auth client instance.
+     * @param OAuth2Interface $client extending from an auth client instance.
      * @param string $text link text, if not set - default value will be generated.
      * @param array $htmlOptions link HTML options.
      *
@@ -209,7 +209,7 @@ final class AuthChoice extends Widget
      *
      * @return string generated HTML.
      */
-    public function clientLink(OAuth2 $client, ?string $text = null, array $htmlOptions = []): string
+    public function clientLink(OAuth2Interface $client, ?string $text = null, array $htmlOptions = []): string
     {
         $viewOptions = $client->getViewOptions();
 
@@ -393,7 +393,7 @@ final class AuthChoice extends Widget
     {
         $content = '';
         /**
-         * @var OAuth2 $externalService
+         * @var OAuth2Interface $externalService
          */
         foreach ($this->getClients() as $externalService) {
             // clientLink() already returns rendered, safe-to-embed HTML.
@@ -405,10 +405,10 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Renders an inline SVG icon for the client. Prefers the client's own logo (via {@see OAuth2::getLogo()}),
+     * Renders an inline SVG icon for the client. Prefers the client's own logo (via {@see OAuth2Interface::getLogo()}),
      * then falls back to the registry, then a placeholder span.
      */
-    private function renderClientLogo(OAuth2 $client): string
+    private function renderClientLogo(OAuth2Interface $client): string
     {
         /** @infection-ignore-all Client-provided logo (setLogo) takes precedence over registry default */
         $svg = $client->getLogo() ?? LogoRegistry::getLogo($client->getName());
@@ -446,7 +446,7 @@ final class AuthChoice extends Widget
      *
      * @throws InvalidConfigException if `class` is missing, or isn't an {@see AuthChoiceItem} subclass.
      */
-    private function renderClientItemWidget(OAuth2 $client, array $widgetConfig): string
+    private function renderClientItemWidget(OAuth2Interface $client, array $widgetConfig): string
     {
         if (!isset($widgetConfig['class'])) {
             throw new InvalidConfigException('Widget config "class" parameter is missing');

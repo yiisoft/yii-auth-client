@@ -16,6 +16,7 @@ use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\OAuth;
+use Yiisoft\Yii\AuthClient\OAuthInterface;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
@@ -357,7 +358,7 @@ final class OAuthTest extends TestCase
      * OAuth::createToken()'s own isset/is_string check with attacker-controlled input. This bare mock
      * of the abstract OAuth class isolates that logic directly.
      */
-    private function createBareOAuthClient(): OAuth
+    private function createBareOAuthClient(): OAuthInterface
     {
         return $this->getMockBuilder(OAuth::class)
             ->setConstructorArgs([

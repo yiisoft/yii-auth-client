@@ -7,7 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Factory;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use Yiisoft\Yii\AuthClient\Collection;
-use Yiisoft\Yii\AuthClient\OAuth2;
+use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
 use function is_string;
 
@@ -30,7 +30,7 @@ final readonly class CollectionFactory
             if (!is_string($name)) {
                 throw new InvalidArgumentException('Client name must be set.');
             }
-            /** @var OAuth2 $resolvedClient */
+            /** @var OAuth2Interface $resolvedClient */
             $resolvedClient = $container->get($client);
             $clients[$name] = $resolvedClient;
         }

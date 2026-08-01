@@ -37,9 +37,9 @@ final class Yandex extends OAuth2
         return RequestUtil::addParams($request, $paramsToAdd);
     }
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
-        return $this->fetchCurrentUserJsonArray($token, $this->endpoint, authScheme: 'OAuth');
+        return $this->fetchCurrentUserJsonArray($oauthToken, $this->endpoint, authScheme: 'OAuth');
     }
 
     public function getName(): string

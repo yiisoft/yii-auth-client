@@ -19,14 +19,14 @@ final class TikTok extends OAuth2
 
     protected string $endpoint = '';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         /**
          * @see ... useful endpoints
          */
         $url = '';
 
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray($oauthToken, $url);
     }
 
     public function getName(): string

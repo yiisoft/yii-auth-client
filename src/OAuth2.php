@@ -27,7 +27,7 @@ use const PHP_QUERY_RFC3986;
  * @see https://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
  */
-abstract class OAuth2 extends OAuth
+abstract class OAuth2 extends OAuth implements OAuth2Interface
 {
     /**
      * @var string OAuth client ID.
@@ -66,6 +66,12 @@ abstract class OAuth2 extends OAuth
      * If set, {@see Widget\AuthChoice} renders this inline SVG instead of falling back to a sprite.
      */
     protected ?string $logo = null;
+
+    /**
+     * @var string environment identifier (e.g. 'dev' or 'prod'), for providers whose endpoint URLs
+     * differ by environment. Unused by default; concrete clients may consult it when building URLs.
+     */
+    protected string $environment = 'prod';
 
     /**
      * BaseOAuth constructor.
@@ -265,6 +271,11 @@ abstract class OAuth2 extends OAuth
         return $token;
     }
 
+    public function setEnvironment(string $devOrProd): void
+    {
+        $this->environment = $devOrProd;
+    }
+
     public function setClientId(string $clientId): void
     {
         $this->clientId = $clientId;
@@ -374,6 +385,15 @@ abstract class OAuth2 extends OAuth
         $new = clone $this;
         $new->validateAuthState = false;
         return $new;
+    }
+
+    /**
+     * Fetches current user data as JSON array using {@see $endpoint} as the user-info URL.
+     * Concrete clients whose provider needs a different URL, headers, or auth scheme override this.
+     */
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    {
+        return $this->fetchCurrentUserJsonArray($oauthToken, $this->endpoint);
     }
 
     /**

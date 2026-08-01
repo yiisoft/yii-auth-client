@@ -69,10 +69,10 @@ final class MicrosoftOnline extends OAuth2
         return 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
     }
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             'https://graph.microsoft.com/v1.0/me',
             ['Content-Type' => 'application/json'],
         );

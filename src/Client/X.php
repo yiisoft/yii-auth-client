@@ -47,10 +47,10 @@ final class X extends OAuth2
 
     protected string $endpoint = 'https://api.x.com/2/users/me';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint,
             ['Content-Type' => 'application/json'],
         );

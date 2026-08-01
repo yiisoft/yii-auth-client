@@ -205,19 +205,24 @@ final class VKontakte extends OAuth2
         return 'VKontakte';
     }
 
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    {
+        $data = $this->step8ObtainingUserDataArrayWithClientId(
+            $oauthToken,
+            $this->getClientId(),
+            $this->httpClient,
+            $this->requestFactory,
+        );
+        return (array) ($data['user'] ?? []);
+    }
+
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
         if (!$token instanceof OAuthToken) {
             return [];
         }
-        $data = $this->step8ObtainingUserDataArrayWithClientId(
-            $token,
-            $this->getClientId(),
-            $this->httpClient,
-            $this->requestFactory,
-        );
-        return (array) ($data['user'] ?? []);
+        return $this->getCurrentUserJsonArray($token);
     }
 
     /**

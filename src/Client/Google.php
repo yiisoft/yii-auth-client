@@ -24,7 +24,7 @@ final class Google extends OAuth2
     protected string $tokenUrl = 'https://oauth2.googleapis.com/token';
     protected string $endpoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         /**
          * @infection-ignore-all
@@ -37,7 +37,7 @@ final class Google extends OAuth2
             'Content-length' => '0',
         ];
 
-        return $this->fetchCurrentUserJsonArray($token, 'https://www.googleapis.com/oauth2/v2/userinfo', $headers);
+        return $this->fetchCurrentUserJsonArray($oauthToken, 'https://www.googleapis.com/oauth2/v2/userinfo', $headers);
     }
 
     public function getName(): string

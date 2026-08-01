@@ -25,11 +25,11 @@ final class LinkedIn extends OAuth2
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         $url = sprintf('https://api.linkedin.com/%s/userinfo', $this->version);
 
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray($oauthToken, $url);
     }
 
     public function getName(): string

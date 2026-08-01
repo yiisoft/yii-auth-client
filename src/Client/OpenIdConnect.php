@@ -284,6 +284,11 @@ final class OpenIdConnect extends OAuth2
         return $new;
     }
 
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    {
+        return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');
+    }
+
     /**
      * Generates the auth nonce value.
      *
@@ -311,7 +316,11 @@ final class OpenIdConnect extends OAuth2
 
     protected function initUserAttributes(): array
     {
-        return $this->api((string) $this->getConfigParam('userinfo_endpoint'), 'GET');
+        $token = $this->getAccessToken();
+        if ($token instanceof OAuthToken) {
+            return $this->getCurrentUserJsonArray($token);
+        }
+        return [];
     }
 
     protected function applyClientCredentialsToRequest(RequestInterface $request): RequestInterface

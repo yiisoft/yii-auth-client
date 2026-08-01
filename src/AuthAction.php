@@ -232,7 +232,7 @@ final class AuthAction implements MiddlewareInterface
      */
     private function auth(AuthClientInterface $client, ServerRequestInterface $request): ResponseInterface
     {
-        if ($client instanceof OAuth2) {
+        if ($client instanceof OAuth2Interface) {
             return $this->authOAuth2($client, $request);
         }
         throw new NotSupportedException('Provider "' . $client::class . '" is not supported.');
@@ -241,7 +241,7 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Performs OAuth2 auth flow.
      *
-     * @param OAuth2 $client auth client instance.
+     * @param OAuth2Interface $client auth client instance.
      * @param ServerRequestInterface $request
      *
      * @throws InvalidConfigException
@@ -250,7 +250,7 @@ final class AuthAction implements MiddlewareInterface
      *
      * @return ResponseInterface action response.
      */
-    private function authOAuth2(OAuth2 $client, ServerRequestInterface $request): ResponseInterface
+    private function authOAuth2(OAuth2Interface $client, ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
 

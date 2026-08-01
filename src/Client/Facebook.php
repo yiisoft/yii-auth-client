@@ -63,7 +63,7 @@ final class Facebook extends OAuth2
      */
     private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         $queryParams = [
             'fields' => implode(',', $this->endpointFields),
@@ -74,7 +74,7 @@ final class Facebook extends OAuth2
             http_build_query($queryParams),
         );
 
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray($oauthToken, $url);
     }
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
