@@ -29,7 +29,7 @@ example.
 Authentication workflow is exactly the same as for OAuth2.
 
 **Heads up!** 'OpenID Connect' protocol uses [JWS](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature) verification
-for securing the authentication process. This extension requires the [`web-token/jwt-framework`](https://github.com/web-token/jwt-framework)
+for securing the authentication process. This extension requires the [`web-token/jwt-library`](https://github.com/web-token/jwt-library)
 library for such verification; it is a regular `composer.json` dependency of this package, so no extra installation
 step is needed.
 

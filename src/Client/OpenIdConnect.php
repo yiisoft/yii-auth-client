@@ -43,7 +43,7 @@ use const PHP_QUERY_RFC3986;
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
  *
- * @link https://github.com/web-token/jwt-framework
+ * @link https://github.com/web-token/jwt-library
  *
  * @link https://openid.net/connect/
  *
@@ -82,16 +82,15 @@ final class OpenIdConnect extends OAuth2
     private string $issuerUrl = 'https://{IdentityProviderDomain}';
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
-     * Note: this functionality requires `web-token/jwt-checker`, `web-token/jwt-key-mgmt`, `web-token/jwt-signature`
-     * composer package to be installed. You can disable this option in case of usage of trusted OpenIDConnect provider,
-     * however this violates the protocol rules, so you are doing it on your own risk.
+     * Note: this functionality requires the `web-token/jwt-library` composer package to be installed. You can
+     * disable this option in case of usage of trusted OpenIDConnect provider, however this violates the protocol
+     * rules, so you are doing it on your own risk.
      */
     private bool $validateJws = true;
     /**
      * @var array JWS algorithms, which are allowed to be used.
-     * These are used by `web-token` library for JWS validation/decryption.
-     * Make sure to install `web-token/jwt-signature-algorithm-hmac`, `web-token/jwt-signature-algorithm-ecdsa`
-     * and `web-token/jwt-signature-algorithm-rsa` packages that support the particular algorithm before adding it here.
+     * These are used by the `web-token/jwt-library` package for JWS validation/decryption; all algorithms listed
+     * below are included in that package.
      */
     private array $allowedJwsAlgorithms = [
         'HS256',

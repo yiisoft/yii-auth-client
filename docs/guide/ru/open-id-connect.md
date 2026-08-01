@@ -30,7 +30,7 @@ OpenID Connect
 
 **Внимание!** Протокол 'OpenID Connect' использует проверку [JWS](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature)
 для защиты процесса аутентификации. Данное расширение требует библиотеку
-[`web-token/jwt-framework`](https://github.com/web-token/jwt-framework) для такой проверки; она является обычной
+[`web-token/jwt-library`](https://github.com/web-token/jwt-library) для такой проверки; она является обычной
 зависимостью пакета в `composer.json`, поэтому дополнительная установка не требуется.
 
 > Примечание: если вы используете доверенного провайдера 'OpenID Connect', вы можете вызвать
