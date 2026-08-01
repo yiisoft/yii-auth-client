@@ -25,7 +25,7 @@ use function is_string;
  *
  * @link https://oauth.net/
  */
-abstract class OAuth extends AuthClient
+abstract class OAuth extends AuthClient implements OAuthInterface
 {
     /**
      * @var string API base URL.
