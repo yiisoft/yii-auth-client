@@ -174,6 +174,14 @@ final class AuthChoice extends Widget
         return $this->clients;
     }
 
+    /**
+     * @param array<string, OAuth2> $clients
+     */
+    public function setClients(array $clients): void
+    {
+        $this->clients = $clients;
+    }
+
     public function getClient(string $name): OAuth2
     {
         $clients = array_filter(

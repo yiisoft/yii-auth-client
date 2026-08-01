@@ -42,6 +42,16 @@ final class AuthChoiceTest extends TestCase
         $this->assertSame(['test' => $client], $widget->getClients());
     }
 
+    public function testSetClientsOverridesClients(): void
+    {
+        $widget = $this->createWidget();
+        $client = $this->createTestClient();
+
+        $widget->setClients(['test' => $client]);
+
+        $this->assertSame(['test' => $client], $widget->getClients());
+    }
+
     public function testGetClientReturnsMatchingClientByName(): void
     {
         $client = $this->createTestClient();
