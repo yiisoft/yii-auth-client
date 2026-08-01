@@ -17,10 +17,10 @@ use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2Interface;
 
 /**
- * AuthChoice prints buttons for authentication via various auth clients.
- * It opens a popup window for the client authentication process.
- * By default this widget relies on presence of {@see Collection} among application components
- * to get auth clients information.
+ * AuthChoice renders buttons for authentication via various OAuth2 clients.
+ * By default, it renders client links that redirect to the auth route; with {@see popupMode()} enabled,
+ * it opens a popup window for the OAuth2 flow. The widget retrieves clients from the injected
+ * {@see Collection} instance.
  *
  * Example:
  *
@@ -28,9 +28,7 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
  * <?= AuthChoice::widget()->authRoute('site/auth'); ?>
  * ```
  *
- * You can customize the widget appearance by using {@see begin()} and {@see end()} syntax
- * along with using method {@see clientLink()} or {@see createClientUrl()}.
- * For example:
+ * Customize appearance with {@see begin()}/{@see end()} and {@see clientLink()} or {@see createClientUrl()}:
  *
  * ```php
  * <?php
@@ -47,16 +45,22 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
  * <?= AuthChoice::end() ?>
  * ```
  *
- * Configuration methods ({@see popupMode()}, {@see options()}, {@see clientOptions()}, {@see authRoute()}) must
- * be called before {@see begin()}/{@see render()}, since that is when their asset registration and the opening
- * `<div>` tag are produced.
+ * Configuration methods ({@see authRoute()}, {@see popupMode()}, {@see displayMode()}, {@see iconAttributes()},
+ * {@see iconWidth()}, {@see iconHeight()}, {@see linkAttributes()}, {@see options()}, {@see clientOptions()})
+ * must be called before {@see begin()}/{@see render()}, as asset registration and the opening `<div>` tag
+ * are produced during rendering.
  *
- * This widget supports following keys for {@see AuthClientInterface::getViewOptions()} result:
+ * Inline SVG icons are rendered via {@see renderClientLogo()} (prefers client-provided logo, falls back to
+ * logo registry), then a placeholder span. Icon sizing/styling is controlled via {@see iconWidth()},
+ * {@see iconHeight()}, and {@see iconAttributes()}. Display mode ({@see AuthChoiceDisplayMode::Icon},
+ * {@see AuthChoiceDisplayMode::Text}, or {@see AuthChoiceDisplayMode::Both}) is set via {@see displayMode()}.
  *
- *  - popupWidth: int, width of the popup window in pixels.
- *  - popupHeight: int, height of the popup window in pixels.
- *  - widget: array, configuration for the widget, which should be used to render a client link;
- *    such widget should be a subclass of {@see AuthChoiceItem}.
+ * This widget respects the following keys from {@see AuthClientInterface::getViewOptions()}:
+ *
+ *  - popupWidth: int, width of the popup window in pixels (popup mode only).
+ *  - popupHeight: int, height of the popup window in pixels (popup mode only).
+ *  - widget: array, configuration for rendering a client link via a custom {@see AuthChoiceItem} subclass
+ *    instead of the default markup.
  *
  * @see AuthAction
  */

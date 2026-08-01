@@ -4,6 +4,24 @@
 Здесь предполагается, что маршрут аутентификации уже зарегистрирован, как описано в разделе
 [Быстрый старт](quick-start.md).
 
+## Требуемые псевдонимы для режима попапа
+
+При использовании виджета в режиме попапа (по умолчанию) он автоматически регистрирует 
+[[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]]. Для работы пакета ресурсов ваше приложение должно 
+определить псевдонимы `@assets` и `@assetsUrl` в `config/common/params.php`:
+
+```php
+'yiisoft/aliases' => [
+    '@assets' => '@root/public/assets',
+    '@assetsUrl' => '@baseUrl/assets',
+],
+```
+
+- `@assets` — директория, где размещаются опубликованные ресурсы (должна быть доступна из веба)
+- `@assetsUrl` — публичный URL-путь к `@assets`
+
+Если вы отключите режим попапа через `popupMode(false)`, эти псевдонимы не требуются.
+
 ## Добавление виджета в представление входа
 
 Для представлений есть готовый к использованию виджет [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice]]. Он получает
@@ -150,3 +168,53 @@ $authChoice->begin();
 независимо от `displayMode()`.
 
 Иконки теперь отображаются встроенным SVG, что исключает необходимость в спрайтах стилей. При `AuthChoiceDisplayMode::Text` (иконки не выводятся) никакие ресурсы иконок не требуются.
+
+### Переопределение стилей по умолчанию
+
+По умолчанию виджет использует классы Bootstrap (`btn btn-primary` для ссылок, `btn-group` для контейнера).
+Чтобы использовать другой CSS-фреймворк или кастомизировать стили, переопределите значения по умолчанию с помощью
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::linkAttributes()]] и 
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]]. Эти методы должны быть вызваны до 
+`begin()`/`render()`:
+
+```php
+// Переопределение для другого фреймворка (например, Tailwind)
+<?= Yiisoft\Yii\AuthClient\Widget\AuthChoice::widget()
+    ->authRoute('site/auth')
+    ->options(['class' => 'flex gap-2'])                           // переопределить контейнер
+    ->linkAttributes(['class' => 'px-4 py-2 bg-blue-600'])         // переопределить классы ссылок
+    ->iconAttributes(['class' => 'w-6 h-6 mr-2'])                  // переопределить стили иконок
+```
+
+Примечание: `linkAttributes()` объединяется с собственным классом виджета `auth-link` и применяется ко всем
+ссылкам, отрисованным методом `clientLink()` без явного `$text`. Пользователи могут переопределить 
+на основе отдельной ссылки, передав `$htmlOptions` методу `clientLink()` напрямую.
+
+### Добавление пользовательских логотипов провайдеров
+
+По умолчанию виджет имеет встроенные логотипы для: Google, GitHub, Facebook, LinkedIn, Microsoft, X, TikTok, 
+VKontakte и Yandex. Для пользовательских OAuth-провайдеров (таких как Okta, Auth0 и т. д.) виджет возвращается к 
+`getTitle()` клиента как текст.
+
+Чтобы использовать пользовательский логотип SVG, установите ключ `logo` при определении клиента. Он будет применён 
+через DI, вызвав `setLogo()` на экземпляре клиента:
+
+```php
+// config/params.php
+return [
+    'yiisoft/yii-auth-client' => [
+        'clients' => [
+            'okta' => [
+                'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+                'clientId' => 'your_client_id',
+                'clientSecret' => 'your_client_secret',
+                'issuerUrl' => 'https://your-domain.okta.com',
+                'logo' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><!-- ваш SVG здесь --></svg>',
+            ],
+        ],
+    ],
+];
+```
+
+Виджет отобразит этот пользовательский логотип вместо возврата к реестру или названию провайдера. Убедитесь, что 
+ваш SVG включает атрибут `viewBox`, чтобы он правильно масштабировался с размером иконок виджета.

@@ -3,6 +3,24 @@ AuthChoice Widget
 
 This page assumes you've already registered the auth route as described in [Quick Start](quick-start.md).
 
+## Required aliases for popup mode
+
+When using the widget in popup mode (the default), it automatically registers [[\Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset]].
+For the asset bundle to work, your application must define the `@assets` and `@assetsUrl` aliases in 
+`config/common/params.php`:
+
+```php
+'yiisoft/aliases' => [
+    '@assets' => '@root/public/assets',
+    '@assetsUrl' => '@baseUrl/assets',
+],
+```
+
+- `@assets` — the target directory where published assets are placed (must be web-accessible)
+- `@assetsUrl` — the public URL path to `@assets`
+
+If you disable popup mode via `popupMode(false)`, these aliases are not required.
+
 ## Adding the widget to the login view
 
 There's a ready-to-use [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice]] widget for views. It relies on
