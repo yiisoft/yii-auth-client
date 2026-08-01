@@ -6,7 +6,6 @@ namespace Yiisoft\Yii\AuthClient\Tests\Data;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\AuthClient\OAuth2;
-use Yiisoft\Yii\AuthClient\OAuthToken;
 
 /**
  * Mock for the Auth client.
@@ -35,11 +34,6 @@ final class TestClient extends OAuth2
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
     {
         return 'http://test.local';
-    }
-
-    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
-    {
-        return [];
     }
 
     protected function initUserAttributes(): array

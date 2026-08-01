@@ -835,6 +835,16 @@ final class OpenIdConnectTest extends TestCase
         $this->assertStringStartsWith('https://issuer.example.com/userinfo', (string) $capturedRequest->getUri());
     }
 
+    public function testInitUserAttributesReturnsEmptyArrayWithoutAccessToken(): void
+    {
+        $client = $this->createClient(['userinfo_endpoint' => 'https://issuer.example.com/userinfo']);
+        $method = new ReflectionMethod($client, 'initUserAttributes');
+
+        $result = $method->invoke($client);
+
+        $this->assertSame([], $result);
+    }
+
     public function testApplyClientCredentialsToRequestIsProtectedAndUsesBasicAuthWhenSupported(): void
     {
         $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_basic']]);
