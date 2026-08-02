@@ -75,6 +75,7 @@ setter methods on the client class — see the class API for available setters:
 | `clientId` | `setClientId()` | All OAuth2 clients |
 | `clientSecret` | `setClientSecret()` | All OAuth2 clients except VKontakte (PKCE-only, sends no secret) |
 | `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | All OAuth2 clients |
+| `logo` | `setLogo()` | All OAuth2 clients — see [AuthChoice Widget](auth-choice-widget.md#adding-custom-provider-logos) |
 | `scope` | `setScope()` | All OAuth clients |
 | `authUrl` | `setAuthUrl()` | All OAuth clients |
 | `tokenUrl` | `setTokenUrl()` | All OAuth2 clients |
