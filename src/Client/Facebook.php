@@ -6,6 +6,7 @@ namespace Yiisoft\Yii\AuthClient\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -21,25 +22,25 @@ use const PHP_QUERY_RFC3986;
  *
  * Example application configuration:
  *
- * config/common/params.php:
+ * ```php
+ * // config/common/params.php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'facebook' => Facebook::class,
+ *         'facebook' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+ *             'clientId' => $_ENV['FACEBOOK_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['FACEBOOK_CLIENT_SECRET'],
+ *         ],
  *     ],
  * ],
- *
- * config/common/di.php:
- * Facebook::class => [
- *     'setClientId()' => [$_ENV['FACEBOOK_API_CLIENT_ID'] ?? ''],
- *     'setClientSecret()' => [$_ENV['FACEBOOK_API_CLIENT_SECRET'] ?? ''],
- * ],
+ * ```
  *
  * @link https://developers.facebook.com/apps
  * @link https://developers.facebook.com/docs/graph-api
  */
 final class Facebook extends OAuth2
 {
-    protected string $graphApiVersion = 'v23.0';
+    protected string $graphApiVersion = 'v25.0';
     protected string $authUrl = 'https://www.facebook.com/dialog/oauth';
     protected string $tokenUrl = 'https://graph.facebook.com/oauth/access_token';
     protected string $endpoint = 'https://graph.facebook.com';
@@ -122,7 +123,7 @@ final class Facebook extends OAuth2
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
 
-        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
         $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 
@@ -142,7 +143,7 @@ final class Facebook extends OAuth2
      * @param OAuthToken|null $token access token, if not set {@see accessToken} will be used.
      * @param array $params additional request params.
      *
-     * @return numeric-string client auth code.
+     * @return string client auth code.
      */
     public function fetchClientAuthCode(
         ServerRequestInterface $incomingRequest,
@@ -169,7 +170,16 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        return (string) $response->getStatusCode();
+        /**
+         * @infection-ignore-all
+         * The `(array)` cast only changes behavior when the body decodes to a non-array scalar (e.g. a bare
+         * number). In that case `$responseParams['code']` still safely evaluates to `??`'s fallback with or
+         * without the cast (PHP does not warn/error on `??`-guarded offset access into a scalar), so removing
+         * the cast is behaviorally unobservable through this method's return value.
+         */
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
+
+        return (string) ($responseParams['code'] ?? '');
     }
 
     /**
@@ -204,7 +214,7 @@ final class Facebook extends OAuth2
 
         $response = $this->sendRequest($request);
 
-        $responseParams = (array) json_decode($response->getBody()->getContents(), true);
+        $responseParams = (array) Json::decode($response->getBody()->getContents());
         $token = $this->createToken(['params' => $responseParams]);
         $this->setAccessToken($token);
 
@@ -213,12 +223,12 @@ final class Facebook extends OAuth2
 
     public function getName(): string
     {
-        return 'facebook';
+        return $this->name ?: 'facebook';
     }
 
     public function getTitle(): string
     {
-        return 'Facebook';
+        return $this->title ?: 'Facebook';
     }
 
     protected function initUserAttributes(): array

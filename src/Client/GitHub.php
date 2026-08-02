@@ -14,60 +14,49 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  *
  * Example application configuration:
  *
- * config/common/params.php:
+ * ```php
+ * // config/common/params.php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'github' => GitHub::class,
+ *         'github' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\GitHub::class,
+ *             'clientId' => $_ENV['GITHUB_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['GITHUB_CLIENT_SECRET'],
+ *         ],
  *     ],
  * ],
- *
- * config/common/di.php:
- * GitHub::class => [
- *     'setClientId()' => [$_ENV['GITHUB_API_CLIENT_ID'] ?? ''],
- *     'setClientSecret()' => [$_ENV['GITHUB_API_CLIENT_SECRET'] ?? ''],
- * ],
+ * ```
  *
  * @link https://developer.github.com/v3/oauth/
  * @link https://github.com/settings/applications/new
  */
 final class GitHub extends OAuth2
 {
-    /**
-     * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-     */
     protected string $authUrl = 'https://github.com/login/oauth/authorize';
-
-    /**
-     * @see https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
-     */
     protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
-
     protected string $endpoint = 'https://api.github.com';
 
-    /**
-     * GitHub's API rejects any request without a `User-Agent` header (with a 403 whose JSON body
-     * carries no `id` field), so one is always sent here regardless of what the HTTP client itself
-     * might set by default.
-     *
-     * @see https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api#user-agent
-     */
-    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    public function getCurrentUserJsonArray(OAuthToken $token): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $oauthToken,
-            'https://api.github.com/user',
-            ['User-Agent' => 'yiisoft/yii-auth-client'],
+            $token,
+            $this->endpoint . '/user',
         );
     }
 
     public function getName(): string
     {
-        return 'github';
+        return $this->name ?: 'github';
     }
 
     public function getTitle(): string
     {
-        return 'GitHub';
+        return $this->title ?: 'GitHub';
+    }
+
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary bi bi-github';
     }
 
     protected function initUserAttributes(): array

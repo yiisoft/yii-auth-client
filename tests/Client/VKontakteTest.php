@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Tests\Client;
 
+use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
@@ -17,9 +18,14 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
+use function strlen;
+
 use const JSON_ERROR_NONE;
+use const PHP_URL_QUERY;
 
 final class VKontakteTest extends ProviderClientTestCase
 {
@@ -68,6 +74,432 @@ final class VKontakteTest extends ProviderClientTestCase
 
         $this->assertStringStartsWith('https://id.vk.ru/authorize?', $authUrl);
         $this->assertStringContainsString('client_id=client-id', $authUrl);
+    }
+
+    public function testBuildAuthUrlIncludesPkceCodeChallengeMatchingStoredVerifier(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+
+        $authUrl = $client->buildAuthUrl($this->createServerRequestStub());
+
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+        $this->assertSame('S256', $query['code_challenge_method']);
+        $codeVerifier = (string) (new ReflectionMethod($client, 'getState'))->invoke($client, 'codeVerifier');
+        // RFC 7636 code_verifier: base64url(random_bytes(64)) without padding is always exactly 86 chars.
+        $this->assertSame(86, strlen($codeVerifier));
+        $expectedChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+        $this->assertSame($expectedChallenge, $query['code_challenge']);
+    }
+
+    public function testBuildAuthUrlMergesCallerSuppliedParamsWithPkceDefaults(): void
+    {
+        $client = $this->createVKontakteClient();
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+
+        $authUrl = $client->buildAuthUrl($this->createServerRequestStub(), ['prompt' => 'select_account']);
+
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+        $this->assertSame('select_account', $query['prompt']);
+        $this->assertSame('S256', $query['code_challenge_method']);
+    }
+
+    public function testFetchAccessTokenThrowsWhenIncomingStateDoesNotMatch(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $buildClient->buildAuthUrl($this->createServerRequestStub());
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => 'wrong-state']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsMissing(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $buildClient->buildAuthUrl($this->createServerRequestStub());
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenThrowsWhenAuthStateWasNeverGenerated(): void
+    {
+        $client = $this->createVKontakteClient();
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => '']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenSendsCodeVerifierAndDeviceIdWithoutClientSecret(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setClientId('client-id');
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+        $codeVerifier = (string) (new ReflectionMethod($buildClient, 'getState'))->invoke($buildClient, 'codeVerifier');
+
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setClientId('client-id');
+        $client->setClientSecret('should-not-be-sent');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state'], 'device_id' => 'the-device-id']);
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $body);
+        $this->assertSame('authorization_code', $body['grant_type']);
+        $this->assertSame($codeVerifier, $body['code_verifier']);
+        $this->assertSame('the-device-id', $body['device_id']);
+        $this->assertSame('client-id', $body['client_id']);
+        $this->assertSame('http://return.local', $body['redirect_uri']);
+        $this->assertArrayNotHasKey('client_secret', $body);
+    }
+
+    public function testFetchAccessTokenMergesCallerSuppliedParams(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state']]);
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code', ['scope' => 'email']);
+
+        $this->assertNotNull($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $body);
+        $this->assertSame('email', $body['scope']);
+    }
+
+    public function testFetchAccessTokenSendsCodeVerifierAsEmptyStringWhenStateWasNeverStored(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'abc123'])),
+            $capturedRequest,
+        );
+        $client = $this->createVKontakteClient($httpClient)->withoutValidateAuthState();
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNotNull($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $body);
+        $this->assertArrayHasKey('code_verifier', $body);
+        $this->assertSame('', $body['code_verifier']);
+    }
+
+    public function testFetchAccessTokenRemovesAuthStateAndCodeVerifierStateAfterSuccess(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'abc123'])));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state']]);
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertNull((new ReflectionMethod($client, 'getState'))->invoke($client, 'authState'));
+        $this->assertNull((new ReflectionMethod($client, 'getState'))->invoke($client, 'codeVerifier'));
+    }
+
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsNotAString(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $buildClient->buildAuthUrl($this->createServerRequestStub());
+
+        $client = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        // A malformed `state[]=...` query is not a string and must be rejected outright rather than
+        // silently skipping the comparison against the stored auth state.
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => ['unexpected']]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
+    public function testFetchAccessTokenQueryStateTakesPriorityOverBodyState(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'abc123'])));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        // Correct state is in the query; body carries a different, wrong value.
+        // If body took priority (as a mutant would), this would throw instead of succeeding.
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state']])
+            ->withParsedBody(['state' => 'wrong-body-state']);
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('abc123', $token->getToken());
+    }
+
+    public function testFetchAccessTokenCastsScalarJsonResponseToArray(): void
+    {
+        // A JSON-scalar body (not an object) exercises the `(array)` cast around json_decode(): without
+        // it, the later `$output['device_id'] ??= $deviceId` write would throw on a non-array scalar.
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], '5'));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state'], 'device_id' => 'the-device-id']);
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame([5, 'device_id' => 'the-device-id'], $token->getParams());
+    }
+
+    public function testFetchAccessTokenKeepsResponseSuppliedDeviceIdOverCallbackDeviceId(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(
+            200,
+            [],
+            (string) json_encode(['access_token' => 'abc123', 'device_id' => 'response-device-id']),
+        ));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state'], 'device_id' => 'callback-device-id']);
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('response-device-id', $token->getParam('device_id'));
+    }
+
+    public function testFetchAccessTokenPersistsAccessTokenOnClient(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'abc123'])));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state']]);
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame($token, $client->getAccessToken());
+    }
+
+    public function testFetchAccessTokenPersistsDeviceIdOnToken(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $buildClient = $this->createVKontakteClient(stateStorage: $stateStorage);
+        $buildClient->setClientId('client-id');
+        $buildClient->setOauth2ReturnUrl('http://return.local');
+        $authUrl = $buildClient->buildAuthUrl($this->createServerRequestStub());
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $query);
+
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'abc123'])));
+        $client = $this->createVKontakteClient($httpClient, $stateStorage);
+        $client->setClientId('client-id');
+        $client->setOauth2ReturnUrl('http://return.local');
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['code' => 'auth-code', 'state' => $query['state'], 'device_id' => 'the-device-id']);
+
+        $token = $client->fetchAccessToken($incomingRequest, 'auth-code');
+
+        $this->assertSame('the-device-id', $token->getParam('device_id'));
+    }
+
+    public function testRefreshAccessTokenSendsDeviceIdFromTokenWithoutClientSecret(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'new-token'])),
+            $capturedRequest,
+        );
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $client->setClientSecret('should-not-be-sent');
+        $expiredToken = new OAuthToken();
+        $expiredToken->setParams([
+            'access_token' => 'old-token',
+            'refresh_token' => 'the-refresh-token',
+            'device_id' => 'the-device-id',
+        ]);
+
+        $client->refreshAccessToken($expiredToken);
+
+        $this->assertNotNull($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $body);
+        $this->assertSame('refresh_token', $body['grant_type']);
+        $this->assertSame('the-refresh-token', $body['refresh_token']);
+        $this->assertSame('the-device-id', $body['device_id']);
+        $this->assertSame('client-id', $body['client_id']);
+        $this->assertNotSame('', $body['state']);
+        $this->assertArrayNotHasKey('client_secret', $body);
+    }
+
+    public function testRefreshAccessTokenPreservesDeviceIdWhenResponseOmitsIt(): void
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], (string) json_encode(['access_token' => 'new-token'])));
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $expiredToken = new OAuthToken();
+        $expiredToken->setParams([
+            'access_token' => 'old-token',
+            'refresh_token' => 'the-refresh-token',
+            'device_id' => 'the-device-id',
+        ]);
+
+        $newToken = $client->refreshAccessToken($expiredToken);
+
+        $this->assertSame('new-token', $newToken->getToken());
+        $this->assertSame('the-device-id', $newToken->getParam('device_id'));
+    }
+
+    public function testRefreshAccessTokenKeepsResponseSuppliedDeviceIdOverTokenDeviceId(): void
+    {
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(
+            200,
+            [],
+            (string) json_encode(['access_token' => 'new-token', 'device_id' => 'response-device-id']),
+        ));
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $expiredToken = new OAuthToken();
+        $expiredToken->setParams([
+            'access_token' => 'old-token',
+            'refresh_token' => 'the-refresh-token',
+            'device_id' => 'old-device-id',
+        ]);
+
+        $newToken = $client->refreshAccessToken($expiredToken);
+
+        $this->assertSame('response-device-id', $newToken->getParam('device_id'));
+    }
+
+    public function testRefreshAccessTokenSendsEmptyDeviceIdAndRefreshTokenWhenTokenLacksThem(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['access_token' => 'new-token'])),
+            $capturedRequest,
+        );
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $expiredToken = new OAuthToken();
+        $expiredToken->setParams(['access_token' => 'old-token']);
+
+        $client->refreshAccessToken($expiredToken);
+
+        $this->assertNotNull($capturedRequest);
+        parse_str((string) $capturedRequest->getBody(), $body);
+        $this->assertArrayHasKey('device_id', $body);
+        $this->assertSame('', $body['device_id']);
+        $this->assertArrayHasKey('refresh_token', $body);
+        $this->assertSame('', $body['refresh_token']);
+    }
+
+    public function testRefreshAccessTokenCastsScalarJsonResponseToArray(): void
+    {
+        // A JSON-scalar body (not an object) exercises the `(array)` cast around json_decode(): without
+        // it, the later `$output['device_id'] ??= $deviceId` write would throw on a non-array scalar.
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(new Response(200, [], '5'));
+        $client = $this->createVKontakteClient($httpClient);
+        $client->setClientId('client-id');
+        $expiredToken = new OAuthToken();
+        $expiredToken->setParams([
+            'access_token' => 'old-token',
+            'refresh_token' => 'the-refresh-token',
+            'device_id' => 'the-device-id',
+        ]);
+
+        $newToken = $client->refreshAccessToken($expiredToken);
+
+        $this->assertSame([5, 'device_id' => 'the-device-id'], $newToken->getParams());
     }
 
     public function testStep7TokenInvalidationReturnsEmptyArrayWithoutAccessToken(): void
@@ -152,10 +584,9 @@ final class VKontakteTest extends ProviderClientTestCase
     }
 
     /**
-     * An empty response body must return [] without ever calling json_decode(): decoding an empty
-     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
-     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
-     * (both branches ultimately return []).
+     * An empty response body must return [] without a decoding error: {@see Json::decode()} special-cases
+     * the empty string and returns null without ever calling the underlying json_decode(), so
+     * json_last_error() stays untouched.
      */
     public function testStep8ObtainingUserDataDoesNotDecodeEmptyResponseBody(): void
     {
@@ -449,16 +880,16 @@ final class VKontakteTest extends ProviderClientTestCase
         return $this->instantiate(VKontakte::class);
     }
 
-    private function createVKontakteClient(?ClientInterface $httpClient = null): VKontakte
+    private function createVKontakteClient(?ClientInterface $httpClient = null, ?StateStorageInterface $stateStorage = null): VKontakte
     {
-        if ($httpClient === null) {
+        if ($httpClient === null && $stateStorage === null) {
             return $this->instantiate(VKontakte::class);
         }
 
         return new VKontakte(
-            $httpClient,
+            $httpClient ?? $this->createStub(ClientInterface::class),
             new Psr17Factory(),
-            new DummyStateStorage(),
+            $stateStorage ?? new DummyStateStorage(),
             new YiisoftFactory(),
             new Session(),
         );

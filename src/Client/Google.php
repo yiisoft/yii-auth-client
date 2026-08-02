@@ -13,41 +13,53 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * In order to use Google OAuth2 you must create a project at <https://console.cloud.google.com/cloud-resource-manager>
  * and setup its credentials at <https://console.cloud.google.com/apis/credentials?project=[yourProjectId]>.
  * Create an Oauth2 Web Application and record the resultant Client Id and Client Secret in e.g a .env file and insert your website's returnUrl e.g. https:\\example.com\callbackGoogle
- * @see Google+ Api is being shutdown https://developers.google.com/+/api-shutdown
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'google' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
+ *             'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+ *             'oauth2ReturnUrl' => 'https://example.com/auth/google',
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @see https://developers.google.com/oauthplayground
  * @see <https://console.cloud.google.com/welcome?project=[yourProjectId]>
  */
 final class Google extends OAuth2
 {
-    protected string $version = 'v2';
     protected string $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     protected string $tokenUrl = 'https://oauth2.googleapis.com/token';
     protected string $endpoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        /**
-         * @infection-ignore-all
-         * $url above is always this same www.googleapis.com host, and PSR-7 implementations derive
-         * the Host header from the request URI, so this explicit 'Host' item is redundant with (and
-         * unobservably identical to) the auto-derived one.
-         */
-        $headers = [
-            'Host' => 'www.googleapis.com',
-            'Content-length' => '0',
-        ];
-
-        return $this->fetchCurrentUserJsonArray($oauthToken, 'https://www.googleapis.com/oauth2/v2/userinfo', $headers);
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            $this->endpoint,
+        );
     }
 
     public function getName(): string
     {
-        return 'google';
+        return $this->name ?: 'google';
     }
 
     public function getTitle(): string
     {
-        return 'Google';
+        return $this->title ?: 'Google';
+    }
+
+    public function getButtonClass(): string
+    {
+        return 'btn btn-primary bi bi-google';
     }
 
     protected function initUserAttributes(): array

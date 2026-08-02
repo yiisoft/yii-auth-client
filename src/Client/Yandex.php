@@ -14,6 +14,21 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
  *
  * In order to use Yandex OAuth you must register your application at <https://oauth.yandex.ru/client/new>.
  *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'yandex' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Yandex::class,
+ *             'clientId' => $_ENV['YANDEX_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['YANDEX_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @link https://oauth.yandex.ru/client/new
  * @link https://api.yandex.ru/login/doc/dg/reference/response.xml
  * @link https://yandex.com/dev/id/doc/en/codes/code-url
@@ -21,10 +36,8 @@ use Yiisoft\Yii\AuthClient\RequestUtil;
 final class Yandex extends OAuth2
 {
     protected string $authUrl = 'https://oauth.yandex.com/authorize';
-
     protected string $tokenUrl = 'https://oauth.yandex.com/token';
-
-    protected string $endpoint = 'https://login.yandex.ru';
+    protected string $endpoint = 'https://login.yandex.ru/info';
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
     {
@@ -44,12 +57,12 @@ final class Yandex extends OAuth2
 
     public function getName(): string
     {
-        return 'yandex';
+        return $this->name ?: 'yandex';
     }
 
     public function getTitle(): string
     {
-        return 'Yandex';
+        return $this->title ?: 'Yandex';
     }
 
     protected function initUserAttributes(): array

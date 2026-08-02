@@ -7,12 +7,26 @@ namespace Yiisoft\Yii\AuthClient\Client;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
-use function sprintf;
-
 /**
  * LinkedIn allows authentication via LinkedIn OAuth.
  *
  * In order to use linkedIn OAuth you must register your application at <https://www.linkedin.com/secure/developer>.
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'linkedin' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\LinkedIn::class,
+ *             'clientId' => $_ENV['LINKEDIN_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['LINKEDIN_CLIENT_SECRET'],
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * @link https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?source=recommendations&tabs=HTTPS1
  * @link https://developer.linkedin.com/docs/oauth2
  * @link https://www.linkedin.com/secure/developer
@@ -20,26 +34,31 @@ use function sprintf;
  */
 final class LinkedIn extends OAuth2
 {
-    protected string $version = 'v2';
     protected string $authUrl = 'https://www.linkedin.com/oauth/v2/authorization';
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
 
-    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    public function getCurrentUserJsonArray(OAuthToken $token): array
     {
-        $url = sprintf('https://api.linkedin.com/%s/userinfo', $this->version);
-
-        return $this->fetchCurrentUserJsonArray($oauthToken, $url);
+        return $this->fetchCurrentUserJsonArray(
+            $token,
+            $this->endpoint . '/userinfo',
+        );
     }
 
     public function getName(): string
     {
-        return 'linkedin';
+        return $this->name ?: 'linkedin';
     }
 
     public function getTitle(): string
     {
-        return 'LinkedIn';
+        return $this->title ?: 'LinkedIn';
+    }
+
+    public function getButtonClass(): string
+    {
+        return 'btn btn-info bi bi-linkedin';
     }
 
     protected function initUserAttributes(): array

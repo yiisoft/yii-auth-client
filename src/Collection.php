@@ -17,22 +17,25 @@ use function array_key_exists;
  * ```php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'google' => Yiisoft\Yii\AuthClient\Client\Google::class,
- *         'facebook' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
- *         ...
+ *         'google' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Google::class,
+ *             'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+ *             'oauth2ReturnUrl' => 'https://example.com/auth/google',
+ *         ],
+ *         'facebook' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Facebook::class,
+ *             'clientId' => $_ENV['FACEBOOK_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['FACEBOOK_CLIENT_SECRET'],
+ *         ],
  *     ],
  * ]
  * ```
  *
- * Each client class referenced above must itself be registered as a DI definition (e.g. in `config/di.php`)
- * so its `clientId`/`clientSecret` can be configured:
+ * The array key (`'google'`, `'facebook'`) is used as the client's `name`.
+ * Remaining keys map to setters on the client class, e.g. `clientId` → `setClientId()`.
  *
- * ```php
- * Yiisoft\Yii\AuthClient\Client\Google::class => [
- *     'setClientId()' => ['google_client_id'],
- *     'setClientSecret()' => ['google_client_secret'],
- * ],
- * ```
+ * @see CollectionFactory
  */
 final class Collection
 {

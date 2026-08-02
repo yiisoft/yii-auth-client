@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient;
 
 use InvalidArgumentException;
+use JsonException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
 use function count;
 use function is_array;
 use function is_string;
-use function strlen;
 
 use const PHP_QUERY_RFC3986;
 
@@ -160,15 +161,11 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
              * @psalm-suppress MixedAssignment
              */
             $incomingState = $queryParams['state'] ?? ($bodyParams['state'] ?? null);
-            if (is_string($incomingState)) {
-                if (strcmp($incomingState, (string) $authState) !== 0) {
-                    throw new InvalidArgumentException('Invalid auth state parameter.');
-                }
-            }
-            if ($incomingState === null) {
-                throw new InvalidArgumentException('Invalid auth state parameter.');
-            }
-            if (empty($authState)) {
+            if (
+                !is_string($incomingState)
+                || empty($authState)
+                || strcmp($incomingState, $authState) !== 0
+            ) {
                 throw new InvalidArgumentException('Invalid auth state parameter.');
             }
             $this->removeState('authState');
@@ -256,11 +253,7 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
         try {
             $response = $this->httpClient->sendRequest($request);
             $body = $response->getBody()->getContents();
-            if (strlen($body) > 0) {
-                $output = (array) json_decode($body, true);
-            } else {
-                $output = [];
-            }
+            $output = (array) Json::decode($body);
         } catch (Throwable) {
             $output = [];
         }
@@ -480,13 +473,17 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
             array_merge(['Authorization' => $authScheme . ' ' . $tokenString], $headers),
         );
 
+        if ($request->getHeaderLine('User-Agent') === '') {
+            $request = $request->withHeader('User-Agent', 'yiisoft/yii-auth-client');
+        }
+
         try {
             $body = $this->sendRequest($request)->getBody()->getContents();
         } catch (Throwable) {
             return [];
         }
 
-        return $body === '' ? [] : (array) json_decode($body, true);
+        return $body === '' ? [] : (array) Json::decode($body);
     }
 
     /**
@@ -543,8 +540,12 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
      */
     private function parseTokenResponse(string $contents): array
     {
-        /** @var mixed $decoded */
-        $decoded = json_decode($contents, true);
+        try {
+            /** @var mixed $decoded */
+            $decoded = Json::decode($contents);
+        } catch (JsonException) {
+            $decoded = null;
+        }
 
         return is_array($decoded) ? $decoded : $this->parse_str_clean($contents);
     }

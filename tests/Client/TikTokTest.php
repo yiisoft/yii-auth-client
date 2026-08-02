@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
 use ReflectionMethod;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Yii\AuthClient\Client\TikTok;
@@ -49,6 +50,20 @@ final class TikTokTest extends ProviderClientTestCase
         $result = $client->getCurrentUserJsonArray($token);
 
         $this->assertSame(['open_id' => 'abc'], $result);
+    }
+
+    public function testGetCurrentUserJsonArraySendsRequestToExpectedUrl(): void
+    {
+        $httpClient = $this->createMock(ClientInterface::class);
+        $httpClient->expects(self::once())
+            ->method('sendRequest')
+            ->with(self::callback(fn(RequestInterface $request): bool => (string) $request->getUri() === 'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url'))
+            ->willReturn(new Response(200, [], (string) json_encode(['open_id' => 'abc'])));
+        $client = $this->createTikTokClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+
+        $client->getCurrentUserJsonArray($token);
     }
 
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void
