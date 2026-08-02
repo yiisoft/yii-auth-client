@@ -48,12 +48,12 @@ final class OpenIdConnectTest extends TestCase
     }
 
     /**
-     * getName() must return the name configured per-instance via the constructor: it feeds both the
+     * getName() must return the name configured per-instance via setName(): it feeds both the
      * session-state key prefix ({@see AuthClient::getStateKeyPrefix()}) and the
      * config-discovery cache key ({@see getConfigParams()}), so two different providers configured with
      * distinct names in the same app must not collide on either.
      */
-    public function testGetNameReflectsConstructorArgumentPerInstance(): void
+    public function testGetNameReflectsPerInstanceSetting(): void
     {
         $client = new OpenIdConnect(
             $this->createStub(ClientInterface::class),
@@ -62,9 +62,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             new ArrayCache(),
-            'auth0',
-            'Auth0',
         );
+        $client->setName('auth0');
 
         $this->assertSame('auth0', $client->getName());
     }
@@ -79,9 +78,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'auth0',
-            'Auth0',
         );
+        $auth0Client->setName('auth0');
         $auth0Client->setIssuerUrl(self::ISSUER_URL);
         $cache->set('config-params-auth0', ['authorization_endpoint' => 'https://auth0.example.com/authorize']);
 
@@ -92,9 +90,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'okta',
-            'Okta',
         );
+        $oktaClient->setName('okta');
         $oktaClient->setIssuerUrl(self::ISSUER_URL);
         $cache->set('config-params-okta', ['authorization_endpoint' => 'https://okta.example.com/authorize']);
 
@@ -110,10 +107,10 @@ final class OpenIdConnectTest extends TestCase
     }
 
     /**
-     * getTitle() must return the title configured per-instance via the constructor, so that an app
+     * getTitle() must return the title configured per-instance via setTitle(), so that an app
      * registering multiple OpenIdConnect clients (Auth0, Okta, ...) can tell them apart in the UI.
      */
-    public function testGetTitleReflectsConstructorArgumentPerInstance(): void
+    public function testGetTitleReflectsPerInstanceSetting(): void
     {
         $client = new OpenIdConnect(
             $this->createStub(ClientInterface::class),
@@ -122,11 +119,46 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             new ArrayCache(),
-            'auth0',
-            'Auth0',
         );
+        $client->setName('auth0');
+        $client->setTitle('Auth0');
 
         $this->assertSame('Auth0', $client->getTitle());
+    }
+
+    /**
+     * getTitle() must fall back to ucfirst of the name when no explicit title is set but a name is.
+     */
+    public function testGetTitleDefaultsToUcfirstNameWhenNoTitleSet(): void
+    {
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            new ArrayCache(),
+        );
+        $client->setName('my-oidc');
+
+        $this->assertSame('My-oidc', $client->getTitle());
+    }
+
+    /**
+     * getTitle() must not return an empty string for a client that never had a name or title set.
+     */
+    public function testGetTitleDefaultsToOpenIdConnectWhenNameIsAlsoEmpty(): void
+    {
+        $client = new OpenIdConnect(
+            $this->createStub(ClientInterface::class),
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            new ArrayCache(),
+        );
+
+        $this->assertSame('OpenID Connect', $client->getTitle());
     }
 
     public function testGetButtonClass(): void
@@ -485,9 +517,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'oidc',
-            'OIDC',
         );
+        $client->setName('oidc');
 
         $params = $client->getConfigParams();
 
@@ -512,9 +543,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'oidc',
-            'OIDC',
         );
+        $firstClient->setName('oidc');
         $firstClient->setIssuerUrl(self::ISSUER_URL);
         $secondClient = new OpenIdConnect(
             $httpClient,
@@ -523,9 +553,8 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'oidc',
-            'OIDC',
         );
+        $secondClient->setName('oidc');
         $secondClient->setIssuerUrl(self::ISSUER_URL);
 
         $firstClient->getConfigParams();
@@ -1227,9 +1256,9 @@ final class OpenIdConnectTest extends TestCase
             new YiisoftFactory(),
             new Session(),
             $cache,
-            'oidc',
-            'OIDC',
         );
+        $client->setName('oidc');
+        $client->setTitle('OIDC');
         $client->setIssuerUrl(self::ISSUER_URL);
         $client->setClientId(self::CLIENT_ID);
 

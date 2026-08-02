@@ -43,7 +43,7 @@ use const PHP_QUERY_RFC3986;
 /**
  * OpenIdConnect serves as a client for the OpenIdConnect flow.
  *
- * @link https://github.com/web-token/jwt-framework
+ * @link https://github.com/web-token/jwt-library
  *
  * @link https://openid.net/connect/
  *
@@ -52,6 +52,22 @@ use const PHP_QUERY_RFC3986;
  * https://accounts.google.com/.well-known/openid-configuration
  * https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
  * https://oidc.account.gov.uk/.well-known/openid-configuration
+ *
+ * Example application configuration:
+ *
+ * ```php
+ * // config/common/params.php
+ * 'yiisoft/yii-auth-client' => [
+ *     'clients' => [
+ *         'my-oidc' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+ *             'clientId' => $_ENV['OIDC_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['OIDC_CLIENT_SECRET'],
+ *             'issuerUrl' => 'https://your-issuer.example.com',
+ *         ],
+ *     ],
+ * ],
+ * ```
  *
  * @see OAuth2
  */
@@ -66,16 +82,14 @@ final class OpenIdConnect extends OAuth2
     private string $issuerUrl = 'https://{IdentityProviderDomain}';
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
-     * Note: this functionality requires `web-token/jwt-checker`, `web-token/jwt-key-mgmt`, `web-token/jwt-signature`
-     * composer package to be installed. You can disable this option in case of usage of trusted OpenIDConnect provider,
-     * however this violates the protocol rules, so you are doing it on your own risk.
+     * You can disable this option in case of usage of a trusted OpenIDConnect provider, however this violates
+     * the protocol rules, so you are doing it on your own risk.
      */
     private bool $validateJws = true;
     /**
      * @var array JWS algorithms, which are allowed to be used.
-     * These are used by `web-token` library for JWS validation/decryption.
-     * Make sure to install `web-token/jwt-signature-algorithm-hmac`, `web-token/jwt-signature-algorithm-ecdsa`
-     * and `web-token/jwt-signature-algorithm-rsa` packages that support the particular algorithm before adding it here.
+     * These are used by the `web-token/jwt-library` package for JWS validation/decryption; all algorithms listed
+     * below are included in that package.
      */
     private array $allowedJwsAlgorithms = [
         'HS256',
@@ -136,8 +150,6 @@ final class OpenIdConnect extends OAuth2
         Factory $factory,
         SessionInterface $session,
         private readonly CacheInterface $cache,
-        private readonly string $name,
-        private readonly string $title,
     ) {
         parent::__construct($httpClient, $requestFactory, $stateStorage, $factory, $session);
     }
@@ -250,12 +262,16 @@ final class OpenIdConnect extends OAuth2
 
     public function getName(): string
     {
-        return $this->name;
+        return $this->name ?: 'openid-connect';
     }
 
     public function getTitle(): string
     {
-        return $this->title;
+        if ($this->title !== '') {
+            return $this->title;
+        }
+
+        return $this->name !== '' ? ucfirst($this->name) : 'OpenID Connect';
     }
 
     public function getButtonClass(): string
@@ -418,7 +434,7 @@ final class OpenIdConnect extends OAuth2
                 throw new ClientException('JWK Set is not available.', 400);
             }
             $jwsVerified = $jwsLoader->loadAndVerifyWithKeySet($jws, $jwkSet, $signature);
-            return (array) Json::decode((string) $jwsVerified->getPayload(), true);
+            return (array) Json::decode((string) $jwsVerified->getPayload());
         } catch (Exception $e) {
             throw new ClientException('Loading JWS: Exception: ' . $e->getMessage(), (int) $e->getCode());
         }
@@ -529,6 +545,6 @@ final class OpenIdConnect extends OAuth2
         $request = $this->createRequest('GET', $configUrl);
         $response = $this->sendRequest($request);
 
-        return (array) json_decode($response->getBody()->getContents(), true);
+        return (array) Json::decode($response->getBody()->getContents());
     }
 }

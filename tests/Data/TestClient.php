@@ -18,22 +18,17 @@ final class TestClient extends OAuth2
 
     public function getName(): string
     {
-        return 'test';
+        return $this->name ?: 'test';
     }
 
     public function getTitle(): string
     {
-        return 'Test';
+        return $this->title ?: 'Test';
     }
 
     public function getButtonClass(): string
     {
         return 'btn btn-primary bi';
-    }
-
-    public function getClientId(): string
-    {
-        return 'adfadfasdfasdfasdfasdfasdfasdfa';
     }
 
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
