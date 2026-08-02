@@ -37,13 +37,17 @@ with inline SVG icons. Links open the auth flow in a popup window (see [Popup mo
 ```html
 <div class="btn-group" id="yii-auth-client" data-authchoice="{...}">
     <a class="auth-link btn btn-primary" title="Google" href="/auth/google" data-popup-width="860" data-popup-height="480">
-        <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg>
+        <span class="auth-icon google"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg></span>
     </a>
     <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github" data-popup-width="860" data-popup-height="480">
-        <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg>
+        <span class="auth-icon github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg></span>
     </a>
 </div>
 ```
+
+Every icon - registry, custom logo, or the empty placeholder for an unregistered client with no logo - is
+wrapped in a `<span class="auth-icon {name}">`, a stable hook for per-provider styling regardless of the
+icon source.
 
 To use a different CSS framework or customize styling, use the `options()`, `linkAttributes()`, and `iconAttributes()` methods:
 
@@ -54,6 +58,16 @@ To use a different CSS framework or customize styling, use the `options()`, `lin
     ->options(['class' => 'flex gap-2'])
     ->linkAttributes(['class' => 'px-4 py-2 bg-blue-500 text-white rounded'])
     ->iconAttributes(['class' => 'w-6 h-6']) ?>
+```
+
+`iconAttributes()` merges into the inner `<svg>` tag (registry icons only, see below) - so Tailwind sizing
+utility classes like `w-6 h-6` size the SVG itself, not the wrapping `.auth-icon` span. Use
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconWrapperAttributes()]] for the span instead - unlike
+`iconAttributes()`, it applies to every icon regardless of source (registry, custom logo, or the empty
+placeholder):
+
+```php
+->iconWrapperAttributes(['class' => 'inline-flex items-center'])
 ```
 
 ### Popup mode
@@ -137,9 +151,9 @@ script's own defaults, so you only need to specify the keys you want to change:
 ### Overriding default styling
 
 By default, the widget uses Bootstrap classes (`btn btn-primary` for links, `btn-group` for container).
-To use a different CSS framework or customize the styling, override the defaults using [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::linkAttributes()]]
-and [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]]. These methods must be called before 
-`begin()`/`render()`:
+To use a different CSS framework or customize the styling, override the defaults using [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::linkAttributes()]],
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]], and [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconWrapperAttributes()]].
+These methods must be called before `begin()`/`render()`:
 
 ```php
 // Override for a different framework (e.g., Tailwind)
@@ -147,7 +161,8 @@ and [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]]. These metho
     ->authRoute('site/auth')
     ->options(['class' => 'flex gap-2'])                           // override container
     ->linkAttributes(['class' => 'px-4 py-2 bg-blue-600'])         // override link classes
-    ->iconAttributes(['class' => 'w-6 h-6 mr-2'])                  // override icon styles
+    ->iconAttributes(['class' => 'w-6 h-6'])                       // override the inner <svg> (registry icons only)
+    ->iconWrapperAttributes(['class' => 'inline-flex mr-2'])       // override the wrapping <span> (all icons)
 ```
 
 Note: `linkAttributes()` merges with the widget's own `auth-link` class, and applies to all
@@ -172,7 +187,7 @@ by passing `$htmlOptions` to `clientLink()` directly.
 ```html
 <div class="btn-group" id="yii-auth-client">
     <a class="auth-link btn btn-primary" title="Google" href="/auth/google">
-        <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg><span class="auth-title ms-2">Google</span>
+        <span class="auth-icon google"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg></span><span class="auth-title ms-2">Google</span>
     </a>
 </div>
 ```
@@ -206,7 +221,7 @@ return [
 ];
 ```
 
-The widget embeds this value verbatim, exactly as given, instead of falling back to the registry or the
-provider's title - it does not add a wrapping `<svg>`, inject `width`/`height`/`viewBox`, or merge in
-{@see AuthChoice::iconAttributes()}. Make sure your SVG is a complete, self-contained element with its own
-`xmlns`, `viewBox`, sizing, and any classes (e.g. `class="auth-icon"`) needed for styling.
+The widget embeds this value verbatim, exactly as given, inside the `<span class="auth-icon okta">` wrapper
+- instead of falling back to the registry or the provider's title, and without injecting
+`width`/`height`/`viewBox` or merging in {@see AuthChoice::iconAttributes()} into the SVG itself. Make sure
+your SVG is a complete, self-contained element with its own `xmlns`, `viewBox`, and sizing.

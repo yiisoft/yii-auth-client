@@ -39,13 +39,17 @@
 ```html
 <div class="btn-group" id="yii-auth-client" data-authchoice="{...}">
     <a class="auth-link btn btn-primary" title="Google" href="/auth/google" data-popup-width="860" data-popup-height="480">
-        <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg>
+        <span class="auth-icon google"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 268.152 273.883" preserveAspectRatio="xMidYMid meet">...</svg></span>
     </a>
     <a class="auth-link btn btn-primary" title="GitHub" href="/auth/github" data-popup-width="860" data-popup-height="480">
-        <svg class="auth-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg>
+        <span class="auth-icon github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">...</svg></span>
     </a>
 </div>
 ```
+
+Каждая иконка - из реестра, пользовательский логотип или пустой плейсхолдер для незарегистрированного клиента
+без логотипа - оборачивается в `<span class="auth-icon {имя}">`, стабильный хук для стилизации конкретного
+провайдера независимо от источника иконки.
 
 Для использования другого CSS-фреймворка или кастомизации стилей используйте методы `options()`, `linkAttributes()` 
 и `iconAttributes()`:
@@ -57,6 +61,16 @@
     ->options(['class' => 'flex gap-2'])
     ->linkAttributes(['class' => 'px-4 py-2 bg-blue-500 text-white rounded'])
     ->iconAttributes(['class' => 'w-6 h-6']) ?>
+```
+
+`iconAttributes()` вставляется во внутренний тег `<svg>` (только для иконок из реестра, см. ниже) - поэтому
+Tailwind-классы размера вроде `w-6 h-6` задают размер самого SVG, а не оборачивающего `.auth-icon` span.
+Для span вместо этого используйте [[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconWrapperAttributes()]] -
+в отличие от `iconAttributes()`, он применяется к любой иконке независимо от источника (реестр,
+пользовательский логотип или пустой плейсхолдер):
+
+```php
+->iconWrapperAttributes(['class' => 'inline-flex items-center'])
 ```
 
 ### Режим всплывающего окна
@@ -173,8 +187,9 @@ $authChoice->begin();
 
 По умолчанию виджет использует классы Bootstrap (`btn btn-primary` для ссылок, `btn-group` для контейнера).
 Чтобы использовать другой CSS-фреймворк или кастомизировать стили, переопределите значения по умолчанию с помощью
-[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::linkAttributes()]] и 
-[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]]. Эти методы должны быть вызваны до 
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::linkAttributes()]],
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconAttributes()]] и
+[[\Yiisoft\Yii\AuthClient\Widget\AuthChoice::iconWrapperAttributes()]]. Эти методы должны быть вызваны до
 `begin()`/`render()`:
 
 ```php
@@ -183,7 +198,8 @@ $authChoice->begin();
     ->authRoute('site/auth')
     ->options(['class' => 'flex gap-2'])                           // переопределить контейнер
     ->linkAttributes(['class' => 'px-4 py-2 bg-blue-600'])         // переопределить классы ссылок
-    ->iconAttributes(['class' => 'w-6 h-6 mr-2'])                  // переопределить стили иконок
+    ->iconAttributes(['class' => 'w-6 h-6'])                       // переопределить внутренний <svg> (только иконки из реестра)
+    ->iconWrapperAttributes(['class' => 'inline-flex mr-2'])       // переопределить оборачивающий <span> (все иконки)
 ```
 
 Примечание: `linkAttributes()` объединяется с собственным классом виджета `auth-link` и применяется ко всем

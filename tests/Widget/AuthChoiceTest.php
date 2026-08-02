@@ -216,12 +216,14 @@ final class AuthChoiceTest extends TestCase
 
         $html = $widget->clientLink($client);
 
-        $this->assertStringContainsString('<span class="auth-icon test">', html_entity_decode($html));
+        $this->assertStringContainsString('<span class="auth-icon test"></span>', html_entity_decode($html));
+        $this->assertStringNotContainsString('<svg', html_entity_decode($html));
     }
 
     /**
-     * A custom logo (setLogo()) is embedded exactly as given - no wrapping `<svg>`, no injected
-     * `width`/`height`/`viewBox`/`class`, no `<title>`, and {@see AuthChoice::iconAttributes()} isn't merged in.
+     * A custom logo (setLogo()) is embedded exactly as given inside the `auth-icon` wrapper span - no
+     * injected `width`/`height`/`viewBox`/`class` on the SVG itself, no `<title>`, and
+     * {@see AuthChoice::iconAttributes()} isn't merged in.
      */
     public function testClientLinkRendersCustomLogoVerbatim(): void
     {
@@ -239,7 +241,9 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->clientLink($client);
         $decoded = html_entity_decode($html);
 
-        $this->assertStringContainsString($customLogo, $decoded);
+        // Checked against the raw (non-decoded) $html: proves the span's content isn't HTML-encoded, not
+        // just that decoding happens to restore it afterward.
+        $this->assertStringContainsString('<span class="auth-icon test">' . $customLogo . '</span>', $html);
         $this->assertStringNotContainsString('<title>', $decoded);
         $this->assertStringNotContainsString('width="999"', $decoded);
         $this->assertStringNotContainsString('height="888"', $decoded);
@@ -397,6 +401,52 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
     }
 
+    public function testIconWrapperAttributesReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconWrapperAttributes(['data-testid' => 'icon']));
+    }
+
+    /**
+     * Unlike {@see testIconAttributesAppliedToSvgIcons}, these attributes land on the wrapping `<span>`,
+     * not the `<svg>` - and apply even to a client-provided (custom) logo, which iconAttributes() doesn't
+     * reach.
+     */
+    public function testIconWrapperAttributesAppliedToWrapperSpan(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="blue"/></svg>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconWrapperAttributes(['data-testid' => 'icon']);
+
+        $html = $widget->clientLink($client);
+        $decoded = html_entity_decode($html);
+
+        $this->assertStringContainsString('<span class="auth-icon test" data-testid="icon">', $decoded);
+    }
+
+    /**
+     * An explicit `class` in iconWrapperAttributes() replaces the default `auth-icon {name}` class
+     * entirely, same overwrite-on-conflict semantics as {@see iconAttributes()}.
+     */
+    public function testIconWrapperAttributesClassOverridesDefault(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconWrapperAttributes(['class' => 'my-wrapper']);
+
+        $html = $widget->clientLink($client);
+        $decoded = html_entity_decode($html);
+
+        $this->assertStringContainsString('<span class="my-wrapper">', $decoded);
+        $this->assertStringNotContainsString('auth-icon', $decoded);
+    }
+
     public function testIconWidthReturnsSelfForChaining(): void
     {
         $widget = $this->createWidget();
@@ -453,6 +503,24 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('viewBox="0 0 268.152 273.883"', html_entity_decode($html));
     }
 
+    /**
+     * The `auth-icon` class lives on the wrapping span (with the client name appended), not on the `<svg>`
+     * itself - the same wrapper shape used for custom logos and the unregistered-client placeholder.
+     */
+    public function testRenderClientLogoWrapsRegistrySvgInAuthIconSpan(): void
+    {
+        $client = $this->createGitHubClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['github' => $client], $urlGenerator)->authRoute('site/auth');
+
+        $html = $widget->clientLink($client);
+        $decoded = html_entity_decode($html);
+
+        $this->assertMatchesRegularExpression('#<span class="auth-icon github"><svg[^>]*>.*</svg></span>#', $decoded);
+        $this->assertStringNotContainsString('<svg class="auth-icon"', $decoded);
+    }
+
     public function testDisplayModeReturnsSelfForChaining(): void
     {
         $widget = $this->createWidget();
@@ -472,7 +540,7 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->clientLink($client);
 
         $this->assertStringContainsString('<svg', html_entity_decode($html));
-        $this->assertStringContainsString('</svg></a>', html_entity_decode($html));
+        $this->assertStringContainsString('</svg></span></a>', html_entity_decode($html));
     }
 
     public function testDisplayModeTextOnly(): void
