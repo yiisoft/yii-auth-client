@@ -82,9 +82,8 @@ final class OpenIdConnect extends OAuth2
     private string $issuerUrl = 'https://{IdentityProviderDomain}';
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
-     * Note: this functionality requires the `web-token/jwt-library` composer package to be installed. You can
-     * disable this option in case of usage of trusted OpenIDConnect provider, however this violates the protocol
-     * rules, so you are doing it on your own risk.
+     * You can disable this option in case of usage of trusted a OpenIDConnect provider, however this violates
+     * the protocol rules, so you are doing it on your own risk.
      */
     private bool $validateJws = true;
     /**
