@@ -36,10 +36,10 @@ final class GitHub extends OAuth2
     protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
     protected string $endpoint = 'https://api.github.com';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint . '/user',
         );
     }
@@ -52,11 +52,6 @@ final class GitHub extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'GitHub';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-github';
     }
 
     protected function initUserAttributes(): array

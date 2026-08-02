@@ -161,13 +161,6 @@ final class OpenIdConnectTest extends TestCase
         $this->assertSame('OpenID Connect', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('', $client->getButtonClass());
-    }
-
     public function testGetViewOptions(): void
     {
         $client = $this->createClient();

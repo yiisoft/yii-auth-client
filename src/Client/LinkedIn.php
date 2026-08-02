@@ -38,10 +38,10 @@ final class LinkedIn extends OAuth2
     protected string $tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
     protected string $endpoint = 'https://api.linkedin.com/v2';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint . '/userinfo',
         );
     }
@@ -54,11 +54,6 @@ final class LinkedIn extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'LinkedIn';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-info bi bi-linkedin';
     }
 
     protected function initUserAttributes(): array

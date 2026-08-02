@@ -34,17 +34,12 @@ final class TikTok extends OAuth2
     protected string $tokenUrl = 'https://open.tiktokapis.com/v2/oauth/token/';
     protected string $endpoint = 'https://open.tiktokapis.com/v2/user/info/';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint . '?fields=open_id,display_name,avatar_url',
         );
-    }
-
-    public function getButtonClass(): string
-    {
-        return '';
     }
 
     public function getName(): string

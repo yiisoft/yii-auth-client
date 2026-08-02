@@ -39,10 +39,10 @@ final class Google extends OAuth2
     protected string $tokenUrl = 'https://oauth2.googleapis.com/token';
     protected string $endpoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint,
         );
     }
@@ -55,11 +55,6 @@ final class Google extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'Google';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-google';
     }
 
     protected function initUserAttributes(): array

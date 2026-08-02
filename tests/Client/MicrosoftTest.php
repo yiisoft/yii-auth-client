@@ -33,13 +33,6 @@ final class MicrosoftTest extends ProviderClientTestCase
         $this->assertSame('Microsoft', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('btn btn-warning bi bi-microsoft', $client->getButtonClass());
-    }
-
     public function testGetDefaultScope(): void
     {
         $client = $this->createClient();
