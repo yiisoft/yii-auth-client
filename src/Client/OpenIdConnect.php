@@ -536,7 +536,14 @@ final class OpenIdConnect extends OAuth2
         $assertion = (new CompactSerializer())->serialize($jws, 0);
 
         $request->getBody()->write(
-            '&' . http_build_query(['assertion' => $assertion], arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+            '&' . http_build_query(
+                [
+                    'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                    'client_assertion' => $assertion,
+                ],
+                arg_separator: '&',
+                encoding_type: PHP_QUERY_RFC3986,
+            ),
         );
         return $request;
     }

@@ -931,8 +931,13 @@ final class OpenIdConnectTest extends TestCase
         $after = time();
         parse_str((string) $newRequest->getBody(), $params);
         $this->assertSame('auth-code', $params['code']);
-        $this->assertArrayHasKey('assertion', $params);
-        [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['assertion']);
+        // RFC 7523 §2.2 requires both client_assertion_type and client_assertion.
+        $this->assertSame(
+            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            $params['client_assertion_type'],
+        );
+        $this->assertArrayHasKey('client_assertion', $params);
+        [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['client_assertion']);
         $header = (array) json_decode(Base64UrlSafe::decode($headerSegment), true);
         $payload = (array) json_decode(Base64UrlSafe::decode($payloadSegment), true);
         $this->assertSame(['typ' => 'JWT', 'alg' => 'HS256'], $header);
