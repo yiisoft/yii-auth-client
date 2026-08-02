@@ -86,6 +86,7 @@ return [
 
 Из коробки предоставляются следующие клиенты (все в пространстве имён `Yiisoft\Yii\AuthClient\Client`):
 
+- [[\Yiisoft\Yii\AuthClient\Client\Discord|Discord]].
 - [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
 - [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
 - [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].

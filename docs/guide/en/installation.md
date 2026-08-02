@@ -86,6 +86,7 @@ setter methods on the client class — see the class API for available setters:
 
 Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthClient\Client`):
 
+- [[\Yiisoft\Yii\AuthClient\Client\Discord|Discord]].
 - [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
 - [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
 - [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].

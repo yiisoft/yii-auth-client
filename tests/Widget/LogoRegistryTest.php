@@ -67,6 +67,7 @@ final class LogoRegistryTest extends TestCase
         $this->assertContains('vkontakte', $names);
         $this->assertContains('tiktok', $names);
         $this->assertContains('yandex', $names);
-        $this->assertCount(9, $names);
+        $this->assertContains('discord', $names);
+        $this->assertCount(10, $names);
     }
 }

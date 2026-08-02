@@ -185,7 +185,7 @@ Icons are now rendered as inline SVG, eliminating the need for sprite stylesheet
 
 ### Adding custom provider logos
 
-By default, the widget has built-in logos for: Google, GitHub, Facebook, LinkedIn, Microsoft, X, TikTok, VKontakte, and Yandex. For custom OAuth providers (like Okta, Auth0, etc.), the widget falls back to the client's `getTitle()` as text.
+By default, the widget has built-in logos for: Google, GitHub, Facebook, LinkedIn, Microsoft, X, TikTok, VKontakte, Yandex, and Discord. For custom OAuth providers (like Okta, Auth0, etc.), the widget falls back to the client's `getTitle()` as text.
 
 To use a custom SVG logo, set the `logo` config key when defining the client. It will be applied via DI, calling `setLogo()` on the client instance:
 
