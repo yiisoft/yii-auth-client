@@ -206,4 +206,7 @@ return [
 ];
 ```
 
-The widget will render this custom logo instead of falling back to the registry or the provider's title. Ensure your SVG includes a `viewBox` attribute so it scales correctly with the widget's icon sizing.
+The widget embeds this value verbatim, exactly as given, instead of falling back to the registry or the
+provider's title - it does not add a wrapping `<svg>`, inject `width`/`height`/`viewBox`, or merge in
+{@see AuthChoice::iconAttributes()}. Make sure your SVG is a complete, self-contained element with its own
+`xmlns`, `viewBox`, sizing, and any classes (e.g. `class="auth-icon"`) needed for styling.

@@ -50,9 +50,11 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
  * must be called before {@see begin()}/{@see render()}, as asset registration and the opening `<div>` tag
  * are produced during rendering.
  *
- * Inline SVG icons are rendered via {@see renderClientLogo()} (prefers client-provided logo, falls back to
- * logo registry), then a placeholder span. Icon sizing/styling is controlled via {@see iconWidth()},
- * {@see iconHeight()}, and {@see iconAttributes()}. Display mode ({@see AuthChoiceDisplayMode::Icon},
+ * Inline SVG icons are rendered via {@see renderClientLogo()}. A client-provided logo (set via
+ * {@see OAuth2Interface::setLogo()}) is embedded verbatim, exactly as given. Otherwise the logo registry is
+ * used, falling back to a placeholder span if the client is unregistered. Icon sizing/styling via
+ * {@see iconWidth()}, {@see iconHeight()}, and {@see iconAttributes()} only applies to registry/placeholder
+ * icons, not client-provided logos. Display mode ({@see AuthChoiceDisplayMode::Icon},
  * {@see AuthChoiceDisplayMode::Text}, or {@see AuthChoiceDisplayMode::Both}) is set via {@see displayMode()}.
  *
  * This widget respects the following keys from {@see AuthClientInterface::getViewOptions()}:
@@ -409,13 +411,20 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Renders an inline SVG icon for the client. Prefers the client's own logo (via {@see OAuth2Interface::getLogo()}),
-     * then falls back to the registry, then a placeholder span.
+     * Renders an inline SVG icon for the client. A client-provided logo (via {@see OAuth2Interface::getLogo()})
+     * is embedded verbatim, exactly as given - it is expected to be a complete, self-contained `<svg>` element
+     * (own `xmlns`, `viewBox`, sizing, styling); {@see iconWidth()}, {@see iconHeight()}, and
+     * {@see iconAttributes()} are not applied to it. Otherwise falls back to the registry, then a placeholder
+     * span.
      */
     private function renderClientLogo(OAuth2Interface $client): string
     {
-        /** @infection-ignore-all Client-provided logo (setLogo) takes precedence over registry default */
-        $svg = $client->getLogo() ?? LogoRegistry::getLogo($client->getName());
+        $customLogo = $client->getLogo();
+        if ($customLogo !== null) {
+            return $customLogo;
+        }
+
+        $svg = LogoRegistry::getLogo($client->getName());
         if ($svg !== null) {
             $attrs = ['class' => 'auth-icon', 'xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'preserveAspectRatio' => 'xMidYMid meet'];
             if ($this->iconWidth !== null) {

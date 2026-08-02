@@ -17,6 +17,7 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Router\UrlGeneratorInterface;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
+use Yiisoft\Yii\AuthClient\Client\GitHub;
 use Yiisoft\Yii\AuthClient\Client\Google;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
@@ -206,18 +207,43 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $html);
     }
 
-    public function testClientLinkGeneratesSpanWithAuthIconAndClientNameClass(): void
+    public function testClientLinkGeneratesSpanWithAuthIconAndClientNameClassForUnregisteredClient(): void
     {
         $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
 
         $html = $widget->clientLink($client);
 
-        $this->assertStringContainsString('auth-icon', html_entity_decode($html));
-        $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
+        $this->assertStringContainsString('<span class="auth-icon test">', html_entity_decode($html));
+    }
+
+    /**
+     * A custom logo (setLogo()) is embedded exactly as given - no wrapping `<svg>`, no injected
+     * `width`/`height`/`viewBox`/`class`, no `<title>`, and {@see AuthChoice::iconAttributes()} isn't merged in.
+     */
+    public function testClientLinkRendersCustomLogoVerbatim(): void
+    {
+        $client = $this->createTestClient();
+        $customLogo = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="my-logo">'
+            . '<circle cx="16" cy="16" r="10" fill="blue"/></svg>';
+        $client->setLogo($customLogo);
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconWidth('999')
+            ->iconHeight('888')
+            ->iconAttributes(['data-extra' => 'unwanted']);
+
+        $html = $widget->clientLink($client);
+        $decoded = html_entity_decode($html);
+
+        $this->assertStringContainsString($customLogo, $decoded);
+        $this->assertStringNotContainsString('<title>', $decoded);
+        $this->assertStringNotContainsString('width="999"', $decoded);
+        $this->assertStringNotContainsString('height="888"', $decoded);
+        $this->assertStringNotContainsString('data-extra', $decoded);
     }
 
     public function testCreateClientUrlDisablesAutoRender(): void
@@ -358,11 +384,10 @@ final class AuthChoiceTest extends TestCase
 
     public function testIconAttributesAppliedToSvgIcons(): void
     {
-        $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client = $this->createGoogleClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth')
             ->iconAttributes(['style' => 'width:24px;height:24px;']);
 
         $html = $widget->clientLink($client);
@@ -381,11 +406,10 @@ final class AuthChoiceTest extends TestCase
 
     public function testIconWidthSetToNullOmitsWidthAttribute(): void
     {
-        $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client = $this->createGitHubClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+        $widget = $this->createWidget(['github' => $client], $urlGenerator)->authRoute('site/auth')
             ->popupMode(false)
             ->iconWidth(null);
 
@@ -404,11 +428,10 @@ final class AuthChoiceTest extends TestCase
 
     public function testIconHeightSetToNullOmitsHeightAttribute(): void
     {
-        $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client = $this->createGitHubClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+        $widget = $this->createWidget(['github' => $client], $urlGenerator)->authRoute('site/auth')
             ->popupMode(false)
             ->iconHeight(null);
 
@@ -420,13 +443,7 @@ final class AuthChoiceTest extends TestCase
 
     public function testRenderClientLogoIncludesViewBoxForRegistryLogo(): void
     {
-        $client = new Google(
-            $this->createStub(ClientInterface::class),
-            $this->createStub(RequestFactoryInterface::class),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
-        );
+        $client = $this->createGoogleClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth');
@@ -446,7 +463,7 @@ final class AuthChoiceTest extends TestCase
     public function testDisplayModeIconOnly(): void
     {
         $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client->setLogo('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="blue"/></svg>');
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
@@ -475,7 +492,7 @@ final class AuthChoiceTest extends TestCase
     public function testDisplayModeBoth(): void
     {
         $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client->setLogo('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="blue"/></svg>');
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
         $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
@@ -555,11 +572,10 @@ final class AuthChoiceTest extends TestCase
 
     public function testRenderRegistersStyleAssetWhenPopupModeDisabled(): void
     {
-        $client = $this->createTestClient();
-        $client->setLogo('<circle cx="12" cy="12" r="10" fill="blue"/>');
+        $client = $this->createGoogleClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')->popupMode(false);
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth')->popupMode(false);
 
         $rendered = $widget->render();
 
@@ -622,6 +638,28 @@ final class AuthChoiceTest extends TestCase
         );
         $client->setClientId('test-client-id');
         return $client;
+    }
+
+    private function createGoogleClient(): Google
+    {
+        return new Google(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function createGitHubClient(): GitHub
+    {
+        return new GitHub(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
     }
 
     private function createTestClientWithoutClientId(): OAuth2
