@@ -125,6 +125,7 @@ final class YandexTest extends ProviderClientTestCase
         $this->assertSame(['login' => 'yandex-user'], $result);
         $this->assertNotNull($capturedRequest);
         $this->assertSame('OAuth abc123', $capturedRequest->getHeaderLine('Authorization'));
+        $this->assertSame('https://login.yandex.ru/info', (string) $capturedRequest->getUri());
     }
 
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void

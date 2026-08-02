@@ -45,6 +45,14 @@ abstract class AuthClient implements AuthClientInterface
     protected array $normalizeUserAttributeMap = [];
 
     /**
+     * @var string custom name, set from the config array key. Empty means use the class default.
+     */
+    protected string $name = '';
+    /**
+     * @var string custom title, overrides the class default if set.
+     */
+    protected string $title = '';
+    /**
      * @var array $viewOptions view options in format: optionName => optionValue
      */
     protected array $viewOptions = [];
@@ -57,6 +65,16 @@ abstract class AuthClient implements AuthClientInterface
          */
         private readonly StateStorageInterface $stateStorage,
     ) {}
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+    }
 
     public function setRequestFactory(RequestFactoryInterface $requestFactory): void
     {

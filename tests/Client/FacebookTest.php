@@ -141,7 +141,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $this->assertSame(['id' => '123', 'name' => 'Jane'], $result);
         $this->assertNotNull($capturedRequest);
-        $this->assertStringStartsWith('https://graph.facebook.com/v23.0/me?fields=', (string) $capturedRequest->getUri());
+        $this->assertStringStartsWith('https://graph.facebook.com/v25.0/me?fields=', (string) $capturedRequest->getUri());
     }
 
     public function testInitUserAttributesIsProtectedAndReturnsEmptyArrayWithoutAccessToken(): void
@@ -252,10 +252,13 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('csecret', $params['client_secret']);
     }
 
-    public function testFetchClientAuthCodeReturnsStatusCodeAsStringAndSendsProvidedToken(): void
+    public function testFetchClientAuthCodeReturnsDecodedCodeAndSendsProvidedToken(): void
     {
         $capturedRequest = null;
-        $httpClient = $this->httpClientCapturing(new Response(201), $capturedRequest);
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['code' => 'the-client-auth-code'])),
+            $capturedRequest,
+        );
         $client = $this->createFacebookClient($httpClient);
         $client->setClientId('cid');
         $client->setClientSecret('csecret');
@@ -265,7 +268,7 @@ final class FacebookTest extends ProviderClientTestCase
 
         $result = $client->fetchClientAuthCode($incomingRequest, $token);
 
-        $this->assertSame('201', $result);
+        $this->assertSame('the-client-auth-code', $result);
         $this->assertNotNull($capturedRequest);
         parse_str((string) $capturedRequest->getBody(), $params);
         $this->assertSame('the-access-token', $params['access_token']);

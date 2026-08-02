@@ -6,27 +6,82 @@ namespace Yiisoft\Yii\AuthClient\Tests\Factory;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\SimpleCache\CacheInterface;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
 use Yiisoft\Yii\AuthClient\Factory\CollectionFactory;
 use Yiisoft\Yii\AuthClient\StateStorage\DummyStateStorage;
+use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 use Yiisoft\Yii\AuthClient\Tests\Data\Container;
+use Yiisoft\Yii\AuthClient\Tests\Data\ExtraDependencyInterface;
+use Yiisoft\Yii\AuthClient\Tests\Data\NullExtraDependency;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
+use Yiisoft\Yii\AuthClient\Tests\Data\TestClientWithExtraDependency;
 
 final class CollectionFactoryTest extends TestCase
 {
-    public function testInvokeBuildsCollectionFromContainer(): void
+    public function testInvokeBuildsCollectionWithArrayConfig(): void
     {
-        $client = $this->createTestClient();
-        $factory = new CollectionFactory(['testClient' => TestClient::class]);
-        $container = new Container([TestClient::class => $client]);
+        $container = $this->createContainer();
+
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                'title' => 'Custom Test',
+            ],
+        ]);
 
         $collection = $factory($container);
 
-        $this->assertTrue($collection->hasClient('testClient'));
-        $this->assertSame($client, $collection->getClient('testClient'));
+        $this->assertTrue($collection->hasClient('test'));
+        $client = $collection->getClient('test');
+        $this->assertSame('test', $client->getName());
+        $this->assertSame('Custom Test', $client->getTitle());
+    }
+
+    public function testInvokeSetsNameFromArrayKey(): void
+    {
+        $container = $this->createContainer();
+
+        $factory = new CollectionFactory([
+            'my-custom-name' => [
+                'class' => TestClient::class,
+            ],
+        ]);
+
+        $collection = $factory($container);
+
+        $client = $collection->getClient('my-custom-name');
+        $this->assertSame('my-custom-name', $client->getName());
+    }
+
+    public function testInvokeBuildsMultipleInstancesOfSameClass(): void
+    {
+        $container = $this->createContainer();
+
+        $factory = new CollectionFactory([
+            'alpha' => [
+                'class' => TestClient::class,
+                'title' => 'Alpha',
+            ],
+            'beta' => [
+                'class' => TestClient::class,
+                'title' => 'Beta',
+            ],
+        ]);
+
+        $collection = $factory($container);
+
+        $this->assertTrue($collection->hasClient('alpha'));
+        $this->assertTrue($collection->hasClient('beta'));
+        $this->assertNotSame($collection->getClient('alpha'), $collection->getClient('beta'));
+        $this->assertSame('Alpha', $collection->getClient('alpha')->getTitle());
+        $this->assertSame('Beta', $collection->getClient('beta')->getTitle());
     }
 
     public function testInvokeWithEmptyClientsReturnsEmptyCollection(): void
@@ -42,21 +97,239 @@ final class CollectionFactoryTest extends TestCase
     public function testInvokeThrowsExceptionForNonStringClientName(): void
     {
         $factory = new CollectionFactory([TestClient::class]);
-        $container = new Container([TestClient::class => $this->createTestClient()]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Client name must be a non-empty string.');
+
+        $factory($container);
+    }
+
+    public function testInvokeThrowsExceptionForEmptyStringClientName(): void
+    {
+        $factory = new CollectionFactory([
+            '' => ['class' => TestClient::class],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Client name must be a non-empty string.');
+
+        $factory($container);
+    }
+
+    public function testInvokeThrowsExceptionForMissingClassKey(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => ['title' => 'No class here'],
+        ]);
+        $container = $this->createContainer();
 
         $this->expectException(InvalidArgumentException::class);
 
         $factory($container);
     }
 
-    private function createTestClient(): TestClient
+    public function testInvokeThrowsExceptionForNonStringConfigKey(): void
     {
-        return new TestClient(
-            $this->createStub(ClientInterface::class),
-            $this->createStub(RequestFactoryInterface::class),
-            new DummyStateStorage(),
-            new YiisoftFactory(),
-            new Session(),
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                0 => 'value',
+            ],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Configuration key');
+
+        $factory($container);
+    }
+
+    public function testInvokeThrowsExceptionForNameInConfig(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                'name' => 'other-name',
+            ],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Client 'test' cannot set 'name' via config; it is derived from the client's array key.",
         );
+
+        $factory($container);
+    }
+
+    public function testInvokeThrowsExceptionForUnknownOption(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                'nonexistent' => 'value',
+            ],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Unknown configuration option 'nonexistent' for client 'test'. "
+            . "No setter method 'setNonexistent()' found on " . TestClient::class . '.',
+        );
+
+        $factory($container);
+    }
+
+    public function testInvokeAppliesClientIdSetter(): void
+    {
+        $container = $this->createContainer();
+
+        $factory = new CollectionFactory([
+            'test' => [
+                'class' => TestClient::class,
+                'clientId' => 'my-client-id',
+            ],
+        ]);
+
+        $collection = $factory($container);
+        $client = $collection->getClient('test');
+        $this->assertSame('my-client-id', $client->getClientId());
+    }
+
+    /**
+     * A third-party OAuth2 subclass may declare constructor dependencies beyond the fixed set every
+     * built-in client happens to share. Client creation must autowire those via the container instead
+     * of assuming a fixed positional constructor signature.
+     */
+    public function testInvokeSupportsThirdPartyClientWithExtraConstructorDependency(): void
+    {
+        $extraDependency = new NullExtraDependency();
+        $container = $this->createContainer([ExtraDependencyInterface::class => $extraDependency]);
+
+        $factory = new CollectionFactory([
+            'custom' => ['class' => TestClientWithExtraDependency::class],
+        ]);
+
+        $collection = $factory($container);
+
+        $client = $collection->getClient('custom');
+        $this->assertInstanceOf(TestClientWithExtraDependency::class, $client);
+        $this->assertSame($extraDependency, $client->extraDependency);
+    }
+
+    public function testInvokeThrowsExceptionForNonOAuth2Class(): void
+    {
+        $factory = new CollectionFactory([
+            'test' => ['class' => self::class],
+        ]);
+        $container = $this->createContainer();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must be a valid OAuth2 class-string');
+
+        $factory($container);
+    }
+
+    public function testInvokeBuildsOpenIdConnectWithCache(): void
+    {
+        $cache = new class implements CacheInterface {
+            public function get(string $key, mixed $default = null): mixed
+            {
+                return ['authorization_endpoint' => 'https://issuer.example.com/authorize'];
+            }
+
+            public function set(string $key, mixed $value, mixed $ttl = null): bool
+            {
+                return true;
+            }
+
+            public function delete(string $key): bool
+            {
+                return true;
+            }
+
+            public function clear(): bool
+            {
+                return true;
+            }
+
+            public function getMultiple(iterable $keys, mixed $default = null): iterable
+            {
+                return [];
+            }
+
+            public function setMultiple(iterable $values, mixed $ttl = null): bool
+            {
+                return true;
+            }
+
+            public function deleteMultiple(iterable $keys): bool
+            {
+                return true;
+            }
+
+            public function has(string $key): bool
+            {
+                return false;
+            }
+        };
+
+        $container = $this->createContainer([CacheInterface::class => $cache]);
+
+        $factory = new CollectionFactory([
+            'my-oidc' => [
+                'class' => OpenIdConnect::class,
+                'issuerUrl' => 'https://issuer.example.com',
+                'clientId' => 'oidc-client',
+            ],
+        ]);
+
+        $collection = $factory($container);
+
+        $this->assertTrue($collection->hasClient('my-oidc'));
+        $client = $collection->getClient('my-oidc');
+        $this->assertInstanceOf(OpenIdConnect::class, $client);
+        $this->assertSame('oidc-client', $client->getClientId());
+    }
+
+    /**
+     * Builds a container whose YiisoftFactory::class entry can resolve its own container's other
+     * entries (including itself), mirroring how a real DI-registered Factory is wired - needed since
+     * CollectionFactory now creates clients via $yiisoftFactory->create($class) instead of `new`, and
+     * OAuth2's constructor itself requires a YiisoftFactory dependency.
+     */
+    private function createContainer(array $extraEntries = []): Container
+    {
+        $containerProxy = new class implements ContainerInterface {
+            public ?ContainerInterface $delegate = null;
+
+            public function get(string $id): mixed
+            {
+                return $this->delegate->get($id);
+            }
+
+            public function has(string $id): bool
+            {
+                return $this->delegate->has($id);
+            }
+        };
+
+        $yiisoftFactory = new YiisoftFactory($containerProxy);
+
+        $container = new Container([
+            ClientInterface::class => $this->createStub(ClientInterface::class),
+            RequestFactoryInterface::class => $this->createStub(RequestFactoryInterface::class),
+            StateStorageInterface::class => new DummyStateStorage(),
+            YiisoftFactory::class => $yiisoftFactory,
+            SessionInterface::class => new Session(),
+            ...$extraEntries,
+        ]);
+
+        $containerProxy->delegate = $container;
+
+        return $container;
     }
 }

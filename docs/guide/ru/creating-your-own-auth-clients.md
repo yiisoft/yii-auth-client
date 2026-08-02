@@ -36,14 +36,11 @@ namespace App\AuthClient;
 
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
-use Override;
 
 final class MyAuthClient extends OAuth2
 {
     protected string $authUrl = 'https://www.my.com/oauth2/auth';
-
     protected string $tokenUrl = 'https://www.my.com/oauth2/token';
-
     protected string $endpoint = 'https://www.my.com/apis/oauth2/v1';
 
     public function getCurrentUserJsonArray(OAuthToken $token): array
@@ -51,7 +48,6 @@ final class MyAuthClient extends OAuth2
         return $this->fetchCurrentUserJsonArray($token, $this->endpoint . '/userinfo');
     }
 
-    #[Override]
     protected function initUserAttributes(): array
     {
         $token = $this->getAccessToken();
@@ -59,25 +55,21 @@ final class MyAuthClient extends OAuth2
         return $token instanceof OAuthToken ? $this->getCurrentUserJsonArray($token) : [];
     }
 
-    #[Override]
     public function getName(): string
     {
         return 'my_auth_client';
     }
 
-    #[Override]
     public function getTitle(): string
     {
         return 'My Auth Client';
     }
 
-    #[Override]
     public function getButtonClass(): string
     {
         return 'btn btn-primary';
     }
 
-    #[Override]
     protected function defaultViewOptions(): array
     {
         return [
@@ -86,7 +78,6 @@ final class MyAuthClient extends OAuth2
         ];
     }
 
-    #[Override]
     protected function getDefaultScope(): string
     {
         return 'profile email';
@@ -95,8 +86,9 @@ final class MyAuthClient extends OAuth2
 ```
 
 `getDefaultScope()` задаёт scope, запрашиваемый каждым экземпляром вашего клиента. Если вам нужно менять scope
-в зависимости от DI-конфигурации без создания ещё одного подкласса, вызовите унаследованный метод `setScope()`
-(например, `'setScope()' => [...]` в DI-определении клиента), что бы переопределить его при регистрации.
+для конкретного настроенного экземпляра без создания ещё одного подкласса, `OAuth2` уже предоставляет ключ
+конфигурации `scope` (за ним стоит унаследованный сеттер, свой добавлять не нужно) - укажите `'scope' => '...'`
+в конфигурации клиента в массиве `clients` (см. ниже), что бы переопределить его при регистрации.
 
 Затем зарегистрируйте его точно так же, как встроенный клиент (см. [Установка](installation.md)):
 
@@ -104,14 +96,12 @@ final class MyAuthClient extends OAuth2
 // config/common/params.php
 'yiisoft/yii-auth-client' => [
     'clients' => [
-        'my_auth_client' => \App\AuthClient\MyAuthClient::class,
+        'my_auth_client' => [
+            'class' => \App\AuthClient\MyAuthClient::class,
+            'clientId' => $_ENV['MY_CLIENT_ID'],
+            'clientSecret' => $_ENV['MY_CLIENT_SECRET'],
+        ],
     ],
-],
-
-// config/common/di.php
-\App\AuthClient\MyAuthClient::class => [
-    'setClientId()' => [$_ENV['MY_CLIENT_ID']],
-    'setClientSecret()' => [$_ENV['MY_CLIENT_SECRET']],
 ],
 ```
 
@@ -121,7 +111,6 @@ final class MyAuthClient extends OAuth2
 виду, переопределите `defaultNormalizeUserAttributeMap()`, не меняя сам `initUserAttributes()`:
 
 ```php
-#[Override]
 protected function defaultNormalizeUserAttributeMap(): array
 {
     return [

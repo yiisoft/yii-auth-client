@@ -554,13 +554,15 @@ final class AuthChoiceTest extends TestCase
 
     private function createTestClient(): TestClient
     {
-        return new TestClient(
+        $client = new TestClient(
             $this->createStub(ClientInterface::class),
             $this->createStub(RequestFactoryInterface::class),
             new DummyStateStorage(),
             new YiisoftFactory(),
             new Session(),
         );
+        $client->setClientId('test-client-id');
+        return $client;
     }
 
     private function createTestClientWithoutClientId(): OAuth2

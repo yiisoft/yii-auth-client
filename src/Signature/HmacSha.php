@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Yiisoft\Yii\AuthClient\Signature;
 
-use Yiisoft\Yii\AuthClient\Exception\NotSupportedException;
-
-use function function_exists;
-
 /**
  * HmacSha represents 'HMAC SHA' signature method.
  *
- * > **Note:** This class requires PHP "Hash" extension(<https://php.net/manual/en/book.hash.php>).
+ * Unlike {@see RsaSha} (which depends on the optional OpenSSL extension), this class has no runtime
+ * dependency to guard: the "Hash" extension providing `hash_hmac()` has been an always-enabled core
+ * extension since PHP 7.4 and cannot be excluded from a build.
  */
 final class HmacSha extends Signature
 {
@@ -22,18 +20,7 @@ final class HmacSha extends Signature
      */
     public function __construct(
         private readonly string $algorithm,
-    ) {
-        // @codeCoverageIgnoreStart
-        /**
-         * @infection-ignore-all
-         * The "Hash" extension is bundled and enabled by default since PHP 7.4, so this guard
-         * is unreachable in any environment capable of running this test suite.
-         */
-        if (!function_exists('hash_hmac')) {
-            throw new NotSupportedException('PHP "Hash" extension is required.');
-        }
-        // @codeCoverageIgnoreEnd
-    }
+    ) {}
 
     public function getName(): string
     {

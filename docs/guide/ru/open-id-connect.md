@@ -10,35 +10,32 @@ OpenID Connect
 // config/common/params.php
 'yiisoft/yii-auth-client' => [
     'clients' => [
-        'google' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+        'google' => [
+            'class' => Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class,
+            'title' => 'Google OpenID Connect',
+            'issuerUrl' => 'https://accounts.google.com',
+            'clientId' => $_ENV['GOOGLE_CLIENT_ID'],
+            'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
+        ],
     ],
-],
-
-// config/common/di.php
-Yiisoft\Yii\AuthClient\Client\OpenIdConnect::class => [
-    '__construct()' => [
-        'name' => 'google',
-        'title' => 'Google OpenID Connect',
-    ],
-    'setIssuerUrl()' => ['https://accounts.google.com'],
-    'setClientId()' => [$_ENV['GOOGLE_CLIENT_ID']],
-    'setClientSecret()' => [$_ENV['GOOGLE_CLIENT_SECRET']],
 ],
 ```
 
-`name` и `title` являются аргументами конструктора (и не могут быть заданы позже) именно для того, что бы
-приложение могло регистрировать несколько по-разному именованных провайдеров `OpenIdConnect` (Auth0, Okta и т.д.)
-одновременно, не сталкиваясь с их коллизией по состоянию сессии или кэшированным данным обнаружения.
+Ключ массива (`'google'`) используется в качестве `name` клиента, поэтому приложение может регистрировать
+несколько по-разному именованных провайдеров `OpenIdConnect` (Auth0, Okta и т.д.) одновременно, не
+сталкиваясь с их коллизией по состоянию сессии или кэшированным данным обнаружения — см. пример
+`auth0`/`okta` в разделе [Установка](installation.md).
 
 Процесс аутентификации полностью совпадает с процессом для OAuth2.
 
 **Внимание!** Протокол 'OpenID Connect' использует проверку [JWS](https://tools.ietf.org/html/draft-ietf-jose-json-web-signature)
 для защиты процесса аутентификации. Данное расширение требует библиотеку
-[`web-token/jwt-framework`](https://github.com/web-token/jwt-framework) для такой проверки; она является обычной
+[`web-token/jwt-library`](https://github.com/web-token/jwt-library) для такой проверки; она является обычной
 зависимостью пакета в `composer.json`, поэтому дополнительная установка не требуется.
 
 > Примечание: если вы используете доверенного провайдера 'OpenID Connect', вы можете вызвать
-  [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withoutValidateJws()]] (например, `'withoutValidateJws()' => []`
-  в DI-определении клиента выше), что бы отключить проверку JWS, однако это не рекомендуется, так как нарушает
-  спецификацию протокола. Используйте [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]], что бы
-  включить её обратно.
+  [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withoutValidateJws()]] на полученном экземпляре клиента, что бы
+  отключить проверку JWS, однако это не рекомендуется, так как нарушает спецификацию протокола. Это
+  wither-метод (возвращает новый экземпляр вместо изменения текущего), поэтому его нельзя задать через массив
+  `clients` — там ключи конфигурации сопоставляются только с методами `set*()`, см. [Установка](installation.md).
+  Используйте [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]], что бы включить её обратно.

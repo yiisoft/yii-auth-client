@@ -231,6 +231,24 @@ final class OAuth2Test extends TestCase
         $client->fetchAccessToken($incomingRequest, 'auth-code');
     }
 
+    public function testFetchAccessTokenThrowsWhenIncomingStateIsNotAString(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $client->setClientId('client-id');
+        $client->buildAuthUrl($this->createStub(ServerRequestInterface::class), []);
+        // A malformed `state[]=...` query is not a string and must be rejected outright rather than
+        // silently skipping the comparison against the stored auth state.
+        $incomingRequest = (new Psr17Factory())
+            ->createServerRequest('GET', 'http://return.local')
+            ->withQueryParams(['state' => ['unexpected']]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid auth state parameter.');
+
+        $client->fetchAccessToken($incomingRequest, 'auth-code');
+    }
+
     public function testFetchAccessTokenHandlesArrayValuedParameterRecursively(): void
     {
         $httpClient = $this->httpClientReturning(
@@ -564,6 +582,42 @@ final class OAuth2Test extends TestCase
         $this->assertSame('yes', $capturedRequest->getHeaderLine('X-Extra'));
     }
 
+    public function testFetchCurrentUserJsonArrayPreservesCustomUserAgent(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['id' => 1])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $method->invoke($client, $token, 'http://api.test.local/user', ['User-Agent' => 'MyApp/1.0']);
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('MyApp/1.0', $capturedRequest->getHeaderLine('User-Agent'));
+    }
+
+    public function testFetchCurrentUserJsonArrayFallsBackToDefaultUserAgent(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['id' => 1])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+        $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
+
+        $method->invoke($client, $token, 'http://api.test.local/user');
+
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('yiisoft/yii-auth-client', $capturedRequest->getHeaderLine('User-Agent'));
+    }
+
     public function testFetchCurrentUserJsonArrayReturnsEmptyArrayOnEmptyResponseBody(): void
     {
         $httpClient = $this->httpClientReturning(new Response(200, [], ''));
@@ -888,10 +942,9 @@ final class OAuth2Test extends TestCase
     }
 
     /**
-     * An empty response body must return [] without ever calling json_decode(): decoding an empty
-     * string is invalid JSON and would leave json_last_error() set to JSON_ERROR_SYNTAX, which the
-     * `> 0` vs `>= 0` boundary on strlen($body) can't otherwise be distinguished by return value alone
-     * (both branches ultimately produce []).
+     * An empty response body must produce an empty token without a decoding error: {@see Json::decode()}
+     * special-cases the empty string and returns null without ever calling the underlying json_decode(),
+     * so json_last_error() stays untouched.
      */
     public function testFetchAccessTokenWithCodeVerifierDoesNotDecodeEmptyResponseBody(): void
     {
@@ -903,8 +956,9 @@ final class OAuth2Test extends TestCase
         $incomingRequest = (new Psr17Factory())->createServerRequest('GET', 'http://return.local');
         json_decode('null'); // reset json_last_error() to JSON_ERROR_NONE
 
-        $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
+        $token = $client->fetchAccessTokenWithCodeVerifier($incomingRequest, 'auth-code', []);
 
+        $this->assertSame([], $token->getParams());
         $this->assertSame(JSON_ERROR_NONE, json_last_error());
     }
 
