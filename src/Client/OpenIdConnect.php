@@ -327,7 +327,9 @@ final class OpenIdConnect extends OAuth2
     {
         $params = $request->getQueryParams();
         unset($params['code'], $params['state'], $params['nonce'], $params['authuser'], $params['session_state'], $params['prompt']);
-        return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string) $request->getUri()->withQuery(
+            http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
     }
 
     protected function createToken(array $tokenConfig = []): OAuthToken
@@ -504,9 +506,8 @@ final class OpenIdConnect extends OAuth2
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ],
-            '',
-            '&',
-            PHP_QUERY_RFC3986,
+            arg_separator: '&',
+            encoding_type: PHP_QUERY_RFC3986,
         ));
         return $request;
     }
@@ -534,7 +535,9 @@ final class OpenIdConnect extends OAuth2
             ->build();
         $assertion = (new CompactSerializer())->serialize($jws, 0);
 
-        $request->getBody()->write('&' . http_build_query(['assertion' => $assertion], '', '&', PHP_QUERY_RFC3986));
+        $request->getBody()->write(
+            '&' . http_build_query(['assertion' => $assertion], arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
         return $request;
     }
 

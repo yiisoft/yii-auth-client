@@ -28,7 +28,7 @@ final class RequestUtil
             } else {
                 $url .= '&';
             }
-            $url .= http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+            $url .= http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986);
         }
         return $url;
     }
@@ -38,7 +38,9 @@ final class RequestUtil
         $currentParams = self::getParams($request);
         $newParams = array_merge($currentParams, $params);
 
-        $uri = $request->getUri()->withQuery(http_build_query($newParams, '', '&', PHP_QUERY_RFC3986));
+        $uri = $request->getUri()->withQuery(
+            http_build_query($newParams, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
         return $request->withUri($uri);
     }
 

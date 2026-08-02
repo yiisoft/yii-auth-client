@@ -18,6 +18,8 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
 use function is_string;
 use function strlen;
 
+use const PHP_QUERY_RFC3986;
+
 /**
  * VKontakte allows authentication via VKontakte OAuth 2.0
  *
@@ -207,7 +209,7 @@ final class VKontakte extends OAuth2
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
 
         // Add form body
-        $request->getBody()->write(http_build_query($data));
+        $request->getBody()->write(http_build_query($data, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986));
 
         try {
             $response = $httpClient->sendRequest($request);

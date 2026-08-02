@@ -72,7 +72,7 @@ final class Facebook extends OAuth2
         $url = sprintf(
             $this->endpoint . '/%s/me?%s',
             urlencode($this->graphApiVersion),
-            http_build_query($queryParams),
+            http_build_query($queryParams, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
         );
 
         return $this->fetchCurrentUserJsonArray($oauthToken, $url);
@@ -164,7 +164,7 @@ final class Facebook extends OAuth2
         }
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl)
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        $request->getBody()->write(http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986));
 
         $request = $this->applyClientCredentialsToRequest($request);
 

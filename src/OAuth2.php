@@ -249,7 +249,9 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
             ->createRequest('POST', $this->tokenUrl)
             ->withHeader(Header::CONTENT_TYPE, 'application/x-www-form-urlencoded');
 
-        $request->getBody()->write(http_build_query($requestBody));
+        $request->getBody()->write(
+            http_build_query($requestBody, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
 
         try {
             $response = $this->httpClient->sendRequest($request);
@@ -439,9 +441,8 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ],
-            '',
-            '&',
-            PHP_QUERY_RFC3986,
+            arg_separator: '&',
+            encoding_type: PHP_QUERY_RFC3986,
         ));
 
         return $request;
@@ -510,7 +511,9 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
     {
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
-        return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string) $request->getUri()->withQuery(
+            http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
     }
 
     /**
@@ -525,7 +528,7 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
     {
         $request = $this->createRequest('POST', $this->tokenUrl)
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        $request->getBody()->write(http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986));
 
         return $request;
     }
