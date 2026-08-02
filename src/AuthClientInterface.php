@@ -31,8 +31,6 @@ interface AuthClientInterface
      */
     public function getUserAttributes(): array;
 
-    public function getButtonClass(): string;
-
     /**
      * The Client id is publically visible in button urls
      * The Client secret must not be made available publically => exclude from interface

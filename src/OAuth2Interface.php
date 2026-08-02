@@ -33,6 +33,10 @@ interface OAuth2Interface extends OAuthInterface
 
     public function getTokenUrl(): string;
 
+    public function setLogo(?string $logo): void;
+
+    public function getLogo(): ?string;
+
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string;
 
     public function getSessionAuthState(): mixed;

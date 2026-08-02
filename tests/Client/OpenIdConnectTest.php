@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests\Client;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
+use Jose\Component\Core\Util\Base64UrlSafe;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\JWSBuilder;
@@ -18,6 +19,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\SimpleCache\CacheInterface;
 use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
@@ -161,13 +163,6 @@ final class OpenIdConnectTest extends TestCase
         $this->assertSame('OpenID Connect', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('', $client->getButtonClass());
-    }
-
     public function testGetViewOptions(): void
     {
         $client = $this->createClient();
@@ -255,6 +250,7 @@ final class OpenIdConnectTest extends TestCase
 
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Invalid "iss"');
+        $this->expectExceptionCode(400);
 
         $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
     }
@@ -265,6 +261,45 @@ final class OpenIdConnectTest extends TestCase
         $idToken = $this->signJws($jwk, [
             'iss' => self::ISSUER_URL,
             'aud' => 'someone-elses-client-id',
+            'sub' => 'user-1',
+        ]);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Invalid "aud"');
+        $this->expectExceptionCode(400);
+
+        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+    }
+
+    /**
+     * RFC 7519 §4.1.3 allows "aud" to be an array of strings, e.g. when the same token is valid
+     * for multiple audiences. Regression test for AudienceChecker replacing a plain string comparison,
+     * which would have cast the array to the literal string "Array" and always rejected it.
+     */
+    public function testCreateTokenAcceptsArrayAudienceContainingClientId(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => ['some-other-audience', self::CLIENT_ID],
+            'sub' => 'user-1',
+        ]);
+        $client = $this->createClient(['claims_supported' => []]);
+        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
+
+        $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
+
+        $this->assertSame('user-1', $token->getParam('sub'));
+    }
+
+    public function testCreateTokenThrowsOnArrayAudienceNotContainingClientId(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $idToken = $this->signJws($jwk, [
+            'iss' => self::ISSUER_URL,
+            'aud' => ['some-other-audience', 'yet-another-audience'],
             'sub' => 'user-1',
         ]);
         $client = $this->createClient(['claims_supported' => []]);
@@ -427,61 +462,6 @@ final class OpenIdConnectTest extends TestCase
         $token = $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
         $this->assertSame(['inner' => 'value'], $token->getParam('nested'));
-    }
-
-    public function testCreateTokenThrowsWithLoadingJwsExceptionMessagePrefix(): void
-    {
-        $jwk = $this->createHmacJwk();
-        $idToken = $this->signJws($jwk, [
-            'iss' => self::ISSUER_URL,
-            'aud' => self::CLIENT_ID,
-            'sub' => 'user-1',
-        ]);
-        $parts = explode('.', $idToken);
-        $parts[2] = strrev($parts[2]);
-        $tamperedIdToken = implode('.', $parts);
-
-        $client = $this->createClient(['claims_supported' => []]);
-        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Loading JWS: Exception:');
-
-        $this->invokeCreateToken($client, ['params' => ['id_token' => $tamperedIdToken]]);
-    }
-
-    public function testCreateTokenThrowsOnInvalidIssuerWithCode400(): void
-    {
-        $jwk = $this->createHmacJwk();
-        $idToken = $this->signJws($jwk, [
-            'iss' => 'https://not-the-configured-issuer.example.com',
-            'aud' => self::CLIENT_ID,
-            'sub' => 'user-1',
-        ]);
-        $client = $this->createClient(['claims_supported' => []]);
-        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionCode(400);
-
-        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
-    }
-
-    public function testCreateTokenThrowsOnInvalidAudienceWithCode400(): void
-    {
-        $jwk = $this->createHmacJwk();
-        $idToken = $this->signJws($jwk, [
-            'iss' => self::ISSUER_URL,
-            'aud' => 'someone-elses-client-id',
-            'sub' => 'user-1',
-        ]);
-        $client = $this->createClient(['claims_supported' => []]);
-        $this->primeJwkSetCache($client, new JWKSet([$jwk]));
-
-        $this->expectException(ClientException::class);
-        $this->expectExceptionCode(400);
-
-        $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
     }
 
     public function testCreateTokenValidatesIssuerIgnoringTrailingSlashDifferences(): void
@@ -871,6 +851,16 @@ final class OpenIdConnectTest extends TestCase
         $this->assertStringStartsWith('https://issuer.example.com/userinfo', (string) $capturedRequest->getUri());
     }
 
+    public function testInitUserAttributesReturnsEmptyArrayWithoutAccessToken(): void
+    {
+        $client = $this->createClient();
+        $method = new ReflectionMethod($client, 'initUserAttributes');
+
+        $result = $method->invoke($client);
+
+        $this->assertSame([], $result);
+    }
+
     public function testApplyClientCredentialsToRequestIsProtectedAndUsesBasicAuthWhenSupported(): void
     {
         $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_basic']]);
@@ -928,7 +918,8 @@ final class OpenIdConnectTest extends TestCase
     {
         $client = $this->createClient(['token_endpoint_auth_methods_supported' => ['client_secret_jwt']]);
         $client->setClientId('cid');
-        $client->setClientSecret('csecret');
+        // HS256 (RFC 7518 §3.2) requires a key of at least 32 bytes; a realistic client secret.
+        $client->setClientSecret('csecret-with-at-least-32-bytes-of-entropy');
         $client->setTokenUrl('https://issuer.example.com/token');
         $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/');
         $request->getBody()->write('code=auth-code');
@@ -940,10 +931,15 @@ final class OpenIdConnectTest extends TestCase
         $after = time();
         parse_str((string) $newRequest->getBody(), $params);
         $this->assertSame('auth-code', $params['code']);
-        $this->assertArrayHasKey('assertion', $params);
-        [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['assertion']);
-        $header = (array) json_decode((string) base64_decode($headerSegment), true);
-        $payload = (array) json_decode((string) base64_decode($payloadSegment), true);
+        // RFC 7523 §2.2 requires both client_assertion_type and client_assertion.
+        $this->assertSame(
+            'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            $params['client_assertion_type'],
+        );
+        $this->assertArrayHasKey('client_assertion', $params);
+        [$headerSegment, $payloadSegment, $signatureSegment] = explode('.', $params['client_assertion']);
+        $header = (array) json_decode(Base64UrlSafe::decode($headerSegment), true);
+        $payload = (array) json_decode(Base64UrlSafe::decode($payloadSegment), true);
         $this->assertSame(['typ' => 'JWT', 'alg' => 'HS256'], $header);
         $this->assertSame('cid', $payload['iss']);
         $this->assertSame('cid', $payload['sub']);
@@ -1203,6 +1199,74 @@ final class OpenIdConnectTest extends TestCase
         $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
         $this->invokeCreateToken($client, ['params' => ['id_token' => $idToken]]);
 
+        $this->assertSame(1, $callCount);
+    }
+
+    /**
+     * A freshly-discovered JWK set must actually be written to the PSR cache under the expected key,
+     * not just returned - otherwise a new client instance (e.g. the next request) would never see a
+     * cache hit and would refetch the JWKS endpoint over HTTP every time.
+     */
+    public function testGetJwkSetWritesFreshlyDiscoveredSetToCache(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturn(
+            new Response(200, [], (string) json_encode(['keys' => [$jwk->jsonSerialize()]])),
+        );
+        $client = $this->createClient([
+            'claims_supported' => [],
+            'jwks_uri' => 'https://issuer.example.com/jwks',
+        ], $httpClient);
+        $cache = (new ReflectionProperty($client, 'cache'))->getValue($client);
+        $method = new ReflectionMethod($client, 'getJwkSet');
+
+        $method->invoke($client);
+
+        $this->assertInstanceOf(JWKSet::class, $cache->get('config-params-jwkSet'));
+    }
+
+    /**
+     * getJwkSet() must remember a resolved set in the $jwkSet property itself, not only rely on the
+     * PSR cache: a second call must avoid a second HTTP fetch even when the PSR cache entry for the
+     * JWK set specifically can never satisfy it (simulated here), isolating the in-memory fast path
+     * from the PSR-cache fast path so a mutant dropping the property write is actually caught.
+     */
+    public function testGetJwkSetMemoizesResolvedSetInMemoryAcrossCalls(): void
+    {
+        $jwk = $this->createHmacJwk();
+        $callCount = 0;
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpClient->method('sendRequest')->willReturnCallback(function () use (&$callCount, $jwk): ResponseInterface {
+            $callCount++;
+            return new Response(200, [], (string) json_encode(['keys' => [$jwk->jsonSerialize()]]));
+        });
+        // getJwkSet() only ever calls get()/set() on the cache; a stub with get() configured to
+        // always miss the JWK-set entry (while still resolving config params) is enough to isolate
+        // the in-memory $this->jwkSet fast path from the PSR-cache fast path.
+        $cache = $this->createStub(CacheInterface::class);
+        $cache->method('get')->willReturnCallback(
+            fn(string $key, mixed $default = null): mixed => $key === 'config-params-jwkSet'
+                ? $default
+                : ['claims_supported' => [], 'jwks_uri' => 'https://issuer.example.com/jwks'],
+        );
+        $client = new OpenIdConnect(
+            $httpClient,
+            new Psr17Factory(),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+            $cache,
+        );
+        $client->setName('oidc');
+        $client->setIssuerUrl(self::ISSUER_URL);
+        $client->setClientId(self::CLIENT_ID);
+        $method = new ReflectionMethod($client, 'getJwkSet');
+
+        $first = $method->invoke($client);
+        $second = $method->invoke($client);
+
+        $this->assertSame($first, $second);
         $this->assertSame(1, $callCount);
     }
 

@@ -114,10 +114,10 @@ final class Microsoft extends OAuth2
         return parent::refreshAccessToken($token);
     }
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint,
             ['Content-Type' => 'application/json'],
         );
@@ -131,11 +131,6 @@ final class Microsoft extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'Microsoft';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-warning bi bi-microsoft';
     }
 
     protected function initUserAttributes(): array

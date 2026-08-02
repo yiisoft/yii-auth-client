@@ -26,11 +26,6 @@ final class TestClient extends OAuth2
         return $this->title ?: 'Test';
     }
 
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi';
-    }
-
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
     {
         return 'http://test.local';

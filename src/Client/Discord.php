@@ -8,9 +8,10 @@ use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
 /**
- * GitHub allows authentication via GitHub OAuth.
+ * Discord allows authentication via Discord OAuth2.
  *
- * In order to use GitHub OAuth you must register your application at <https://github.com/settings/applications/new>.
+ * In order to use Discord OAuth2 you must register your application at
+ * <https://discord.com/developers/applications>.
  *
  * Example application configuration:
  *
@@ -18,40 +19,40 @@ use Yiisoft\Yii\AuthClient\OAuthToken;
  * // config/common/params.php
  * 'yiisoft/yii-auth-client' => [
  *     'clients' => [
- *         'github' => [
- *             'class' => Yiisoft\Yii\AuthClient\Client\GitHub::class,
- *             'clientId' => $_ENV['GITHUB_CLIENT_ID'],
- *             'clientSecret' => $_ENV['GITHUB_CLIENT_SECRET'],
+ *         'discord' => [
+ *             'class' => Yiisoft\Yii\AuthClient\Client\Discord::class,
+ *             'clientId' => $_ENV['DISCORD_CLIENT_ID'],
+ *             'clientSecret' => $_ENV['DISCORD_CLIENT_SECRET'],
  *         ],
  *     ],
  * ],
  * ```
  *
- * @link https://developer.github.com/v3/oauth/
- * @link https://github.com/settings/applications/new
+ * @link https://discord.com/developers/docs/topics/oauth2
+ * @link https://discord.com/developers/applications
  */
-final class GitHub extends OAuth2
+final class Discord extends OAuth2
 {
-    protected string $authUrl = 'https://github.com/login/oauth/authorize';
-    protected string $tokenUrl = 'https://github.com/login/oauth/access_token';
-    protected string $endpoint = 'https://api.github.com';
+    protected string $authUrl = 'https://discord.com/oauth2/authorize';
+    protected string $tokenUrl = 'https://discord.com/api/oauth2/token';
+    protected string $endpoint = 'https://discord.com/api';
 
     public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
             $oauthToken,
-            $this->endpoint . '/user',
+            $this->endpoint . '/users/@me',
         );
     }
 
     public function getName(): string
     {
-        return $this->name ?: 'github';
+        return $this->name ?: 'discord';
     }
 
     public function getTitle(): string
     {
-        return $this->title ?: 'GitHub';
+        return $this->title ?: 'Discord';
     }
 
     protected function initUserAttributes(): array
@@ -77,12 +78,15 @@ final class GitHub extends OAuth2
     }
 
     /**
+     * identify - Access to the user's basic account information (excluding email)
+     * email - Access to the user's email address
+     *
      * @return string
      *
-     * @psalm-return 'user'
+     * @psalm-return 'identify email'
      */
     protected function getDefaultScope(): string
     {
-        return 'user';
+        return 'identify email';
     }
 }

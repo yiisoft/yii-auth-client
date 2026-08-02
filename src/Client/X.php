@@ -60,10 +60,10 @@ final class X extends OAuth2
     protected string $tokenUrl = 'https://api.x.com/2/oauth2/token';
     protected string $endpoint = 'https://api.x.com/2/users/me';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         return $this->fetchCurrentUserJsonArray(
-            $token,
+            $oauthToken,
             $this->endpoint,
             ['Content-Type' => 'application/json'],
         );
@@ -77,11 +77,6 @@ final class X extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'X';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-dark bi bi-twitter';
     }
 
     protected function initUserAttributes(): array

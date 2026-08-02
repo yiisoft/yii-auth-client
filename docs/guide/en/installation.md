@@ -75,6 +75,7 @@ setter methods on the client class — see the class API for available setters:
 | `clientId` | `setClientId()` | All OAuth2 clients |
 | `clientSecret` | `setClientSecret()` | All OAuth2 clients except VKontakte (PKCE-only, sends no secret) |
 | `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | All OAuth2 clients |
+| `logo` | `setLogo()` | All OAuth2 clients — see [AuthChoice Widget](auth-choice-widget.md#adding-custom-provider-logos) |
 | `scope` | `setScope()` | All OAuth clients |
 | `authUrl` | `setAuthUrl()` | All OAuth clients |
 | `tokenUrl` | `setTokenUrl()` | All OAuth2 clients |
@@ -86,6 +87,7 @@ setter methods on the client class — see the class API for available setters:
 
 Out of the box the following clients are provided (all under `Yiisoft\Yii\AuthClient\Client`):
 
+- [[\Yiisoft\Yii\AuthClient\Client\Discord|Discord]].
 - [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
 - [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
 - [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].

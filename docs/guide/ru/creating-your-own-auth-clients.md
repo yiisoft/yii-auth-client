@@ -12,10 +12,12 @@ OAuth 2 (сюда же входят провайдеры OpenID Connect - в э�
 - `tokenUrl` - URL получения токена доступа провайдера.
 - `endpoint` - базовый URL API, используемый `api()`/`createApiRequest()` (см.
   [Получение дополнительных данных с помощью дополнительных обращений к API](usage-api.md)).
-- `getName()`, `getTitle()`, `getButtonClass()` - требуются интерфейсом [[\Yiisoft\Yii\AuthClient\AuthClientInterface]].
+- `getName()`, `getTitle()` - требуются интерфейсом [[\Yiisoft\Yii\AuthClient\AuthClientInterface]]. Используйте
+  `$this->name`/`$this->title` в качестве запасного варианта (как это делают все встроенные клиенты), что бы
+  ключи конфигурации `name`/`title` работали и для вашего клиента - см. [Установка](installation.md).
 - `getClientId()` - требуется интерфейсом [[\Yiisoft\Yii\AuthClient\OAuth2Interface]]; уже реализован в `OAuth2`
   через свойство `clientId`, задаваемое методом `setClientId()`, поэтому переопределять его обычно не нужно.
-- `getCurrentUserJsonArray(OAuthToken $token): array` - по соглашению (используется всеми встроенными клиентами,
+- `getCurrentUserJsonArray(OAuthToken $oauthToken): array` - по соглашению (используется всеми встроенными клиентами,
   хотя формально не входит в интерфейс) метод, получающий данные аутентифицированного пользователя. `OAuth2`
   предоставляет вспомогательный метод `fetchCurrentUserJsonArray()`, который сам применяет токен как заголовок
   `Authorization: Bearer`.
@@ -43,9 +45,9 @@ final class MyAuthClient extends OAuth2
     protected string $tokenUrl = 'https://www.my.com/oauth2/token';
     protected string $endpoint = 'https://www.my.com/apis/oauth2/v1';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
-        return $this->fetchCurrentUserJsonArray($token, $this->endpoint . '/userinfo');
+        return $this->fetchCurrentUserJsonArray($oauthToken, $this->endpoint . '/userinfo');
     }
 
     protected function initUserAttributes(): array
@@ -57,17 +59,12 @@ final class MyAuthClient extends OAuth2
 
     public function getName(): string
     {
-        return 'my_auth_client';
+        return $this->name ?: 'my_auth_client';
     }
 
     public function getTitle(): string
     {
-        return 'My Auth Client';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary';
+        return $this->title ?: 'My Auth Client';
     }
 
     protected function defaultViewOptions(): array

@@ -12,6 +12,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Http\Header;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -28,7 +29,7 @@ use const PHP_QUERY_RFC3986;
  * @see https://oauth.net/2/
  * @see https://tools.ietf.org/html/rfc6749
  */
-abstract class OAuth2 extends OAuth
+abstract class OAuth2 extends OAuth implements OAuth2Interface
 {
     /**
      * @var string OAuth client ID.
@@ -61,6 +62,18 @@ abstract class OAuth2 extends OAuth
      * always be applied without having to pass them at every call site.
      */
     protected array $authParams = [];
+
+    /**
+     * @var string|null SVG markup for the client's logo icon (e.g. brand glyph).
+     * If set, {@see Widget\AuthChoice} renders this inline SVG instead of falling back to a sprite.
+     */
+    protected ?string $logo = null;
+
+    /**
+     * @var string environment identifier (e.g. 'dev' or 'prod'), for providers whose endpoint URLs
+     * differ by environment. Unused by default; concrete clients may consult it when building URLs.
+     */
+    protected string $environment = 'prod';
 
     /**
      * BaseOAuth constructor.
@@ -234,9 +247,11 @@ abstract class OAuth2 extends OAuth
 
         $request = $this->requestFactory
             ->createRequest('POST', $this->tokenUrl)
-            ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+            ->withHeader(Header::CONTENT_TYPE, 'application/x-www-form-urlencoded');
 
-        $request->getBody()->write(http_build_query($requestBody));
+        $request->getBody()->write(
+            http_build_query($requestBody, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
 
         try {
             $response = $this->httpClient->sendRequest($request);
@@ -250,6 +265,11 @@ abstract class OAuth2 extends OAuth
         $this->setAccessToken($token);
 
         return $token;
+    }
+
+    public function setEnvironment(string $devOrProd): void
+    {
+        $this->environment = $devOrProd;
     }
 
     public function setClientId(string $clientId): void
@@ -280,6 +300,16 @@ abstract class OAuth2 extends OAuth
     public function getAuthParams(): array
     {
         return $this->authParams;
+    }
+
+    public function setLogo(?string $logo): void
+    {
+        $this->logo = $logo;
+    }
+
+    public function getLogo(): ?string
+    {
+        return $this->logo;
     }
 
     public function getOauth2ReturnUrl(): string
@@ -354,6 +384,15 @@ abstract class OAuth2 extends OAuth
     }
 
     /**
+     * Fetches current user data as JSON array using {@see $endpoint} as the user-info URL.
+     * Concrete clients whose provider needs a different URL, headers, or auth scheme override this.
+     */
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
+    {
+        return $this->fetchCurrentUserJsonArray($oauthToken, $this->endpoint);
+    }
+
+    /**
      * Builds the seed string used by {@see generateAuthState()}. Extracted into its own method so the
      * seed's composition can be tested directly, since the final hashed/uniqid()-mixed auth state value
      * is opaque and can't reveal how its input was assembled.
@@ -402,9 +441,8 @@ abstract class OAuth2 extends OAuth
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
             ],
-            '',
-            '&',
-            PHP_QUERY_RFC3986,
+            arg_separator: '&',
+            encoding_type: PHP_QUERY_RFC3986,
         ));
 
         return $request;
@@ -473,7 +511,9 @@ abstract class OAuth2 extends OAuth
     {
         $params = $request->getQueryParams();
         unset($params['code'], $params['state']);
-        return (string) $request->getUri()->withQuery(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        return (string) $request->getUri()->withQuery(
+            http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
+        );
     }
 
     /**
@@ -488,7 +528,7 @@ abstract class OAuth2 extends OAuth
     {
         $request = $this->createRequest('POST', $this->tokenUrl)
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        $request->getBody()->write(http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986));
 
         return $request;
     }

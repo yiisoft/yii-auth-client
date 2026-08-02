@@ -37,13 +37,6 @@ final class FacebookTest extends ProviderClientTestCase
         $this->assertSame('Facebook', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('btn btn-primary bi bi-facebook', $client->getButtonClass());
-    }
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

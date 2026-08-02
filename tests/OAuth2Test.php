@@ -14,6 +14,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionMethod;
+use ReflectionProperty;
 use RuntimeException;
 use Yiisoft\Di\Container;
 use Yiisoft\Di\ContainerConfig;
@@ -481,13 +482,23 @@ final class OAuth2Test extends TestCase
                 new YiisoftFactory(),
                 new Session(),
             ])
-            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions'])
             ->getMock();
         $client->setClientId('client-id-value');
         $client->setClientSecret('client-secret-value');
 
         $this->assertSame('client-id-value', $client->getClientId());
         $this->assertSame('client-secret-value', $client->getClientSecret());
+    }
+
+    public function testSetEnvironmentUpdatesEnvironmentProperty(): void
+    {
+        $client = $this->createTestClient();
+        $property = new ReflectionProperty($client, 'environment');
+
+        $client->setEnvironment('dev');
+
+        $this->assertSame('dev', $property->getValue($client));
     }
 
     /**
@@ -643,6 +654,24 @@ final class OAuth2Test extends TestCase
         $method = new ReflectionMethod($client, 'fetchCurrentUserJsonArray');
 
         $this->assertSame([], $method->invoke($client, $token, 'http://api.test.local/user'));
+    }
+
+    public function testGetCurrentUserJsonArrayDelegatesToFetchCurrentUserJsonArrayUsingEndpoint(): void
+    {
+        $capturedRequest = null;
+        $httpClient = $this->httpClientCapturing(
+            new Response(200, [], (string) json_encode(['login' => 'octocat'])),
+            $capturedRequest,
+        );
+        $client = $this->createTestClient($httpClient);
+        $token = new OAuthToken();
+        $token->setParam('access_token', 'abc123');
+
+        $result = $client->getCurrentUserJsonArray($token);
+
+        $this->assertSame(['login' => 'octocat'], $result);
+        $this->assertNotNull($capturedRequest);
+        $this->assertSame('http://api.test.local', (string) $capturedRequest->getUri());
     }
 
     public function testRefreshAccessTokenReturnsNewToken(): void
@@ -1345,7 +1374,7 @@ final class OAuth2Test extends TestCase
             ->setConstructorArgs(
                 [$httpClient, $requestFactory, $sessionStateStorage, $yiisoftFactory, $session],
             )
-            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getButtonClass', 'getClientId'])
+            ->onlyMethods(['getName', 'getTitle', 'getViewOptions', 'getClientId'])
             ->getMock();
     }
 

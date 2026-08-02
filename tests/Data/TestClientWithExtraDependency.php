@@ -42,11 +42,6 @@ final class TestClientWithExtraDependency extends OAuth2
         return $this->title ?: 'Test With Extra Dependency';
     }
 
-    public function getButtonClass(): string
-    {
-        return '';
-    }
-
     public function buildAuthUrl(ServerRequestInterface $incomingRequest, array $params = []): string
     {
         return 'http://test.local';

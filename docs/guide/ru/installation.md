@@ -75,6 +75,7 @@ return [
 | `clientId` | `setClientId()` | Все OAuth2-клиенты |
 | `clientSecret` | `setClientSecret()` | Все OAuth2-клиенты, кроме VKontakte (только PKCE, секрет не отправляется) |
 | `oauth2ReturnUrl` | `setOauth2ReturnUrl()` | Все OAuth2-клиенты |
+| `logo` | `setLogo()` | Все OAuth2-клиенты — см. [Виджет AuthChoice](auth-choice-widget.md#добавление-пользовательских-логотипов-провайдеров) |
 | `scope` | `setScope()` | Все OAuth-клиенты |
 | `authUrl` | `setAuthUrl()` | Все OAuth-клиенты |
 | `tokenUrl` | `setTokenUrl()` | Все OAuth2-клиенты |
@@ -86,6 +87,7 @@ return [
 
 Из коробки предоставляются следующие клиенты (все в пространстве имён `Yiisoft\Yii\AuthClient\Client`):
 
+- [[\Yiisoft\Yii\AuthClient\Client\Discord|Discord]].
 - [[\Yiisoft\Yii\AuthClient\Client\Facebook|Facebook]].
 - [[\Yiisoft\Yii\AuthClient\Client\GitHub|GitHub]].
 - [[\Yiisoft\Yii\AuthClient\Client\Google|Google]].

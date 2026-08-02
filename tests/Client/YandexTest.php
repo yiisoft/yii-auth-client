@@ -34,13 +34,6 @@ final class YandexTest extends ProviderClientTestCase
         $this->assertSame('Yandex', $client->getTitle());
     }
 
-    public function testGetButtonClass(): void
-    {
-        $client = $this->createClient();
-
-        $this->assertSame('btn btn-dark bi', $client->getButtonClass());
-    }
-
     public function testGetTokenUrl(): void
     {
         $client = $this->createClient();

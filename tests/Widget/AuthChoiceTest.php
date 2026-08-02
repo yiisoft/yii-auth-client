@@ -15,10 +15,10 @@ use Yiisoft\Assets\AssetLoader;
 use Yiisoft\Assets\AssetManager;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Router\UrlGeneratorInterface;
-use Yiisoft\View\WebView;
 use Yiisoft\Widget\Widget;
 use Yiisoft\Yii\AuthClient\Asset\AuthChoiceAsset;
-use Yiisoft\Yii\AuthClient\Asset\AuthChoiceStyleAsset;
+use Yiisoft\Yii\AuthClient\Client\GitHub;
+use Yiisoft\Yii\AuthClient\Client\Google;
 use Yiisoft\Yii\AuthClient\Collection;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
@@ -27,19 +27,13 @@ use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestAuthChoiceItem;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+use Yiisoft\Yii\AuthClient\Widget\AuthChoiceDisplayMode;
 use Yiisoft\Yii\AuthClient\Widget\AuthChoiceItem;
 
 use function dirname;
 
 final class AuthChoiceTest extends TestCase
 {
-    public function testGetIdIsFixed(): void
-    {
-        $widget = $this->createWidget();
-
-        $this->assertSame('yii-auth-client', $widget->getId());
-    }
-
     public function testGetClientsReturnsClientsFromCollection(): void
     {
         $client = $this->createTestClient();
@@ -106,61 +100,15 @@ final class AuthChoiceTest extends TestCase
         $client = $this->createTestClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')->popupMode(true);
 
         $html = $widget->clientLink($client);
 
         $this->assertStringContainsString('href="http://auth.local/callback"', $html);
-        $this->assertStringContainsString('class="test auth-link"', $html);
+        $this->assertStringContainsString('class="auth-link btn btn-primary"', $html);
         $this->assertStringContainsString('title="Test"', $html);
         $this->assertStringContainsString('data-popup-width="860"', $html);
         $this->assertStringContainsString('data-popup-height="480"', $html);
-    }
-
-    public function testAuthRoutedButtonsReturnsEmptyStringWhenClientNotFound(): void
-    {
-        $widget = $this->createWidget();
-
-        $html = $widget->authRoutedButtons('site/auth', ['buttonName' => 'test'], 'unknown');
-
-        $this->assertSame('', $html);
-    }
-
-    public function testAuthRoutedButtonsRendersLinkForMatchingClientWithClientId(): void
-    {
-        $client = $this->createTestClient();
-        $urlGenerator = $this->createUrlGeneratorStub();
-        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator);
-
-        $html = $widget->authRoutedButtons('site/auth', ['buttonName' => 'test'], 'test');
-
-        $this->assertStringContainsString('href="http://auth.local/callback"', $html);
-        $this->assertStringContainsString('btn btn-primary bi', $html);
-    }
-
-    public function testAbsoluteButtonsReturnsEmptyStringWhenClientNotFound(): void
-    {
-        $widget = $this->createWidget();
-
-        $html = $widget->absoluteButtons($this->createStub(ServerRequestInterface::class), ['params' => []], 'unknown');
-
-        $this->assertSame('', $html);
-    }
-
-    public function testAbsoluteButtonsRendersLinkUsingClientBuildAuthUrl(): void
-    {
-        $client = $this->createTestClient();
-        $widget = $this->createWidget(['test' => $client]);
-
-        $html = $widget->absoluteButtons(
-            $this->createStub(ServerRequestInterface::class),
-            ['params' => [], 'buttonName' => 'test'],
-            'test',
-        );
-
-        $this->assertStringContainsString('href="http://test.local"', $html);
-        $this->assertStringContainsString('id="btn-test"', $html);
     }
 
     public function testGetClientPicksMatchingClientAmongMultiple(): void
@@ -181,11 +129,6 @@ final class AuthChoiceTest extends TestCase
             public function getTitle(): string
             {
                 return 'Other';
-            }
-
-            public function getButtonClass(): string
-            {
-                return 'btn';
             }
 
             public function getClientId(): string
@@ -212,20 +155,24 @@ final class AuthChoiceTest extends TestCase
         $client = $this->createTestClient();
         $urlGenerator = $this->createUrlGeneratorStub();
         $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')->popupMode(true);
 
         $rendered = $widget->render();
 
-        $this->assertStringContainsString('auth-clients', $rendered);
+        $this->assertStringContainsString('btn-group', $rendered);
         $this->assertStringContainsString('href="http://auth.local/callback"', $rendered);
         $this->assertStringContainsString('</div>', $rendered);
         // Guards against re-introducing double-encoding: the client link markup produced by
-        // clientLink() must appear as real nested tags, not HTML-escaped text inside <li>/<ul>.
-        $this->assertStringContainsString(
-            '<li><a class="test auth-link" title="Test" data-popup-width="860" data-popup-height="480" href="http://auth.local/callback">',
-            $rendered,
-        );
+        // clientLink() must appear as real nested tags, not HTML-escaped text.
         $this->assertStringNotContainsString('&lt;', $rendered);
+        $this->assertStringNotContainsString('<ul>', $rendered);
+        $this->assertStringNotContainsString('<li>', $rendered);
+        // Verify link attributes without depending on attribute order
+        $this->assertStringContainsString('class="auth-link btn btn-primary"', $rendered);
+        $this->assertStringContainsString('title="Test"', $rendered);
+        $this->assertStringContainsString('data-popup-width="860"', $rendered);
+        $this->assertStringContainsString('data-popup-height="480"', $rendered);
+        $this->assertStringContainsString('href="http://auth.local/callback"', $rendered);
     }
 
     public function testClientLinkUsesExplicitTextInsteadOfGeneratedSpan(): void
@@ -260,7 +207,7 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $html);
     }
 
-    public function testClientLinkGeneratesSpanWithAuthIconAndClientNameClass(): void
+    public function testClientLinkGeneratesSpanWithAuthIconAndClientNameClassForUnregisteredClient(): void
     {
         $client = $this->createTestClient();
         $urlGenerator = $this->createUrlGeneratorStub();
@@ -270,6 +217,33 @@ final class AuthChoiceTest extends TestCase
         $html = $widget->clientLink($client);
 
         $this->assertStringContainsString('<span class="auth-icon test">', html_entity_decode($html));
+    }
+
+    /**
+     * A custom logo (setLogo()) is embedded exactly as given - no wrapping `<svg>`, no injected
+     * `width`/`height`/`viewBox`/`class`, no `<title>`, and {@see AuthChoice::iconAttributes()} isn't merged in.
+     */
+    public function testClientLinkRendersCustomLogoVerbatim(): void
+    {
+        $client = $this->createTestClient();
+        $customLogo = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="my-logo">'
+            . '<circle cx="16" cy="16" r="10" fill="blue"/></svg>';
+        $client->setLogo($customLogo);
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconWidth('999')
+            ->iconHeight('888')
+            ->iconAttributes(['data-extra' => 'unwanted']);
+
+        $html = $widget->clientLink($client);
+        $decoded = html_entity_decode($html);
+
+        $this->assertStringContainsString($customLogo, $decoded);
+        $this->assertStringNotContainsString('<title>', $decoded);
+        $this->assertStringNotContainsString('width="999"', $decoded);
+        $this->assertStringNotContainsString('height="888"', $decoded);
+        $this->assertStringNotContainsString('data-extra', $decoded);
     }
 
     public function testCreateClientUrlDisablesAutoRender(): void
@@ -285,89 +259,6 @@ final class AuthChoiceTest extends TestCase
         $this->assertStringNotContainsString('auth-clients', $rendered);
     }
 
-    public function testAuthRoutedButtonsReturnsEmptyStringForClientWithoutClientId(): void
-    {
-        $client = $this->createTestClientWithoutClientId();
-        $widget = $this->createWidget(['test' => $client]);
-
-        $html = $widget->authRoutedButtons('site/auth', ['buttonName' => 'test'], 'test');
-
-        $this->assertSame('', $html);
-    }
-
-    public function testAuthRoutedButtonsSetsAuthRouteUsedByUrlGenerator(): void
-    {
-        $client = $this->createTestClient();
-        $usedRouteName = null;
-        $urlGenerator = $this->createUrlGeneratorStub();
-        $urlGenerator->method('generate')->willReturnCallback(
-            function (string $name) use (&$usedRouteName): string {
-                $usedRouteName = $name;
-                return 'http://auth.local/callback';
-            },
-        );
-        $widget = $this->createWidget(['test' => $client], $urlGenerator);
-
-        $widget->authRoutedButtons('site/custom-auth-route', ['buttonName' => 'test'], 'test');
-
-        $this->assertSame('site/custom-auth-route', $usedRouteName);
-    }
-
-    public function testAuthRoutedButtonsCapitalizesButtonNameWithLeadingSpace(): void
-    {
-        $client = $this->createTestClient();
-        $urlGenerator = $this->createUrlGeneratorStub();
-        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator);
-
-        $html = $widget->authRoutedButtons('site/auth', ['buttonName' => 'login'], 'test');
-
-        $this->assertStringContainsString('> Login<', $html);
-    }
-
-    public function testAuthRoutedButtonsIncludesOnclickWithPopupDimensions(): void
-    {
-        $client = $this->createTestClient();
-        $urlGenerator = $this->createUrlGeneratorStub();
-        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
-        $widget = $this->createWidget(['test' => $client], $urlGenerator);
-
-        $html = $widget->authRoutedButtons('site/auth', ['buttonName' => 'test'], 'test');
-
-        $this->assertStringContainsString(
-            "window.open(this.href, 'authPopup', 'width=860,height=480'); return false;",
-            str_replace('&apos;', "'", $html),
-        );
-    }
-
-    public function testAbsoluteButtonsReturnsEmptyStringForClientWithoutClientId(): void
-    {
-        $client = $this->createTestClientWithoutClientId();
-        $widget = $this->createWidget(['test' => $client]);
-
-        $html = $widget->absoluteButtons(
-            $this->createStub(ServerRequestInterface::class),
-            ['params' => [], 'buttonName' => 'test'],
-            'test',
-        );
-
-        $this->assertSame('', $html);
-    }
-
-    public function testAbsoluteButtonsCapitalizesButtonNameWithLeadingSpace(): void
-    {
-        $client = $this->createTestClient();
-        $widget = $this->createWidget(['test' => $client]);
-
-        $html = $widget->absoluteButtons(
-            $this->createStub(ServerRequestInterface::class),
-            ['params' => [], 'buttonName' => 'login'],
-            'test',
-        );
-
-        $this->assertStringContainsString('> Login<', $html);
-    }
-
     public function testConstructorDoesNotEchoOrRegisterAnything(): void
     {
         $assetManager = $this->createAssetManager();
@@ -376,7 +267,6 @@ final class AuthChoiceTest extends TestCase
         new AuthChoice(
             new Collection([]),
             $this->createUrlGeneratorStub(),
-            new WebView(),
             $assetManager,
         );
         $output = ob_get_clean();
@@ -393,9 +283,8 @@ final class AuthChoiceTest extends TestCase
      */
     public function testPopupModeOptionsAndClientOptionsTakeEffectWhenSetBeforeRender(): void
     {
-        $webView = new WebView();
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], $webView, $assetManager)
+        $widget = $this->createWidgetWithDeps([], $assetManager)
             ->popupMode(false)
             ->options(['class' => 'custom-container'])
             ->clientOptions(['foo' => 'bar']);
@@ -403,9 +292,8 @@ final class AuthChoiceTest extends TestCase
         $rendered = $widget->render();
 
         $this->assertStringContainsString('class="custom-container"', $rendered);
-        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceStyleAsset::class));
         $this->assertFalse($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
-        $this->assertNull($this->getRegisteredJsScript($webView));
+        $this->assertStringNotContainsString('data-authchoice', $rendered);
     }
 
     public function testPopupModeReturnsSelfForChaining(): void
@@ -419,7 +307,21 @@ final class AuthChoiceTest extends TestCase
     {
         $widget = $this->createWidget();
 
-        $this->assertSame($widget, $widget->options([]));
+        $this->assertSame($widget, $widget->options(['class' => 'custom-class']));
+    }
+
+    public function testOptionsAppliedToContainer(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->options(['class' => 'my-container', 'data-test' => 'value']);
+
+        $html = $widget->render();
+
+        $this->assertStringContainsString('class="my-container"', $html);
+        $this->assertStringContainsString('data-test="value"', $html);
     }
 
     public function testClientOptionsReturnsSelfForChaining(): void
@@ -429,17 +331,190 @@ final class AuthChoiceTest extends TestCase
         $this->assertSame($widget, $widget->clientOptions([]));
     }
 
+    public function testClientOptionsPassedToDataAttributeForAssetAutoInit(): void
+    {
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())
+            ->popupMode(true)
+            ->clientOptions(['triggerSelector' => '.my-link']);
+
+        $rendered = $widget->render();
+
+        $this->assertStringContainsString('triggerSelector', $rendered);
+    }
+
+    public function testLinkAttributesReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->linkAttributes(['class' => 'btn btn-outline-secondary']));
+    }
+
+    public function testLinkAttributesAppliedToGeneratedLinks(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->linkAttributes(['class' => 'btn btn-outline-secondary']);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('class="auth-link btn btn-outline-secondary"', $html);
+    }
+
+    public function testLinkAttributesWithNonClassKeyAppliedAsIs(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->linkAttributes(['data-test' => 'value']);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('data-test="value"', $html);
+    }
+
+    public function testIconAttributesReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconAttributes(['style' => 'width:24px;height:24px;']));
+    }
+
+    public function testIconAttributesAppliedToSvgIcons(): void
+    {
+        $client = $this->createGoogleClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth')
+            ->iconAttributes(['style' => 'width:24px;height:24px;']);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('auth-icon', html_entity_decode($html));
+        $this->assertStringContainsString('style="width:24px;height:24px;"', html_entity_decode($html));
+        $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', html_entity_decode($html));
+    }
+
+    public function testIconWidthReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconWidth('32'));
+    }
+
+    public function testIconWidthSetToNullOmitsWidthAttribute(): void
+    {
+        $client = $this->createGitHubClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['github' => $client], $urlGenerator)->authRoute('site/auth')
+            ->popupMode(false)
+            ->iconWidth(null);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringNotContainsString('width=', html_entity_decode($html));
+        $this->assertStringContainsString('height="24"', html_entity_decode($html));
+    }
+
+    public function testIconHeightReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->iconHeight('32'));
+    }
+
+    public function testIconHeightSetToNullOmitsHeightAttribute(): void
+    {
+        $client = $this->createGitHubClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['github' => $client], $urlGenerator)->authRoute('site/auth')
+            ->popupMode(false)
+            ->iconHeight(null);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringNotContainsString('height=', html_entity_decode($html));
+        $this->assertStringContainsString('width="24"', html_entity_decode($html));
+    }
+
+    public function testRenderClientLogoIncludesViewBoxForRegistryLogo(): void
+    {
+        $client = $this->createGoogleClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth');
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('viewBox="0 0 268.152 273.883"', html_entity_decode($html));
+    }
+
+    public function testDisplayModeReturnsSelfForChaining(): void
+    {
+        $widget = $this->createWidget();
+
+        $this->assertSame($widget, $widget->displayMode(AuthChoiceDisplayMode::Both));
+    }
+
+    public function testDisplayModeIconOnly(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="blue"/></svg>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Icon);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('<svg', html_entity_decode($html));
+        $this->assertStringContainsString('</svg></a>', html_entity_decode($html));
+    }
+
+    public function testDisplayModeTextOnly(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Text);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('>Test<', $html);
+        $this->assertStringNotContainsString('<svg', html_entity_decode($html));
+    }
+
+    public function testDisplayModeBoth(): void
+    {
+        $client = $this->createTestClient();
+        $client->setLogo('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="blue"/></svg>');
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth')
+            ->displayMode(AuthChoiceDisplayMode::Both);
+
+        $html = $widget->clientLink($client);
+
+        $this->assertStringContainsString('<svg', html_entity_decode($html));
+        $this->assertStringContainsString('>Test<', $html);
+        $this->assertStringContainsString('auth-title', $html);
+    }
+
     public function testBeginEchoesOpeningDivTagAndRegistersAssets(): void
     {
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager);
+        $widget = $this->createWidgetWithDeps([], $assetManager)->popupMode(true);
 
         ob_start();
         $widget->begin();
         $output = ob_get_clean();
 
         $this->assertStringContainsString('<div', $output);
-        $this->assertStringContainsString('id="yii-auth-client"', $output);
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
@@ -451,7 +526,7 @@ final class AuthChoiceTest extends TestCase
      */
     public function testBeginThenEndOpensDivOnceAndClosesItOnce(): void
     {
-        $widget = $this->createWidgetWithDeps([], new WebView(), $this->createAssetManager());
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager());
 
         ob_start();
         $widget->begin();
@@ -466,47 +541,47 @@ final class AuthChoiceTest extends TestCase
     public function testRenderRegistersAuthChoiceAssetInPopupMode(): void
     {
         $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager);
+        $widget = $this->createWidgetWithDeps([], $assetManager)->popupMode(true);
 
         $widget->render();
 
         $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceAsset::class));
     }
 
-    public function testRenderRegistersJsWithClientIdAndAuthchoiceInvocation(): void
+    public function testRenderSetsDataAuthchoiceAttributeInPopupMode(): void
     {
-        $webView = new WebView();
-        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager());
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())->popupMode(true);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $js = $this->getRegisteredJsScript($webView);
-        $this->assertNotNull($js);
-        $this->assertStringContainsString("document.getElementById('yii-auth-client')", $js);
-        $this->assertStringContainsString('authchoice(el, )', $js);
+        $this->assertStringContainsString('data-authchoice', $rendered);
     }
 
-    public function testRenderEncodesNonEmptyClientOptionsAsJsonForJsInvocation(): void
+    public function testRenderEncodesNonEmptyClientOptionsInDataAttribute(): void
     {
-        $webView = new WebView();
-        $widget = $this->createWidgetWithDeps([], $webView, $this->createAssetManager())
+        $widget = $this->createWidgetWithDeps([], $this->createAssetManager())
+            ->popupMode(true)
             ->clientOptions(['foo' => 'bar']);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $js = $this->getRegisteredJsScript($webView);
-        $this->assertNotNull($js);
-        $this->assertStringContainsString('authchoice(el, {"foo":"bar"})', $js);
+        $this->assertStringContainsString('data-authchoice', $rendered);
+        $this->assertStringContainsString('foo', html_entity_decode($rendered));
+        $this->assertStringContainsString('bar', html_entity_decode($rendered));
     }
 
     public function testRenderRegistersStyleAssetWhenPopupModeDisabled(): void
     {
-        $assetManager = $this->createAssetManager();
-        $widget = $this->createWidgetWithDeps([], new WebView(), $assetManager)->popupMode(false);
+        $client = $this->createGoogleClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['google' => $client], $urlGenerator)->authRoute('site/auth')->popupMode(false);
 
-        $widget->render();
+        $rendered = $widget->render();
 
-        $this->assertTrue($assetManager->isRegisteredBundle(AuthChoiceStyleAsset::class));
+        // Icons are rendered as inline SVG with proper namespaces for xlink support
+        $this->assertStringContainsString('auth-icon', $rendered);
+        $this->assertStringContainsString('xmlns:xlink="http://www.w3.org/1999/xlink"', $rendered);
     }
 
     public function testClientLinkThrowsWhenWidgetConfigMissingClassKey(): void
@@ -565,6 +640,28 @@ final class AuthChoiceTest extends TestCase
         return $client;
     }
 
+    private function createGoogleClient(): Google
+    {
+        return new Google(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
+    private function createGitHubClient(): GitHub
+    {
+        return new GitHub(
+            $this->createStub(ClientInterface::class),
+            $this->createStub(RequestFactoryInterface::class),
+            new DummyStateStorage(),
+            new YiisoftFactory(),
+            new Session(),
+        );
+    }
+
     private function createTestClientWithoutClientId(): OAuth2
     {
         return new class (
@@ -582,11 +679,6 @@ final class AuthChoiceTest extends TestCase
             public function getTitle(): string
             {
                 return 'Test';
-            }
-
-            public function getButtonClass(): string
-            {
-                return 'btn btn-primary bi';
             }
 
             public function getClientId(): string
@@ -616,7 +708,6 @@ final class AuthChoiceTest extends TestCase
             return new AuthChoice(
                 new Collection($clients),
                 $urlGenerator ?? $this->createUrlGeneratorStub(),
-                new WebView(),
                 new AssetManager($aliases, new AssetLoader($aliases)),
             );
         } finally {
@@ -637,26 +728,17 @@ final class AuthChoiceTest extends TestCase
     /**
      * @param array<string, OAuth2> $clients
      */
-    private function createWidgetWithDeps(array $clients, WebView $webView, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
+    private function createWidgetWithDeps(array $clients, AssetManager $assetManager, ?UrlGeneratorInterface $urlGenerator = null): AuthChoice
     {
         ob_start();
         try {
             return new AuthChoice(
                 new Collection($clients),
                 $urlGenerator ?? $this->createUrlGeneratorStub(),
-                $webView,
                 $assetManager,
             );
         } finally {
             ob_end_clean();
         }
-    }
-
-    private function getRegisteredJsScript(WebView $webView): ?string
-    {
-        $state = (new ReflectionProperty($webView, 'state'))->getValue($webView);
-        $entries = $state->getJs()[WebView::POSITION_END] ?? [];
-
-        return $entries === [] ? null : array_values($entries)[0];
     }
 }

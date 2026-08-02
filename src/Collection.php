@@ -46,14 +46,14 @@ final class Collection
         private array $clients,
     ) {}
 
-    public function getClient(string $name): OAuth2
+    public function getClient(string $name): OAuth2Interface
     {
         if (!$this->hasClient($name)) {
             throw new InvalidArgumentException("Unknown auth client '{$name}'.");
         }
 
         $client = $this->clients[$name];
-        if (!($client instanceof OAuth2)) {
+        if (!($client instanceof OAuth2Interface)) {
             throw new RuntimeException(
                 'The Client should be an OAuth2 Interface.',
             );
@@ -62,14 +62,14 @@ final class Collection
     }
 
     /**
-     * @psalm-return array<string, OAuth2>
+     * @psalm-return array<string, OAuth2Interface>
      */
     public function getClients(): array
     {
         $clients = [];
 
         /**
-         * @var OAuth2 $client
+         * @var OAuth2Interface $client
          * @var string $name
          * @var array $this->clients
          */

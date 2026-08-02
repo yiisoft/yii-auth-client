@@ -64,7 +64,7 @@ final class Facebook extends OAuth2
      */
     private string $clientAuthCodeUrl = 'https://graph.facebook.com/oauth/client_code';
 
-    public function getCurrentUserJsonArray(OAuthToken $token): array
+    public function getCurrentUserJsonArray(OAuthToken $oauthToken): array
     {
         $queryParams = [
             'fields' => implode(',', $this->endpointFields),
@@ -72,10 +72,10 @@ final class Facebook extends OAuth2
         $url = sprintf(
             $this->endpoint . '/%s/me?%s',
             urlencode($this->graphApiVersion),
-            http_build_query($queryParams),
+            http_build_query($queryParams, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986),
         );
 
-        return $this->fetchCurrentUserJsonArray($token, $url);
+        return $this->fetchCurrentUserJsonArray($oauthToken, $url);
     }
 
     public function applyAccessTokenToRequest(RequestInterface $request, OAuthToken $accessToken): RequestInterface
@@ -164,7 +164,7 @@ final class Facebook extends OAuth2
         }
         $request = $this->createRequest('POST', $this->clientAuthCodeUrl)
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $request->getBody()->write(http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        $request->getBody()->write(http_build_query($params, arg_separator: '&', encoding_type: PHP_QUERY_RFC3986));
 
         $request = $this->applyClientCredentialsToRequest($request);
 
@@ -229,11 +229,6 @@ final class Facebook extends OAuth2
     public function getTitle(): string
     {
         return $this->title ?: 'Facebook';
-    }
-
-    public function getButtonClass(): string
-    {
-        return 'btn btn-primary bi bi-facebook';
     }
 
     protected function initUserAttributes(): array
