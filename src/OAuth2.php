@@ -12,6 +12,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Yiisoft\Factory\Factory as YiisoftFactory;
+use Yiisoft\Http\Header;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
@@ -246,7 +247,7 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
 
         $request = $this->requestFactory
             ->createRequest('POST', $this->tokenUrl)
-            ->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+            ->withHeader(Header::CONTENT_TYPE, 'application/x-www-form-urlencoded');
 
         $request->getBody()->write(http_build_query($requestBody));
 
