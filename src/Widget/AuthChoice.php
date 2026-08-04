@@ -46,16 +46,18 @@ use Yiisoft\Yii\AuthClient\OAuth2Interface;
  * ```
  *
  * Configuration methods ({@see authRoute()}, {@see popupMode()}, {@see displayMode()}, {@see iconAttributes()},
- * {@see iconWidth()}, {@see iconHeight()}, {@see linkAttributes()}, {@see options()}, {@see clientOptions()})
- * must be called before {@see begin()}/{@see render()}, as asset registration and the opening `<div>` tag
- * are produced during rendering.
+ * {@see iconWrapperAttributes()}, {@see iconWidth()}, {@see iconHeight()}, {@see linkAttributes()},
+ * {@see options()}, {@see clientOptions()}) must be called before {@see begin()}/{@see render()}, as asset
+ * registration and the opening `<div>` tag are produced during rendering.
  *
- * Inline SVG icons are rendered via {@see renderClientLogo()}. A client-provided logo (set via
- * {@see OAuth2Interface::setLogo()}) is embedded verbatim, exactly as given. Otherwise the logo registry is
- * used, falling back to a placeholder span if the client is unregistered. Icon sizing/styling via
- * {@see iconWidth()}, {@see iconHeight()}, and {@see iconAttributes()} only applies to registry/placeholder
- * icons, not client-provided logos. Display mode ({@see AuthChoiceDisplayMode::Icon},
- * {@see AuthChoiceDisplayMode::Text}, or {@see AuthChoiceDisplayMode::Both}) is set via {@see displayMode()}.
+ * Inline SVG icons are rendered via {@see renderClientLogo()}, always wrapped in a
+ * `<span class="auth-icon {name}">` styling/testing hook (customizable via {@see iconWrapperAttributes()}).
+ * A client-provided logo (set via {@see OAuth2Interface::setLogo()}) is embedded verbatim inside it, exactly
+ * as given. Otherwise the logo registry is used, falling back to an empty span if the client is
+ * unregistered. Icon sizing/styling via {@see iconWidth()}, {@see iconHeight()}, and {@see iconAttributes()}
+ * applies to the inner `<svg>` of registry icons only, not client-provided logos. Display mode
+ * ({@see AuthChoiceDisplayMode::Icon}, {@see AuthChoiceDisplayMode::Text}, or
+ * {@see AuthChoiceDisplayMode::Both}) is set via {@see displayMode()}.
  *
  * This widget respects the following keys from {@see AuthClientInterface::getViewOptions()}:
  *
@@ -106,9 +108,16 @@ final class AuthChoice extends Widget
     private AuthChoiceDisplayMode $displayMode = AuthChoiceDisplayMode::Icon;
 
     /**
-     * @var array HTML attributes for SVG icons, merged with the default `['class' => 'auth-icon']`.
+     * @var array HTML attributes for the inner `<svg>` of registry icons. Not applied to client-provided
+     * logos or the empty placeholder.
      */
     private array $iconAttributes = [];
+
+    /**
+     * @var array HTML attributes for the icon's wrapping `<span>`, merged with the default
+     * `['class' => 'auth-icon {name}']`. Applies to every icon regardless of source.
+     */
+    private array $iconWrapperAttributes = [];
 
     /**
      * @var string|null width of SVG icons. Set to null to omit the width attribute (e.g., when CSS handles sizing).
@@ -315,7 +324,9 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * @param array $iconAttributes HTML attributes for SVG icons, merged with default `['class' => 'auth-icon']`.
+     * @param array $iconAttributes HTML attributes for the inner `<svg>` of registry icons (e.g. sizing
+     * utility classes, `fill`, ARIA attributes). Not applied to client-provided logos or the empty
+     * placeholder - see {@see iconWrapperAttributes()} for attributes that apply to every icon.
      * Must be called before {@see begin()}/{@see render()} to take effect.
      *
      * @return self
@@ -323,6 +334,21 @@ final class AuthChoice extends Widget
     public function iconAttributes(array $iconAttributes): self
     {
         $this->iconAttributes = $iconAttributes;
+        return $this;
+    }
+
+    /**
+     * @param array $iconWrapperAttributes HTML attributes for the icon's wrapping `<span>`, merged with the
+     * default `['class' => 'auth-icon {name}']`. Unlike {@see iconAttributes()} (which only affects the
+     * inner `<svg>` of registry icons), these apply to every icon regardless of source - registry, custom
+     * logo, or the empty placeholder.
+     * Must be called before {@see begin()}/{@see render()} to take effect.
+     *
+     * @return self
+     */
+    public function iconWrapperAttributes(array $iconWrapperAttributes): self
+    {
+        $this->iconWrapperAttributes = $iconWrapperAttributes;
         return $this;
     }
 
@@ -411,43 +437,60 @@ final class AuthChoice extends Widget
     }
 
     /**
-     * Renders an inline SVG icon for the client. A client-provided logo (via {@see OAuth2Interface::getLogo()})
-     * is embedded verbatim, exactly as given - it is expected to be a complete, self-contained `<svg>` element
-     * (own `xmlns`, `viewBox`, sizing, styling); {@see iconWidth()}, {@see iconHeight()}, and
-     * {@see iconAttributes()} are not applied to it. Otherwise falls back to the registry, then a placeholder
-     * span.
+     * Renders an inline SVG icon for the client, wrapped in a `<span class="auth-icon {name}">` - a stable
+     * styling/testing hook present regardless of the icon source. A client-provided logo (via
+     * {@see OAuth2Interface::getLogo()}) is embedded verbatim inside it, exactly as given - it is expected to
+     * be a complete, self-contained `<svg>` element (own `xmlns`, `viewBox`, sizing, styling);
+     * {@see iconWidth()}, {@see iconHeight()}, and {@see iconAttributes()} are not applied to it. Otherwise
+     * falls back to the registry, then an empty span.
      */
     private function renderClientLogo(OAuth2Interface $client): string
     {
         $customLogo = $client->getLogo();
         if ($customLogo !== null) {
-            return $customLogo;
+            return $this->wrapIcon($client, $customLogo);
         }
 
         $svg = LogoRegistry::getLogo($client->getName());
-        if ($svg !== null) {
-            $attrs = ['class' => 'auth-icon', 'xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'preserveAspectRatio' => 'xMidYMid meet'];
-            if ($this->iconWidth !== null) {
-                $attrs['width'] = $this->iconWidth;
-            }
-            if ($this->iconHeight !== null) {
-                $attrs['height'] = $this->iconHeight;
-            }
-            $viewBox = LogoRegistry::getViewBox($client->getName());
-            /** @infection-ignore-all Only add viewBox when available to preserve aspect ratio for different logos */
-            if ($viewBox !== null) {
-                $attrs['viewBox'] = $viewBox;
-            }
-            foreach ($this->iconAttributes as $key => $value) {
-                $attrs[$key] = $value;
-            }
-            $attrStr = Html::renderTagAttributes($attrs);
-            /** @infection-ignore-all SVG structure: attributes, title, content, closing tag */
-            return "<svg$attrStr><title>" . Html::encode($client->getTitle()) . "</title>$svg</svg>";
+        if ($svg === null) {
+            return $this->wrapIcon($client, '');
         }
 
-        /** @infection-ignore-all Fallback span needs both auth-icon class and client name for styling/testing */
-        return Html::span('', ['class' => 'auth-icon ' . $client->getName()])->render();
+        $attrs = ['xmlns' => 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink', 'preserveAspectRatio' => 'xMidYMid meet'];
+        if ($this->iconWidth !== null) {
+            $attrs['width'] = $this->iconWidth;
+        }
+        if ($this->iconHeight !== null) {
+            $attrs['height'] = $this->iconHeight;
+        }
+        $viewBox = LogoRegistry::getViewBox($client->getName());
+        /** @infection-ignore-all Only add viewBox when available to preserve aspect ratio for different logos */
+        if ($viewBox !== null) {
+            $attrs['viewBox'] = $viewBox;
+        }
+        foreach ($this->iconAttributes as $key => $value) {
+            $attrs[$key] = $value;
+        }
+        $attrStr = Html::renderTagAttributes($attrs);
+        /** @infection-ignore-all SVG structure: attributes, title, content, closing tag */
+        $inner = "<svg$attrStr><title>" . Html::encode($client->getTitle()) . "</title>$svg</svg>";
+        return $this->wrapIcon($client, $inner);
+    }
+
+    /**
+     * Wraps icon content (an inline SVG, or nothing) in `<span class="auth-icon {name}">`, so the class hook
+     * consuming CSS targets for per-provider icon styling is present for every icon source. Merges in
+     * {@see iconWrapperAttributes()}, which can override the default `class`.
+     */
+    private function wrapIcon(OAuth2Interface $client, string $content): string
+    {
+        $attrs = ['class' => 'auth-icon ' . $client->getName()];
+        foreach ($this->iconWrapperAttributes as $key => $value) {
+            $attrs[$key] = $value;
+        }
+        return Html::span($content, $attrs)
+            ->encode(false)
+            ->render();
     }
 
     /**
