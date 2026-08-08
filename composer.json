@@ -37,6 +37,7 @@
         "psr/http-message-implementation": "1.0",
         "psr/http-server-handler": "^1.0.2",
         "psr/http-server-middleware": "^1.0.2",
+        "psr/simple-cache": "^2.0 || ^3.0",
         "psr/simple-cache-implementation": "*",
         "web-token/jwt-library": ">=4.0.6",
         "yiisoft/aliases": "^3.1",
@@ -46,6 +47,7 @@
         "yiisoft/http": "^1.2",
         "yiisoft/json": "^1.0",
         "yiisoft/router": "^4.0",
+        "yiisoft/security": "^1.2",
         "yiisoft/session": "^3.0",
         "yiisoft/view": "^12.2.1",
         "yiisoft/widget": "^2.2"
@@ -59,6 +61,7 @@
         "phpunit/phpunit": ">=11.5.9",
         "rector/rector": "^2.1.6",
         "roave/infection-static-analysis-plugin": ">=1.39",
+        "shipmonk/composer-dependency-analyser": "^1.8",
         "vimeo/psalm": "^6.13.1",
         "yiisoft/cache": "^3.1",
         "yiisoft/code-style": "^1.1",
@@ -109,6 +112,7 @@
     },
     "scripts": {
         "cs-fix": "php-cs-fixer fix",
+        "dependency-analyser": "composer-dependency-analyser",
         "rector": "rector",
         "test": "phpunit --stop-on-notice --display-phpunit-deprecations --testdox"
     }
