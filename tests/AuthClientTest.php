@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yiisoft\Yii\AuthClient\Tests;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -15,7 +14,6 @@ use Yiisoft\Yii\AuthClient\AuthClient;
 use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 
-#[AllowMockObjectsWithoutExpectations]
 final class AuthClientTest extends TestCase
 {
     public function testCreateRequestIsPubliclyCallable(): void
