@@ -7,7 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use Exception;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -23,7 +22,6 @@ use Yiisoft\Yii\AuthClient\StateStorage\SessionStateStorage;
 use Yiisoft\Yii\AuthClient\Tests\Data\Session;
 use Yiisoft\Yii\AuthClient\Tests\Data\TestClient;
 
-#[AllowMockObjectsWithoutExpectations]
 final class OAuthTest extends TestCase
 {
     public function testApiReturnsDecodedJsonOnSuccess(): void

@@ -7,7 +7,6 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -33,7 +32,6 @@ use function strlen;
 use const JSON_ERROR_NONE;
 use const PHP_URL_QUERY;
 
-#[AllowMockObjectsWithoutExpectations]
 final class OAuth2Test extends TestCase
 {
     // Tests :
