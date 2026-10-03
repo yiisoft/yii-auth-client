@@ -17,6 +17,7 @@ use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function array_key_exists;
 use function count;
 use function is_array;
 use function is_string;
@@ -355,6 +356,9 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
         $contents = $response->getBody()->getContents();
 
         $output = $this->parseTokenResponse($contents);
+        if (!array_key_exists('refresh_token', $output) && array_key_exists('refresh_token', $token->getParams())) {
+            $output['refresh_token'] = $token->getParam('refresh_token');
+        }
 
         return $this->createToken(['params' => $output]);
     }

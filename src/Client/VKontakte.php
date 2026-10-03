@@ -15,6 +15,7 @@ use Yiisoft\Json\Json;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
+use function array_key_exists;
 use function is_string;
 use function strlen;
 
@@ -159,6 +160,9 @@ final class VKontakte extends OAuth2
         $response = $this->sendRequest($request);
         $output = (array) Json::decode($response->getBody()->getContents());
         $output['device_id'] ??= $deviceId;
+        if (!array_key_exists('refresh_token', $output) && array_key_exists('refresh_token', $token->getParams())) {
+            $output['refresh_token'] = $token->getParam('refresh_token');
+        }
 
         return $this->createToken(['params' => $output]);
     }

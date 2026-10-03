@@ -7,6 +7,7 @@ namespace Yiisoft\Yii\AuthClient\Tests;
 use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -19,6 +20,7 @@ use Yiisoft\Di\Container;
 use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\Client\VKontakte;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -31,6 +33,7 @@ use function strlen;
 
 use const JSON_ERROR_NONE;
 use const PHP_URL_QUERY;
+use const JSON_THROW_ON_ERROR;
 
 final class OAuth2Test extends TestCase
 {
@@ -670,6 +673,42 @@ final class OAuth2Test extends TestCase
         $this->assertSame(['login' => 'octocat'], $result);
         $this->assertNotNull($capturedRequest);
         $this->assertSame('http://api.test.local', (string) $capturedRequest->getUri());
+    }
+
+    #[DataProvider('refreshTokenResponses')]
+    public function testRefreshTokenPreservation(bool $useVk, array $oldParams, array $responseParams, array $expected): void
+    {
+        $httpClient = $this->httpClientReturning(new Response(200, [], json_encode($responseParams, JSON_THROW_ON_ERROR)));
+        $client = $useVk
+            ? new VKontakte($httpClient, new Psr17Factory(), new DummyStateStorage(), new YiisoftFactory(), new Session())
+            : $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+        $oldToken = new OAuthToken();
+        $oldToken->setParams($oldParams + ['access_token' => 'old', 'expires_in' => -1, 'obsolete' => 'value']);
+
+        $newToken = $client->refreshAccessToken($oldToken);
+
+        $this->assertEquals($expected + ($useVk ? ['device_id' => ''] : []), $newToken->getParams());
+    }
+
+    public static function refreshTokenResponses(): iterable
+    {
+        foreach ([false, true] as $useVk) {
+            foreach ([
+                'omitted' => [['refresh_token' => 'old-refresh'], [], ['refresh_token' => 'old-refresh']],
+                'rotated' => [['refresh_token' => 'old-refresh'], ['refresh_token' => 'new-refresh'], ['refresh_token' => 'new-refresh']],
+                'absent' => [[], [], []],
+                'explicit null' => [['refresh_token' => 'old-refresh'], ['refresh_token' => null], ['refresh_token' => null]],
+            ] as $name => [$old, $response, $expected]) {
+                yield ($useVk ? 'VK ' : 'OAuth2 ') . $name => [
+                    $useVk,
+                    $old,
+                    ['access_token' => 'new', 'expires_in' => 3600] + $response,
+                    ['access_token' => 'new', 'expires_in' => 3600] + $expected,
+                ];
+            }
+        }
     }
 
     public function testRefreshAccessTokenReturnsNewToken(): void
