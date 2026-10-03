@@ -154,6 +154,27 @@ final class OAuthTest extends TestCase
         $this->assertSame(['original-refresh', 'rotated-refresh'], $refreshTokens);
     }
 
+    public function testFailedAutomaticRefreshPreservesStoredToken(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $writer = $this->createClient(stateStorage: $stateStorage);
+        $token = new OAuthToken();
+        $token->setToken('expired');
+        $token->setExpireDuration(-1);
+        $writer->setAccessToken($token);
+        $reader = $this->createClient($this->httpClientReturning(new Response(400)), $stateStorage);
+        $reader->setTokenUrl('http://token.local');
+        $reader->setClientSecret('secret');
+
+        try {
+            $reader->getAccessToken();
+            $this->fail('A rejected refresh must throw.');
+        } catch (InvalidResponseException) {
+            $token->setExpireDuration(3600);
+            $this->assertSame($token, $this->createClient(stateStorage: $stateStorage)->getAccessToken());
+        }
+    }
+
     public function testGetReturnUrlUsesDefaultRequestUriWhenNotSet(): void
     {
         $client = $this->createClient();

@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Yiisoft\Json\Json;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 
@@ -158,6 +159,11 @@ final class VKontakte extends OAuth2
 
         $request = $this->createTokenRequest($params);
         $response = $this->sendRequest($request);
+        $status = $response->getStatusCode();
+        if ($status < 200 || $status >= 300) {
+            throw new InvalidResponseException($response, 'Unable to refresh access token.', $status);
+        }
+
         $output = (array) Json::decode($response->getBody()->getContents());
         $output['device_id'] ??= $deviceId;
         if (!array_key_exists('refresh_token', $output) && array_key_exists('refresh_token', $token->getParams())) {

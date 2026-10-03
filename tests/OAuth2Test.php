@@ -21,6 +21,7 @@ use Yiisoft\Di\ContainerConfig;
 use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Session\SessionInterface;
 use Yiisoft\Yii\AuthClient\Client\VKontakte;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
 use Yiisoft\Yii\AuthClient\RequestUtil;
@@ -673,6 +674,36 @@ final class OAuth2Test extends TestCase
         $this->assertSame(['login' => 'octocat'], $result);
         $this->assertNotNull($capturedRequest);
         $this->assertSame('http://api.test.local', (string) $capturedRequest->getUri());
+    }
+
+    #[DataProvider('refreshErrorResponses')]
+    public function testRefreshRejectsHttpErrors(bool $useVk, int $status): void
+    {
+        $response = new Response($status, [], 'not JSON');
+        $httpClient = $this->httpClientReturning($response);
+        $client = $useVk
+            ? new VKontakte($httpClient, new Psr17Factory(), new DummyStateStorage(), new YiisoftFactory(), new Session())
+            : $this->createTestClient($httpClient);
+        $client->setTokenUrl('http://token.local');
+        $client->setClientSecret('secret');
+
+        try {
+            $client->refreshAccessToken(new OAuthToken());
+            $this->fail('An unsuccessful refresh must throw.');
+        } catch (InvalidResponseException $exception) {
+            $this->assertSame($response, $exception->getResponse());
+            $this->assertSame($status, $exception->getCode());
+            $this->assertSame('not JSON', (string) $response->getBody());
+        }
+    }
+
+    public static function refreshErrorResponses(): iterable
+    {
+        foreach ([false, true] as $useVk) {
+            foreach ([199, 300, 400, 500] as $status) {
+                yield [$useVk, $status];
+            }
+        }
     }
 
     #[DataProvider('refreshTokenResponses')]
