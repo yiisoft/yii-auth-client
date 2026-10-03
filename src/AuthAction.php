@@ -313,17 +313,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Redirect to the {@see cancelUrl} or simply close the popup window.
      *
-     * @param string $url URL to redirect.
-     *
      * @throws Throwable
      * @throws ViewNotFoundException
      *
      * @return ResponseInterface response instance.
      */
-    private function redirectCancel(?string $url = null): ResponseInterface
+    private function redirectCancel(): ResponseInterface
     {
-        $url ??= $this->cancelUrl;
-        return $this->redirect($url, false);
+        return $this->redirect($this->cancelUrl, false);
     }
 
     /**
@@ -389,18 +386,15 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
-     * Redirect to the URL. If URL is null, {@see successUrl} will be used.
-     *
-     * @param string|null $url URL to redirect.
+     * Redirect to {@see successUrl}.
      *
      * @throws Throwable
      * @throws ViewNotFoundException
      *
      * @return ResponseInterface response instance.
      */
-    private function redirectSuccess(?string $url = null): ResponseInterface
+    private function redirectSuccess(): ResponseInterface
     {
-        $url ??= $this->successUrl;
-        return $this->redirect($url);
+        return $this->redirect($this->successUrl);
     }
 }
