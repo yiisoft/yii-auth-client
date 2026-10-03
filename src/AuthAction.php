@@ -263,9 +263,7 @@ final class AuthAction implements MiddlewareInterface
              * @var string|null $queryParams['error_description']
              */
             $errorMessage = $queryParams['error_description'] ?? ((string) $queryParams['error_message'] ?: null);
-            if ($errorMessage === null) {
-                $errorMessage = http_build_query($queryParams);
-            }
+            $errorMessage ??= http_build_query($queryParams);
             throw new Exception('Auth error: ' . $errorMessage);
         }
 
@@ -324,9 +322,7 @@ final class AuthAction implements MiddlewareInterface
      */
     private function redirectCancel(?string $url = null): ResponseInterface
     {
-        if ($url === null) {
-            $url = $this->cancelUrl;
-        }
+        $url ??= $this->cancelUrl;
         return $this->redirect($url, false);
     }
 
@@ -404,9 +400,7 @@ final class AuthAction implements MiddlewareInterface
      */
     private function redirectSuccess(?string $url = null): ResponseInterface
     {
-        if ($url === null) {
-            $url = $this->successUrl;
-        }
+        $url ??= $this->successUrl;
         return $this->redirect($url);
     }
 }

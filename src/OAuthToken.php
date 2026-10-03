@@ -96,9 +96,7 @@ final class OAuthToken
      */
     public function getExpireDurationParamKey(): string
     {
-        if ($this->expireDurationParamKey === null) {
-            $this->expireDurationParamKey = $this->defaultExpireDurationParamKey();
-        }
+        $this->expireDurationParamKey ??= $this->defaultExpireDurationParamKey();
 
         return $this->expireDurationParamKey;
     }

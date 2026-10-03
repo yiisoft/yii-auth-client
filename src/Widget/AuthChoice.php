@@ -244,9 +244,7 @@ final class AuthChoice extends Widget
             };
             $encodeText = $this->displayMode === AuthChoiceDisplayMode::Text;
         }
-        if (!isset($htmlOptions['title'])) {
-            $htmlOptions['title'] = $client->getTitle();
-        }
+        $htmlOptions['title'] ??= $client->getTitle();
         $hasExplicitClass = isset($htmlOptions['class']);
         Html::addCssClass($htmlOptions, ['widget' => 'auth-link']);
         foreach ($this->linkAttributes as $key => $value) {

@@ -208,13 +208,11 @@ final class OpenIdConnect extends OAuth2
      */
     public function getValidateAuthNonce(): bool
     {
-        if ($this->validateAuthNonce === null) {
-            $this->validateAuthNonce = $this->validateJws && in_array(
-                'nonce',
-                (array) $this->getConfigParam('claims_supported'),
-                true,
-            );
-        }
+        $this->validateAuthNonce ??= $this->validateJws && in_array(
+            'nonce',
+            (array) $this->getConfigParam('claims_supported'),
+            true,
+        );
         return $this->validateAuthNonce;
     }
 

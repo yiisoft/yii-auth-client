@@ -150,9 +150,7 @@ final class Facebook extends OAuth2
         ?OAuthToken $token = null,
         array $params = [],
     ): string {
-        if ($token === null) {
-            $token = $this->getAccessToken();
-        }
+        $token ??= $this->getAccessToken();
         if (null !== $token) {
             $params = array_merge(
                 [
