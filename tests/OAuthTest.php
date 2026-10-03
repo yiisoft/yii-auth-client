@@ -116,6 +116,44 @@ final class OAuthTest extends TestCase
         $this->assertFalse($token->getIsExpired());
     }
 
+    public function testAutomaticRefreshPersistsRotatedTokenAcrossClients(): void
+    {
+        $stateStorage = new SessionStateStorage(new Session());
+        $writer = $this->createClient(stateStorage: $stateStorage);
+        $writer->setAccessToken(['params' => [
+            'access_token' => 'expired',
+            'refresh_token' => 'original-refresh',
+            'expires_in' => -1,
+        ]]);
+        $httpClient = $this->createMock(ClientInterface::class);
+        $refreshTokens = [];
+        $httpClient->expects($this->exactly(2))->method('sendRequest')->willReturnCallback(
+            static function (RequestInterface $request) use (&$refreshTokens): ResponseInterface {
+                parse_str((string) $request->getBody(), $params);
+                $refreshTokens[] = $params['refresh_token'];
+                return new Response(200, [], 'access_token=new&refresh_token=rotated-refresh&expires_in=3600');
+            },
+        );
+        $reader = $this->createClient($httpClient, $stateStorage);
+        $reader->setTokenUrl('http://token.local');
+        $reader->setClientSecret('secret');
+        $token = $reader->getAccessToken();
+        $this->assertNotNull($token);
+
+        $nextReader = $this->createClient($httpClient, $stateStorage);
+        $nextReader->setTokenUrl('http://token.local');
+        $nextReader->setClientSecret('secret');
+        $this->assertSame($token, $nextReader->getAccessToken());
+        $this->assertSame(['original-refresh'], $refreshTokens);
+
+        $token->setExpireDuration(-1);
+        $lastReader = $this->createClient($httpClient, $stateStorage);
+        $lastReader->setTokenUrl('http://token.local');
+        $lastReader->setClientSecret('secret');
+        $this->assertNotSame($token, $lastReader->getAccessToken());
+        $this->assertSame(['original-refresh', 'rotated-refresh'], $refreshTokens);
+    }
+
     public function testGetReturnUrlUsesDefaultRequestUriWhenNotSet(): void
     {
         $client = $this->createClient();

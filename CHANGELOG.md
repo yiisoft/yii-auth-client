@@ -3,4 +3,5 @@
 ## 1.0.0 under development
 
 - Bug: Preserve refresh tokens omitted from OAuth2 and VKontakte refresh responses.
+- Bug: Persist automatically refreshed access tokens for subsequent requests.
 - Initial release.
