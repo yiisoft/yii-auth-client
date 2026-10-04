@@ -15,8 +15,10 @@ use Yiisoft\Factory\Factory as YiisoftFactory;
 use Yiisoft\Http\Header;
 use Yiisoft\Json\Json;
 use Yiisoft\Session\SessionInterface;
+use Yiisoft\Yii\AuthClient\Exception\InvalidResponseException;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function array_key_exists;
 use function count;
 use function is_array;
 use function is_string;
@@ -339,6 +341,8 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
      *
      * @param OAuthToken $token expired auth token.
      *
+     * @throws InvalidResponseException if the token endpoint returns an unsuccessful HTTP response.
+     *
      * @return OAuthToken new auth token.
      */
     public function refreshAccessToken(OAuthToken $token): OAuthToken
@@ -352,9 +356,17 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
 
         $request = $this->applyClientCredentialsToRequest($request);
         $response = $this->sendRequest($request);
+        $status = $response->getStatusCode();
+        if ($status < 200 || $status >= 300) {
+            throw new InvalidResponseException($response, 'Unable to refresh access token.', $status);
+        }
+
         $contents = $response->getBody()->getContents();
 
         $output = $this->parseTokenResponse($contents);
+        if (!array_key_exists('refresh_token', $output) && array_key_exists('refresh_token', $token->getParams())) {
+            $output['refresh_token'] = $token->getParam('refresh_token');
+        }
 
         return $this->createToken(['params' => $output]);
     }

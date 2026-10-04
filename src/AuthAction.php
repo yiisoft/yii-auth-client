@@ -263,9 +263,7 @@ final class AuthAction implements MiddlewareInterface
              * @var string|null $queryParams['error_description']
              */
             $errorMessage = $queryParams['error_description'] ?? ((string) $queryParams['error_message'] ?: null);
-            if ($errorMessage === null) {
-                $errorMessage = http_build_query($queryParams);
-            }
+            $errorMessage ??= http_build_query($queryParams);
             throw new Exception('Auth error: ' . $errorMessage);
         }
 
@@ -315,19 +313,14 @@ final class AuthAction implements MiddlewareInterface
     /**
      * Redirect to the {@see cancelUrl} or simply close the popup window.
      *
-     * @param string $url URL to redirect.
-     *
      * @throws Throwable
      * @throws ViewNotFoundException
      *
      * @return ResponseInterface response instance.
      */
-    private function redirectCancel(?string $url = null): ResponseInterface
+    private function redirectCancel(): ResponseInterface
     {
-        if ($url === null) {
-            $url = $this->cancelUrl;
-        }
-        return $this->redirect($url, false);
+        return $this->redirect($this->cancelUrl, false);
     }
 
     /**
@@ -393,20 +386,15 @@ final class AuthAction implements MiddlewareInterface
     }
 
     /**
-     * Redirect to the URL. If URL is null, {@see successUrl} will be used.
-     *
-     * @param string|null $url URL to redirect.
+     * Redirect to {@see successUrl}.
      *
      * @throws Throwable
      * @throws ViewNotFoundException
      *
      * @return ResponseInterface response instance.
      */
-    private function redirectSuccess(?string $url = null): ResponseInterface
+    private function redirectSuccess(): ResponseInterface
     {
-        if ($url === null) {
-            $url = $this->successUrl;
-        }
-        return $this->redirect($url);
+        return $this->redirect($this->successUrl);
     }
 }

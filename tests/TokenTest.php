@@ -95,6 +95,27 @@ class TokenTest extends TestCase
         $this->assertSame('expires_in', $key);
     }
 
+    public function testExpirationUsesFirstMatchingParameter(): void
+    {
+        $token = new OAuthToken();
+        $token->setParams(['custom_expiry' => 3600, 'expires_in' => 1]);
+
+        $this->assertSame('custom_expiry', $token->getExpireDurationParamKey());
+        $this->assertSame(3600, $token->getExpireDuration());
+    }
+
+    public function testExpirationParameterRemainsSelectedWhenParametersChange(): void
+    {
+        $token = new OAuthToken();
+        $token->setParams(['custom_expiry' => 3600]);
+        $this->assertSame('custom_expiry', $token->getExpireDurationParamKey());
+
+        $token->setParams(['expires_in' => 1, 'custom_expiry' => 7200]);
+
+        $this->assertSame('custom_expiry', $token->getExpireDurationParamKey());
+        $this->assertSame(7200, $token->getExpireDuration());
+    }
+
     public function testGetExpireDurationParamKeyFindsCustomExpirationKeyInParams(): void
     {
         $oauthToken = new OAuthToken();

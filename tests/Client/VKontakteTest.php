@@ -499,7 +499,7 @@ final class VKontakteTest extends ProviderClientTestCase
 
         $newToken = $client->refreshAccessToken($expiredToken);
 
-        $this->assertSame([5, 'device_id' => 'the-device-id'], $newToken->getParams());
+        $this->assertSame([5, 'device_id' => 'the-device-id', 'refresh_token' => 'the-refresh-token'], $newToken->getParams());
     }
 
     public function testStep7TokenInvalidationReturnsEmptyArrayWithoutAccessToken(): void

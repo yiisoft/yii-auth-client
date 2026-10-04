@@ -95,6 +95,19 @@ final class AuthChoiceTest extends TestCase
         $this->assertSame($widget, $result);
     }
 
+    public function testClientLinkPreservesCustomTitle(): void
+    {
+        $client = $this->createTestClient();
+        $urlGenerator = $this->createUrlGeneratorStub();
+        $urlGenerator->method('generate')->willReturn('http://auth.local/callback');
+        $widget = $this->createWidget(['test' => $client], $urlGenerator)->authRoute('site/auth');
+
+        $html = $widget->clientLink($client, null, ['title' => 'Custom title']);
+
+        $this->assertStringContainsString('title="Custom title"', $html);
+        $this->assertStringNotContainsString('title="Test"', $html);
+    }
+
     public function testClientLinkRendersAnchorWithExpectedAttributes(): void
     {
         $client = $this->createTestClient();

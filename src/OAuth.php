@@ -269,7 +269,8 @@ abstract class OAuth extends AuthClient implements OAuthInterface
     {
         if (($token = $this->getState('token')) instanceof OAuthToken) {
             if ($token->getIsExpired() && $this->autoRefreshAccessToken) {
-                return $this->refreshAccessToken($token);
+                $token = $this->refreshAccessToken($token);
+                $this->saveAccessToken($token);
             }
             return $token;
         }
