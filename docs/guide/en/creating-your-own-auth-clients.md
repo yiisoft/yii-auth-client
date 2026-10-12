@@ -23,6 +23,15 @@ Extend [[\Yiisoft\Yii\AuthClient\OAuth2]] and provide, at minimum:
   Override it to call your `getCurrentUserJsonArray()` once an access token is available - this is what every
   built-in client does.
 
+The legacy `xoauth_displayname` parameter is not sent automatically, including when the request has an
+`auth_displayname` attribute. If your provider requires it, pass it explicitly:
+
+```php
+$url = $client->buildAuthUrl($request, ['xoauth_displayname' => 'My application']);
+```
+
+You can also include it in `setAuthParams()` for all authorization requests from that client.
+
 For example, a minimal client for a hypothetical `my.com` OAuth2 provider:
 
 ```php

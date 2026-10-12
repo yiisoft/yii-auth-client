@@ -833,7 +833,7 @@ final class OAuth2Test extends TestCase
         $this->assertSame($authUrlParams['state'], $client->getSessionAuthState());
     }
 
-    public function testBuildAuthUrlIncludesXoauthDisplaynameFromRequestAttribute(): void
+    public function testBuildAuthUrlOmitsXoauthDisplaynameFromRequestAttribute(): void
     {
         $client = $this->createClient();
         $client->setAuthUrl('http://auth.local');
@@ -843,7 +843,23 @@ final class OAuth2Test extends TestCase
 
         $authUrl = $client->buildAuthUrl($request, []);
 
-        $this->assertStringContainsString('xoauth_displayname=my-app', $authUrl);
+        parse_str((string) parse_url($authUrl, PHP_URL_QUERY), $params);
+        $this->assertArrayNotHasKey('xoauth_displayname', $params);
+    }
+
+    public function testBuildAuthUrlAllowsExplicitDisplayName(): void
+    {
+        $client = $this->createClient();
+        $client->setAuthUrl('http://auth.local');
+        $request = (new Psr17Factory())->createServerRequest('GET', 'https://example.com/callback');
+        $client->setAuthParams(['xoauth_displayname' => 'Configured application']);
+
+        parse_str((string) parse_url($client->buildAuthUrl($request), PHP_URL_QUERY), $configured);
+        $this->assertSame('Configured application', $configured['xoauth_displayname']);
+
+        $url = $client->buildAuthUrl($request, ['xoauth_displayname' => 'Explicit application']);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $explicit);
+        $this->assertSame('Explicit application', $explicit['xoauth_displayname']);
     }
 
     public function testBuildAuthUrlMergesCustomParamsOverDefaults(): void
