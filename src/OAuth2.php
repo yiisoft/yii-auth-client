@@ -109,7 +109,6 @@ abstract class OAuth2 extends OAuth implements OAuth2Interface
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->getOauth2ReturnUrl(),
-            'xoauth_displayname' => $incomingRequest->getAttribute(AuthAction::AUTH_NAME),
         ];
         if (!empty($this->getScope())) {
             $defaultParams['scope'] = $this->getScope();
