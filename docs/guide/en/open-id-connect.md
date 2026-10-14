@@ -39,3 +39,68 @@ step is needed.
   (it returns a new instance rather than mutating the client), so it cannot be set via the `clients` params
   array — that only maps config keys to `set*()` methods, see [Installation](installation.md). Use
   [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]] to switch it back on.
+
+RP-Initiated Logout
+-------------------
+
+`OpenIdConnect::buildLogoutUrl()` builds a browser redirect URL for
+[OpenID Connect RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html).
+The provider must support this specification; support for OIDC login alone is not enough.
+
+The client uses `end_session_endpoint` from provider discovery. To override it, call
+`setLogoutUrl('https://provider.example/logout')` or set `logoutUrl` in the client configuration.
+Passing `null` or an empty string restores discovery. If no endpoint is available, the method throws
+`Yiisoft\Yii\AuthClient\Exception\InvalidConfigException`. When discovery is not cached, building the
+URL makes a blocking HTTP request. Discovery, decoding, or cache access can fail, so local logout
+must still complete when URL generation throws.
+
+Build the URL before removing the session that holds the ID token. For example, the body of a logout
+action can use the following injected dependencies. Here, `$logoutLocally` is an application-provided
+callback that ends local authentication, clears stored provider tokens, and handles any persistent
+login cookies. Protect the action with POST-only routing and CSRF middleware.
+
+```php
+/** @var \Yiisoft\Yii\AuthClient\Client\OpenIdConnect $client */
+/** @var \Psr\Http\Message\ResponseFactoryInterface $responseFactory */
+/** @var \Psr\Log\LoggerInterface $logger */
+/** @var callable(): void $logoutLocally */
+
+$logoutUrl = null;
+try {
+    $logoutUrl = $client->buildLogoutUrl([
+        'post_logout_redirect_uri' => 'https://app.example/logged-out',
+    ]);
+} catch (\Exception $exception) {
+    $logger->warning('Unable to initiate provider logout.', ['exceptionClass' => $exception::class]);
+} finally {
+    $logoutLocally();
+}
+
+return $responseFactory->createResponse(303)->withHeader(
+    'Location',
+    $logoutUrl ?? 'https://app.example/logged-out',
+);
+```
+
+Use the client that authenticated the current user. Register the exact `post_logout_redirect_uri`
+with the provider and allow guests to access it. This URI is separate from the login `returnUrl`
+and is not added automatically. Without it, the provider decides where the browser ends up.
+When provider logout fails, tell the user that the provider session may still be active.
+
+The helper includes nonempty `client_id` and stored `id_token_hint` defaults. It reads the current
+or stored token without refreshing it, even when expired, and leaves later token reads unchanged.
+Explicit parameters override defaults. Pass `'id_token_hint' => null` to omit the stored ID token,
+or supply an ID token explicitly. You can also pass `logout_hint`, `ui_locales`, and provider-specific
+parameters. The provider may ask for confirmation, especially without an ID token hint.
+
+The generated URL uses GET. Its ID token may appear in browser history or request logs, and large
+tokens may exceed URL length limits. Omit `id_token_hint` if your provider supports logout without it.
+
+The optional `state` parameter is passed through without generation, storage, or validation.
+If the callback needs to correlate the request, generate an unpredictable value, retain it across
+local logout, then compare and consume it in the callback. A session destroyed during local logout
+cannot retain that state. A public informational logged-out page need not change session state.
+
+This method only builds the URL. End the local session even if the browser never returns from the
+provider. Do not reuse a client instance holding the old token after local logout. The helper does
+not revoke tokens or implement front-channel or back-channel logout notifications.
