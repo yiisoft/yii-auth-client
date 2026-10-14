@@ -28,8 +28,7 @@ PSR-18 client that branches on the request URI).
 Likewise, a PSR-17 `Psr\Http\Message\RequestFactoryInterface` is required to build outgoing requests
 (`AuthClient::createRequest()`); bind an implementation for that interface the same way.
 
-Custom response formats
------------------------
+## Custom response formats
 
 For a provider that returns JSONP, wrap the injected PSR-18 client with a decorator that converts
 the known response format to JSON. Auth clients will then read the converted response body through

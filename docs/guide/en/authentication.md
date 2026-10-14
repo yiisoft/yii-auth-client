@@ -1,5 +1,4 @@
-Authentication configuration and recovery
-=========================================
+# Authentication configuration and recovery
 
 ## Using one authentication provider
 

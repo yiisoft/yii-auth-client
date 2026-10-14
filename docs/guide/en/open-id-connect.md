@@ -40,8 +40,7 @@ step is needed.
   array — that only maps config keys to `set*()` methods, see [Installation](installation.md). Use
   [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]] to switch it back on.
 
-Reading group claims
---------------------
+## Reading group claims
 
 `OpenIdConnect::getUserAttributes()` reads the provider's UserInfo endpoint. Configure the provider
 and any required scopes to include the group claim there. Claim names vary between providers, so map
