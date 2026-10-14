@@ -225,3 +225,33 @@ The widget embeds this value verbatim, exactly as given, inside the `<span class
 - instead of falling back to the registry or the provider's title, and without injecting
 `width`/`height`/`viewBox` or merging in {@see AuthChoice::iconAttributes()} into the SVG itself. Make sure
 your SVG is a complete, self-contained element with its own `xmlns`, `viewBox`, and sizing.
+
+### Using a different client collection
+
+`AuthChoice` receives a `Collection` through its constructor. `setClients()` can replace the clients
+displayed by that widget, but it does not change the collection used by `AuthAction`. A generated link
+contains the client's name and targets `authRoute`; it does not carry the client's scope or collection.
+
+To render a separate collection, pass its clients to the widget before rendering:
+
+```php
+use Yiisoft\Yii\AuthClient\Collection;
+use Yiisoft\Yii\AuthClient\Widget\AuthChoice;
+
+/** @var Collection $repositoryClients Supplied by the application. */
+$choice = AuthChoice::widget()->authRoute('repository/auth')->popupMode(false);
+$choice->setClients($repositoryClients->getClients());
+echo $choice->render();
+```
+
+Register `repository/auth` with a path containing `{authclient}`, and configure its `AuthAction` with
+the same `$repositoryClients` collection through the constructor. Configure its success and cancel
+callbacks and URLs as in [Quick Start](quick-start.md). Use a separate action definition or factory
+when the main auth route must continue using the default collection.
+
+For separate scopes, create separate client instances with the required `scope` and `oauth2ReturnUrl`
+values. Keep each collection key equal to its client's `getName()`, since the action looks up that
+key from the route. Give instances of the same class distinct names across collections: state storage
+uses the class and name to distinguish their tokens and authentication state. OIDC discovery also
+uses the name in its cache key. Changing the widget's client list alone does not change the target
+action's clients or scopes.
