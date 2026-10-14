@@ -20,6 +20,7 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -35,8 +36,10 @@ use Yiisoft\Yii\AuthClient\Exception\ClientException;
 use Yiisoft\Yii\AuthClient\Exception\InvalidConfigException;
 use Yiisoft\Yii\AuthClient\OAuth2;
 use Yiisoft\Yii\AuthClient\OAuthToken;
+use Yiisoft\Yii\AuthClient\RequestUtil;
 use Yiisoft\Yii\AuthClient\StateStorage\StateStorageInterface;
 
+use function array_key_exists;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -81,6 +84,9 @@ final class OpenIdConnect extends OAuth2
      * @var string OpenID Issuer
      */
     private string $issuerUrl = 'https://{IdentityProviderDomain}';
+
+    private ?string $logoutUrl = null;
+
     /**
      * @var bool whether to validate/decrypt JWS received with Auth token.
      * You can disable this option in case of usage of a trusted OpenID Connect provider, however this violates
@@ -150,6 +156,62 @@ final class OpenIdConnect extends OAuth2
             $this->authUrl = (string) $this->getConfigParam('authorization_endpoint');
         }
         return parent::buildAuthUrl($incomingRequest, $params);
+    }
+
+    /**
+     * Builds a URL for redirecting the browser to the provider for RP-Initiated Logout.
+     * Build it before clearing the local session so the stored ID token remains available.
+     * Discovery can fail; ensure local logout still completes if this method throws.
+     * This method does not log out the local user or generate or validate callback state.
+     *
+     * @param array<string, mixed> $params Logout GET parameters, such as `post_logout_redirect_uri`, `state`,
+     * `logout_hint` and `ui_locales`. Register the return URI with the provider.
+     * Nonempty `client_id` and stored `id_token_hint` values are included by default.
+     * Explicit parameters override defaults; use `null` to omit a parameter. Expired tokens are not refreshed.
+     *
+     * @throws InvalidConfigException If no logout endpoint is available or the issuer URL is missing.
+     * @throws InvalidArgumentException If the discovery cache key is invalid.
+     * @throws ClientExceptionInterface If the discovery request fails.
+     *
+     * @see https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+     */
+    public function buildLogoutUrl(array $params = []): string
+    {
+        $logoutUrl = $this->logoutUrl;
+        if ($logoutUrl === null || $logoutUrl === '') {
+            $logoutUrl = $this->getConfigParam('end_session_endpoint');
+        }
+        if (!is_string($logoutUrl) || $logoutUrl === '') {
+            throw new InvalidConfigException(
+                'The OpenID provider does not specify an "end_session_endpoint". '
+                . 'Configure "logoutUrl" to use RP-Initiated Logout.',
+            );
+        }
+
+        $defaultParams = [];
+        if ($this->clientId !== '') {
+            $defaultParams['client_id'] = $this->clientId;
+        }
+        if (!array_key_exists('id_token_hint', $params)) {
+            $idToken = $this->getAccessTokenWithoutRefresh()?->getParam('id_token');
+            if ($idToken !== null && $idToken !== '') {
+                $defaultParams['id_token_hint'] = $idToken;
+            }
+        }
+
+        $params = array_filter(array_merge($defaultParams, $params), static fn(mixed $value): bool => $value !== null);
+
+        return RequestUtil::composeUrl($logoutUrl, $params);
+    }
+
+    /**
+     * Sets the logout endpoint. Use `null` or an empty string to use the discovered `end_session_endpoint`.
+     *
+     * @see OpenIdConnect::buildLogoutUrl()
+     */
+    public function setLogoutUrl(?string $logoutUrl): void
+    {
+        $this->logoutUrl = $logoutUrl;
     }
 
     /**

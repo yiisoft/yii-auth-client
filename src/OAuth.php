@@ -278,6 +278,15 @@ abstract class OAuth extends AuthClient implements OAuthInterface
     }
 
     /**
+     * Reads the current or stored access token without refreshing it or changing the in-memory token.
+     */
+    protected function getAccessTokenWithoutRefresh(): ?OAuthToken
+    {
+        $token = $this->accessToken ?? $this->getState('token');
+        return $token instanceof OAuthToken ? $token : null;
+    }
+
+    /**
      * Creates token from its configuration.
      *
      * @param array $tokenConfig token configuration.
