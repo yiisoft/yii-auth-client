@@ -49,6 +49,9 @@ $request = $client->beforeApiRequestSend($request);
 $response = $httpClient->sendRequest($request);
 ```
 
+For rejected refresh tokens, see
+[Handling a rejected refresh token](authentication.md#handling-a-rejected-refresh-token).
+
 Request created via [[\Yiisoft\Yii\AuthClient\OAuth::createApiRequest()]] still needs the access token applied
 before being sent - `api()` does this automatically via `beforeApiRequestSend()`. If you build the request via
 [[\Yiisoft\Yii\AuthClient\AuthClient::createRequest()]] directly instead, you're responsible for calling

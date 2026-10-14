@@ -18,4 +18,5 @@ Additional topics
 * [Getting additional data via extra API calls](usage-api.md)
 * [Creating your own auth clients](creating-your-own-auth-clients.md)
 * [OpenID Connect](open-id-connect.md)
+* [Authentication configuration and recovery](authentication.md)
 * [Setup HTTP Client](setup-http-client.md)

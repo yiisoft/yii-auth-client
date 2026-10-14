@@ -12,6 +12,7 @@ application needs, then attach it to a route.
 ```php
 use Psr\Http\Message\ResponseFactoryInterface;
 use Yiisoft\Aliases\Aliases;
+use Yiisoft\Router\CurrentRoute;
 use Yiisoft\View\WebView;
 use Yiisoft\Yii\AuthClient\AuthAction;
 use Yiisoft\Yii\AuthClient\AuthClientInterface;
@@ -23,7 +24,8 @@ return [
         Aliases $aliases,
         WebView $view,
         ResponseFactoryInterface $responseFactory,
-    ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory))
+        CurrentRoute $currentRoute,
+    ) => (new AuthAction($clientCollection, $aliases, $view, $responseFactory, $currentRoute))
         ->withSuccessUrl('/site/index')
         ->withCancelUrl('/site/login')
         ->withSuccessCallback(function (AuthClientInterface $client) {
@@ -134,3 +136,6 @@ the name of the route registered above:
 ```
 
 By default, it renders a link per configured client, opening the auth flow in a popup window.
+
+For direct login with one provider and callback cookie settings, see
+[Authentication configuration and recovery](authentication.md).
