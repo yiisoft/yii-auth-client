@@ -40,6 +40,36 @@ step is needed.
   array — that only maps config keys to `set*()` methods, see [Installation](installation.md). Use
   [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect::withValidateJws()]] to switch it back on.
 
+Reading group claims
+--------------------
+
+`OpenIdConnect::getUserAttributes()` reads the provider's UserInfo endpoint. Configure the provider
+and any required scopes to include the group claim there. Claim names vary between providers, so map
+them in your authentication success callback. For a provider returning nested `realm_access.roles`:
+
+```php
+use Yiisoft\Yii\AuthClient\Client\OpenIdConnect;
+
+/** @var OpenIdConnect $client */
+$attributes = $client->getUserAttributes();
+$groups = $attributes['realm_access']['roles'] ?? [];
+if (!is_array($groups)) {
+    $groups = [];
+}
+```
+
+Use the returned groups with your application's own membership or permission rules. Reading or mapping
+a group claim does not request additional claims or assign application roles automatically.
+
+This client requires a discovered `userinfo_endpoint` for `getUserAttributes()`. It does not fall back
+to ID-token claims when that endpoint is absent, and it does not merge UserInfo with ID-token claims.
+If groups appear only in the ID token, configure the provider to return them from UserInfo or implement
+an application-specific claims integration. Keep JWS validation enabled.
+
+`OpenIdConnect` is `final` and has no normalization-map setter. Use application-level mapping as above;
+the normalization hook described in [Creating your own auth clients](creating-your-own-auth-clients.md)
+is for clients you implement yourself.
+
 RP-Initiated Logout
 -------------------
 

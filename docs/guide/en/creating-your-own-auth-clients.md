@@ -2,8 +2,9 @@ Creating your own auth clients
 ==============================
 
 You may create your own auth client for any external auth provider that supports the OAuth 2 protocol
-(this includes OpenID Connect providers - extend [[\Yiisoft\Yii\AuthClient\Client\OpenIdConnect]] instead if the
-provider exposes a standard `.well-known/openid-configuration` discovery document).
+(this includes OpenID Connect providers). If the provider exposes a standard
+`.well-known/openid-configuration` discovery document, configure the existing
+`Yiisoft\Yii\AuthClient\Client\OpenIdConnect` client instead; that class is `final`.
 
 Extend [[\Yiisoft\Yii\AuthClient\OAuth2]] and provide, at minimum:
 
@@ -119,6 +120,7 @@ protected function defaultNormalizeUserAttributeMap(): array
         'about' => 'bio',
         'language' => ['languages', 0, 'name'],
         'fullName' => static fn (array $attributes) => $attributes['firstName'] . ' ' . $attributes['lastName'],
+        'contact' => static fn (array $attributes) => $attributes['email'] ?? $attributes['name'] ?? null,
     ];
 }
 ```
@@ -126,6 +128,20 @@ protected function defaultNormalizeUserAttributeMap(): array
 Each entry maps a normalized attribute name to either a raw attribute name (string), a path into nested raw
 attributes (array of keys), or a callback receiving the raw attributes array. `getUserAttributes()` returns the
 raw attributes merged with these normalized ones.
+
+For example, `['languages', 0, 'name']` reads `$attributes['languages'][0]['name']`. If a path segment
+is missing or an intermediate value is not an array, the normalized value is `null`. A missing raw
+attribute also maps to `null`. These values overwrite any raw attribute with the same normalized name;
+other raw attributes remain available.
+
+An array such as `['email', 'name']` reads `$attributes['email']['name']`; it does not try two alternative
+fields. Use a callback such as `contact` above for fallback values. Each mapping receives the original
+raw attributes, so callbacks cannot depend on values produced by earlier mappings.
+
+There is no `setNormalizeUserAttributeMap()` method, so `normalizeUserAttributeMap` is not a supported
+client configuration key. Override `defaultNormalizeUserAttributeMap()` in your own client, or map
+the result of `getUserAttributes()` in application code when using a built-in `final` client. For OIDC
+group claims, see [Reading group claims](open-id-connect.md#reading-group-claims).
 
 > Note: Some OAuth providers may not follow the OAuth standard clearly, introducing differences that require
   additional effort to implement a client for.
