@@ -33,13 +33,13 @@ pu: ## Run PHPUnit tests
 endif
 
 ifeq ($(PRIMARY_GOAL),ric)
-ric: ## Roave Infection Covered
-	php vendor/bin/roave-infection-static-analysis-plugin --only-covered --min-msi=92
+ric: ## Infection Covered
+	php vendor/bin/infection --only-covered --min-msi=92
 endif
 
 ifeq ($(PRIMARY_GOAL),riu)
-riu: ## Roave Infection Uncovered
-	php vendor/bin/roave-infection-static-analysis-plugin --min-msi=92
+riu: ## Infection Uncovered
+	php vendor/bin/infection --min-msi=92
 endif
 
 ifeq ($(PRIMARY_GOAL),i)
