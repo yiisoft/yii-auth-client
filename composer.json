@@ -61,7 +61,7 @@
         "phpunit/phpunit": "^11.5.9",
         "rector/rector": "^2.1.6",
         "shipmonk/composer-dependency-analyser": "^1.8",
-        "vimeo/psalm": "^6.13.1",
+        "vimeo/psalm": "^6.13.1 || ^7.0.0",
         "yiisoft/cache": "^3.1",
         "yiisoft/code-style": "^1.1",
         "yiisoft/di": "^1.4",
